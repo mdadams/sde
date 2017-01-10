@@ -1,5 +1,8 @@
 #! /bin/bash
 
+# Reference: http://tex.stackexchange.com/questions/342612/tex-live-installation-specify-just-the-scheme-on-the-command-line
+# Reference: https://www.tug.org/texlive/quickinstall.html
+
 panic()
 {
 	echo "ERROR: $@"
