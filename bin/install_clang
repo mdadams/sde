@@ -104,8 +104,4 @@ tar -xJf "$archive_dir/compiler-rt-$version.src.tar.xz" \
 
 (cd "$build_dir" && make install) || panic "make install failed"
 
-cat <<- EOF
-To cleanup, type:
-   rm -rf "$tmp_dir"
-EOF
-
+rm -rf "$tmp_dir"

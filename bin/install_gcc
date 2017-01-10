@@ -76,9 +76,6 @@ tar -xjf "$archive_file" -C "$src_dir" --strip-components=1 || \
 (cd "$build_dir" && make install) || \
   panic "make install failed"
 
-cat <<- EOF
-	To cleanup, type:
-	rm -rf "$tmp_dir"
-EOF
+rm -rf "$tmp_dir"
 
 exit 0
