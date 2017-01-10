@@ -1,0 +1,4 @@
+if [ -f "$HOME/.bashrc" ]; then
+	source "$HOME/.bashrc"
+fi
+PS1="${SDE_NAME}::${PS1}"

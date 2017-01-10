@@ -1,0 +1,10 @@
+#! /bin/sh
+
+if [ $# -ne 1 ]; then
+	echo "usage: $0 directory"
+	exit 2
+fi
+
+dir="$1"
+find "$dir" -type d -exec chmod a+rx {} \;
+find "$dir" -type f -exec chmod a+r {} \;

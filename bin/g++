@@ -1,0 +1,37 @@
+#! /bin/bash
+
+panic()
+{
+	echo "FATAL ERROR: $@" 1>&2
+	exit 1
+}
+
+eprint()
+{
+	echo "$@" 1>&2
+}
+
+cmd_dir=`dirname $0` || panic "cannot get command directory"
+debug_level=${SDE_DEBUG_LEVEL:-0}
+
+if [ -z "$SDE_CXX" ]; then
+	panic "SDE_CXX not set"
+fi
+if [ ! -x "$SDE_CXX" ]; then
+	panic "no execute permission on file $SDE_CXX"
+fi
+
+unset opts
+if [ -n "$SDE_CXX_OPTIONS_PREFIX" ]; then
+	opts+=($SDE_CXX_OPTIONS_PREFIX)
+fi
+opts+=("$@")
+if [ -n "$SDE_CXX_OPTIONS_SUFFIX" ]; then
+	opts+=($SDE_CXX_OPTIONS_SUFFIX)
+fi
+
+if [ $debug_level -ge 1 ]; then
+	eprint "Running $SDE_CXX ${opts[@]}"
+fi
+"$SDE_CXX" "${opts[@]}"
+

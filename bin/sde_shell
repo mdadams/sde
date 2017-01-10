@@ -1,0 +1,56 @@
+#! /bin/bash
+
+panic()
+{
+	echo "FATAL ERROR: $@" 1>&2
+	exit 1
+}
+
+eprint()
+{
+	echo "$@" 1>&2
+}
+
+cmd_dir=`dirname $0` || panic "cannot get command directory"
+top_dir="$cmd_dir/.."
+bashrc="$cmd_dir/sde_shell_bashrc"
+setup="$cmd_dir/sde_setup"
+make_setup="$cmd_dir/sde_make_setup"
+
+gcc_version=
+while getopts V:s: opt; do
+	case "$opt" in
+	V)
+		gcc_version="$OPTARG";;
+	esac
+done
+
+shell=`basename "$SHELL"` || panic "cannot get shell"
+
+unset make_setup_opts
+if [ -n "$gcc_version" ]; then
+	opts+=(-V "$gcc_version")
+fi
+
+eval `$make_setup "${opts[@]}" -s bash` || panic "eval failed"
+
+motd_file="$top_dir/etc/motd"
+if [ -f "$motd_file" ]; then
+	cat "$motd_file"
+fi
+
+case "$shell" in
+bash)
+	"$SHELL" --init-file $bashrc -i
+	;;
+csh|tcsh)
+	"$shell" -i
+	;;
+*)
+	eprint "The shell $SHELL is not supported."
+	bash=`which bash` || panic "cannot find bash shell"
+	eprint "Using shell $bash instead."
+	eprint "It is recommended that you ask the system administrator to change your login shell to bash."
+	"$bash" --init-file $bashrc -i
+	;;
+esac

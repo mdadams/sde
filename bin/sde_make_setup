@@ -1,0 +1,251 @@
+#! /bin/bash
+
+panic()
+{
+	echo "FATAL ERROR: $@" 1>&2
+	exit 1
+}
+
+eecho()
+{
+	echo "$@" 1>&2
+}
+
+add_to_path()
+{
+	if [ $# -ne 3 ]; then
+		return 1
+	fi
+	local path="$1"
+	local prefix="$2"
+	local suffix="$3"
+	if [ -n "$prefix" ]; then
+		if [ -n "$path" ]; then
+			path="$prefix:$path"
+		else
+			path="$prefix"
+		fi
+	fi
+	if [ -n "$suffix" ]; then
+		if [ -n "$path" ]; then
+			path="$path:$suffix"
+		else
+			path="$suffix"
+		fi
+	fi
+	echo "$path"
+}
+
+bash_setup()
+{
+	echo 'export SDE_NAME='"$SDE_NAME"';' || return 1
+	echo 'export SDE_TOP_DIR='"$SDE_TOP_DIR"';' || return 1
+
+	local path=`add_to_path "$PATH" "$SDE_PATH_PREFIX" "$SDE_PATH_SUFFIX"` || \
+	  return 1
+	echo 'export PATH='\"$path\"';' || \
+	  return 1
+
+	echo 'export SDE_CXX='"$SDE_CXX"';' || \
+	  return 1
+	echo 'export SDE_CXX_OPTIONS_PREFIX='\""$SDE_CXX_OPTIONS_PREFIX"\"';' || \
+	  return 1
+	echo 'export SDE_CXX_OPTIONS_SUFFIX='\""$SDE_CXX_OPTIONS_SUFFIX"\"';' || \
+	  return 1
+	echo 'export CXX='"$SDE_CXX"';' || \
+	  return 1
+
+	echo 'export SDE_CC='"$SDE_CC"';' || \
+	  return 1
+	echo 'export SDE_CC_OPTIONS_PREFIX='\""$SDE_CC_OPTIONS_PREFIX"\"';' || \
+	  return 1
+	echo 'export SDE_CC_OPTIONS_SUFFIX='\""$SDE_CC_OPTIONS_SUFFIX"\"';' || \
+	  return 1
+	echo 'export CC='"$SDE_CC"';' || \
+	  return 1
+
+	echo 'export SDE_DB='"$SDE_DB"';' || \
+	  return 1
+
+	local path=`add_to_path "$LD_LIBRARY_PATH" "$SDE_LD_LIBRARY_PATH_PREFIX" \
+	  "$SDE_LD_LIBRARY_PATH_SUFFIX"` || return 1
+	echo 'export LD_LIBRARY_PATH='\"$path\"';' || \
+	  return 1
+}
+
+tcsh_setup()
+{
+	echo 'setenv SDE_NAME '"$SDE_NAME"';' || return 1
+	echo 'setenv SDE_TOP_DIR '"$SDE_TOP_DIR"';' || return 1
+
+	local path=`add_to_path "$PATH" "$SDE_PATH_PREFIX" "$SDE_PATH_SUFFIX"` || \
+	  return 1
+	echo 'setenv PATH '\"$path\"';' || return 1
+
+	echo 'setenv SDE_CXX '"$SDE_CXX"';' || \
+	  return 1
+	echo 'setenv SDE_CXX_OPTIONS_PREFIX '\""$SDE_CXX_OPTIONS_PREFIX"\"';' || \
+	  return 1
+	echo 'setenv SDE_CXX_OPTIONS_SUFFIX '\""$SDE_CXX_OPTIONS_SUFFIX"\"';' || \
+	  return 1
+	echo 'setenv CXX '"$SDE_CXX"';' || \
+	  return 1
+
+	echo 'setenv SDE_CC '"$SDE_CC"';' || \
+	  return 1
+	echo 'setenv SDE_CC_OPTIONS_PREFIX '\""$SDE_CC_OPTIONS_PREFIX"\"';' || \
+	  return 1
+	echo 'setenv SDE_CC_OPTIONS_SUFFIX '\""$SDE_CC_OPTIONS_SUFFIX"\"';' || \
+	  return 1
+	echo 'setenv CC '"$SDE_CC"';' || \
+	  return 1
+
+	echo 'setenv SDE_DB '"$SDE_DB"';' || \
+	  return 1
+
+	local path=`add_to_path "$LD_LIBRARY_PATH" "$SDE_LD_LIBRARY_PATH_PREFIX" \
+	  "$SDE_LD_LIBRARY_PATH_SUFFIX"` || return 1
+	echo 'setenv LD_LIBRARY_PATH '\"$path\"';' || \
+	  return 1
+}
+
+make_config()
+{
+	local i
+	if [ -n "$SDE_INC_DIRS" ]; then
+		for i in $SDE_INC_DIRS; do
+			SDE_CXX_OPTIONS_PREFIX="$SDE_CXX_OPTIONS_PREFIX -I $i"
+		done
+	fi
+	if [ -n "$SDE_LIB_DIRS" ]; then
+		for i in $SDE_LIB_DIRS; do
+			SDE_CXX_OPTIONS_SUFFIX="$SDE_CXX_OPTIONS_SUFFIX -L $i"
+			SDE_CXX_OPTIONS_SUFFIX="$SDE_CXX_OPTIONS_SUFFIX -Wl,-rpath,$i"
+		done
+	fi
+}
+
+cmd_dir=`dirname $0` || panic "cannot get directory name"
+abs_cmd_dir=`readlink -f "$cmd_dir"` || \
+  panic "cannot get canonical directory name"
+
+verbose=0
+shell=bash
+name=
+
+while getopts vn:s: opt; do
+	case "$opt" in
+	n)
+		name="$OPTARG";;
+	s)
+		shell="$OPTARG";;
+	v)
+		verbose=1;;
+	esac
+done
+
+case "$SHELL" in
+*bash*)
+	shell=bash;;
+*tcsh*)
+	shell=tcsh;;
+esac
+
+SDE_TOP_DIR="$abs_cmd_dir/.."
+SDE_CANON_TOP_DIR=`readlink -f "$SDE_TOP_DIR"` || panic "readlink failed"
+
+if [ -z "$name" ]; then
+	SDE_NAME=`basename "$SDE_CANON_TOP_DIR"` || panic "basename failed"
+else
+	SDE_NAME="$name"
+fi
+
+hostname=`hostname | tr '[:upper:]' '[:lower:]'` || \
+  panic "cannot get hostname"
+
+# These variables are not exported to the environment.
+# SDE_PATH_PREFIX
+# SDE_PATH_SUFFIX
+# SDE_LIB_DIRS
+# SDE_INC_DIRS
+
+# These environment varables are used by the SDE.
+# SDE_CXX
+# SDE_CXX_OPTIONS_PREFIX
+# SDE_CXX_OPTIONS_SUFFIX
+# SDE_CC
+# SDE_CC_OPTIONS_PREFIX
+# SDE_CC_OPTIONS_SUFFIX
+# SDE_DB
+# SDE_LD_LIBRARY_PATH_PREFIX
+# SDE_LD_LIBRARY_PATH_SUFFIX
+
+#unset SDE_PATH_PREFIX
+SDE_PATH_PREFIX="$SDE_TOP_DIR/bin"
+SPL_TOP_DIR="$SDE_TOP_DIR/SPL"
+unset SDE_PATH_SUFFIX
+unset SDE_CXX_OPTIONS_PREFIX
+unset SDE_CXX_OPTIONS_SUFFIX
+unset SDE_CC_OPTIONS_PREFIX
+unset SDE_CC_OPTIONS_SUFFIX
+unset SDE_LD_LIBRARY_PATH_PREFIX
+unset SDE_LD_LIBRARY_PATH_SUFFIX
+
+case "$SDE_NAME" in
+
+ugls_lab_2)
+	SDE_LIB_DIRS="$SDE_TOP_DIR/root/usr/lib64 $SPL_TOP_DIR/lib"
+	SDE_INC_DIRS="$SPL_TOP_DIR/include"
+	SDE_CXX="$SDE_TOP_DIR/root/usr/bin/g++-6.1.0"
+	SDE_CXX_OPTIONS_PREFIX="-std=c++14"
+	SDE_CC="$SDE_TOP_DIR/root/usr/bin/gcc-6.1.0"
+	SDE_DB=/usr/bin/gdb
+	make_config
+	;;
+
+dsp_lab-gcc-6.2.0)
+	SDE_LIB_DIRS="$SDE_TOP_DIR/root/usr/lib64 $SPL_TOP_DIR/lib"
+	SDE_INC_DIRS="$SPL_TOP_DIR/include"
+	SDE_CXX="$SDE_TOP_DIR/root/usr/bin/g++-6.2.0"
+	SDE_CXX_OPTIONS_PREFIX="-std=c++14"
+	SDE_CC="$SDE_TOP_DIR/root/usr/bin/gcc-6.2.0"
+	SDE_CC_OPTIONS_PREFIX="-std=c11"
+	SDE_DB=/usr/bin/gdb
+	SDE_LD_LIBRARY_PATH_PREFIX=""
+	for i in $SDE_LIB_DIRS; do
+		SDE_LD_LIBRARY_PATH_PREFIX=`add_to_path "$SDE_LD_LIBRARY_PATH_PREFIX" "$i" ""`
+	done
+	make_config
+	;;
+
+aurora_lab_3)
+	SDE_LIB_DIRS="$SDE_TOP_DIR/root/usr/lib64 $SPL_TOP_DIR/lib"
+	SDE_INC_DIRS="$SPL_TOP_DIR/include"
+	SDE_CXX="$SDE_TOP_DIR/root/usr/bin/g++-5.3.0"
+	SDE_CXX_OPTIONS_PREFIX="-std=c++14"
+	SDE_CC="$SDE_TOP_DIR/root/usr/bin/gcc-5.3.0"
+	SDE_DB=/usr/bin/gdb
+	make_config
+	;;
+
+*)
+	;;
+
+esac
+
+if [ $verbose -ne 0 ]; then
+	eecho "name $name"
+	eecho "shell $shell"
+fi
+
+case "$shell" in
+bash)
+	bash_setup;;
+tcsh)
+	tcsh_setup;;
+*)
+	panic "Unsupported shell $shell";;
+esac
+
+exit
+

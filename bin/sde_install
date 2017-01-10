@@ -1,0 +1,72 @@
+#! /bin/bash
+
+panic()
+{
+	echo "FATAL ERROR: $@" 1>&2
+	exit 1
+}
+
+eprint()
+{
+	echo "$@" 1>&2
+}
+
+cmd_dir=`dirname $0` || panic "cannot get command directory"
+
+if [ $# -ne 1 ]; then
+	eprint "usage: $0 top_dir"
+	exit 2
+fi
+
+top_dir=$1
+
+if [ ! -d $top_dir ]; then
+	panic "invalid top directory specified $top_dir"
+fi
+
+for dir in bin data etc SPL; do
+	if [ ! -d "$top_dir/$dir" ]; then
+		mkdir -p "$top_dir/$dir" || panic "cannot make directory $dir"
+	fi
+done
+
+# non-executables in $top_dir directory
+for file in README; do
+	echo "installing $file in $top_dir"
+	install -m a+r $cmd_dir/$file $top_dir/$file || \
+	  panic "cannot install $file"
+done
+
+# non-executables in $top_dir/etc directory
+for file in motd; do
+	echo "installing $file in $top_dir/etc"
+	install -m a+r $cmd_dir/$file $top_dir/etc || \
+	  panic "cannot install $file"
+done
+
+# executables in $top_dir/bin directory
+for file in sde_shell sde_make_setup g++ gcc gdb; do
+	echo "installing $file in $top_dir/bin"
+	install -m a+rx $cmd_dir/$file $top_dir/bin || \
+	  panic "cannot install $file"
+done
+
+# non-executables in $top_dir/bin directory
+for file in sde_shell_bashrc; do
+	echo "installing $file in $top_dir/bin"
+	install -m a+r $cmd_dir/$file $top_dir/bin || \
+	  panic "cannot install $file"
+done
+
+# executables in $top_dir/root/usr/bin directory
+#for file in gcc g++ gdb; do
+#	echo "installing $file in $top_dir/root/usr/bin"
+#	install -m a+rx $cmd_dir/$file $top_dir/root/usr/bin || \
+#	  panic "cannot install $file"
+#done
+
+if [ 1 -ne 0 ]; then
+	echo "giving world access to $top_dir"
+	$cmd_dir/give_world_access $top_dir || panic "failed"
+fi
+
