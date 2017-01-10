@@ -1,16 +1,25 @@
 #! /bin/bash
 
-sde_top_dir="$HOME/public/dsp_lab"
+cmd_dir=$(dirname "$0") || exit 1
+
+sde_top_dir="$HOME/public/dspg_lab"
 packages_dir="$sde_top_dir/packages"
 
 cmake_version=3.7.1
 gcc_version=6.3.0
 clang_version=3.9.1
 
-install_cmake -v "$cmake_version" -d "$packages_dir/cmake-$cmake_version" || \
+install_cmake="$cmd_dir/install_cmake"
+install_gcc="$cmd_dir/install_gcc"
+install_clang="$cmd_dir/install_clang"
+
+"$install_cmake" \
+  -v "$cmake_version" -d "$packages_dir/cmake-$cmake_version" || \
   panic "cannot install cmake"
-install_gcc -v "$gcc_version" -d "$packages_dir/gcc-$gcc_version" || \
+"$install_gcc" \
+  -v "$gcc_version" -d "$packages_dir/gcc-$gcc_version" || \
   panic "cannot install gcc"
-install_clang -v "$clang_version" -d "$packages_dir/clang-$clang_version" || \
+"$install_clang" \
+  -v "$clang_version" -d "$packages_dir/clang-$clang_version" || \
   panic "cannot install clang"
 
