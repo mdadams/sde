@@ -1,5 +1,7 @@
 #! /bin/bash
 
+# Reference: http://www.linuxfromscratch.org/blfs/view/cvs/general/gcc.html
+
 panic()
 {
 	echo "ERROR"
@@ -66,8 +68,12 @@ tar -xjf "$archive_file" -C "$src_dir" --strip-components=1 || \
   panic "cannot download prerequisites"
 
 (cd "$build_dir" && 
-  ../src/configure --prefix="$install_dir" --program-suffix="-$version" \
-  --enable-threads=posix --enable-tls --disable-multilib) || \
+  ../src/configure --prefix="$install_dir" \
+  --with-default-libstdcxx-abi=gcc4-compatible \
+  --enable-threads=posix \
+  --enable-tls \
+  --disable-multilib \
+  ) || \
   panic "configure failed"
 
 (cd "$build_dir" && make "$make_opts") || \
