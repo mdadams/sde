@@ -2,6 +2,9 @@
 
 # Reference: http://www.linuxfromscratch.org/blfs/view/cvs/general/gcc.html
 
+# Note: The GCC build process cannot seem to handle "@" characters
+# in pathnames.
+
 panic()
 {
 	echo "ERROR"
@@ -14,6 +17,9 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 
 version=6.3.0
 install_dir="$cur_dir/gcc-$version"
+
+# Do not use user@host in the following pathname, since the GCC build
+# process cannot seem to handle "@" characters in pathnames.
 tmp_dir="/tmp/install_gcc-$user-$host-$$"
 
 while getopts d:v: opt; do
