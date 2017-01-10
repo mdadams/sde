@@ -2,8 +2,15 @@
 
 cmd_dir=$(dirname "$0") || exit 1
 
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
 sde_top_dir="$HOME/public/dspg_lab"
 packages_dir="$sde_top_dir/packages"
+bin_dir="$sde_top_dir/bin"
 
 cmake_version=3.7.1
 gcc_version=6.3.0
@@ -12,14 +19,44 @@ clang_version=3.9.1
 install_cmake="$cmd_dir/install_cmake"
 install_gcc="$cmd_dir/install_gcc"
 install_clang="$cmd_dir/install_clang"
+install_texlive="$cmd_dir/install_texlive"
 
-"$install_cmake" \
-  -v "$cmake_version" -d "$packages_dir/cmake-$cmake_version" || \
-  panic "cannot install cmake"
-"$install_gcc" \
-  -v "$gcc_version" -d "$packages_dir/gcc-$gcc_version" || \
-  panic "cannot install gcc"
-"$install_clang" \
-  -v "$clang_version" -d "$packages_dir/clang-$clang_version" || \
-  panic "cannot install clang"
+cmake_dir="$packages_dir/cmake-$cmake_version"
+gcc_dir="$packages_dir/gcc-$gcc_version"
+clang_dir="$packages_dir/clang-$clang_version"
+texlive_dir="$packages_dir/texlive"
 
+# Since some software requires CMake to build, install CMake before
+# building other software.
+
+if [ ! -d "$cmake_dir" ]; then
+	"$install_cmake" -v "$cmake_version" -d "$cmake_dir" || \
+	  panic "cannot install cmake"
+fi
+
+if [ ! -d "$bin_dir" ]; then
+	mkdir -p "$bin_dir" || panic "cannot make directory $bin_dir"
+fi
+if [ -e "$bin_dir/cmake" ]; then
+	rm -f "$bin_dir/cmake"
+fi
+ln -s ../packages/cmake-$cmake_version/bin/cmake "$bin_dir" || \
+  panic "cannot make symbolic link for cmake"
+
+path="$bin_dir:$PATH"
+export PATH="$path"
+
+if [ ! -d "$clang_dir" ]; then
+	"$install_clang" -v "$clang_version" -d "$clang_dir" || \
+	  panic "cannot install clang"
+fi
+
+if [ ! -d "$gcc_dir" ]; then
+	"$install_gcc" -v "$gcc_version" -d "$gcc_dir" || \
+	  panic "cannot install gcc"
+fi
+
+if [ ! -d "$texlive_dir" ]; then
+	"$install_texlive" -d "$texlive_dir" || \
+	  panic "cannot install texlive"
+fi

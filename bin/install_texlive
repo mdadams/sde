@@ -1,0 +1,147 @@
+#! /bin/bash
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+warn()
+{
+	echo "WARNING: $@"
+}
+
+usage()
+{
+	echo "BAD USAGE: $@"
+	echo "usage: $0 -v version -p install_dir"
+	exit 2
+}
+
+user=$(whoami) || panic "cannot get user name"
+host=$(hostname) || panic "cannot get host name"
+cur_dir=$(pwd) || panic "cannot get current directory"
+
+install_dir="$cur_dir/texlive"
+tmp_dir="/tmp/install_texlive-$user@$host-$$"
+
+while getopts d: opt; do
+	case "$opt" in
+	d)
+		install_dir="$OPTARG";;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$install_dir" ]; then
+	usage "no installation directory specified"
+fi
+
+profile=$tmp_dir/profile
+installer_url="http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz"
+
+archive=$(basename "$installer_url") || panic "cannot extract archive name"
+
+if [ -d "$install_dir" ]; then
+	panic "installation directory already exists"
+fi
+
+mkdir -p "$tmp_dir" || \
+  panic "cannot make temporary directory $tmp_dir"
+
+(cd "$tmp_dir" && wget "$installer_url") || \
+  panic "cannot download archive"
+
+mkdir -p "$install_dir" || \
+  panic "cannot make directory $install_dir"
+
+cat > "$profile" <<- EOF
+selected_scheme scheme-full
+TEXDIR $install_dir/2016
+TEXMFCONFIG ~/.texlive2016/texmf-config
+TEXMFHOME ~/texmf
+TEXMFLOCAL $install_dir/texmf-local
+TEXMFSYSCONFIG $install_dir/2016/texmf-config
+TEXMFSYSVAR $install_dir/2016/texmf-var
+TEXMFVAR ~/.texlive2016/texmf-var
+binary_x86_64-linux 1
+collection-basic 1
+collection-bibtexextra 1
+collection-binextra 1
+collection-context 1
+collection-fontsextra 1
+collection-fontsrecommended 1
+collection-fontutils 1
+collection-formatsextra 1
+collection-games 1
+collection-genericextra 1
+collection-genericrecommended 1
+collection-htmlxml 1
+collection-humanities 1
+collection-langafrican 1
+collection-langarabic 1
+collection-langchinese 1
+collection-langcjk 1
+collection-langcyrillic 1
+collection-langczechslovak 1
+collection-langenglish 1
+collection-langeuropean 1
+collection-langfrench 1
+collection-langgerman 1
+collection-langgreek 1
+collection-langindic 1
+collection-langitalian 1
+collection-langjapanese 1
+collection-langkorean 1
+collection-langother 1
+collection-langpolish 1
+collection-langportuguese 1
+collection-langspanish 1
+collection-latex 1
+collection-latexextra 1
+collection-latexrecommended 1
+collection-luatex 1
+collection-mathextra 1
+collection-metapost 1
+collection-music 1
+collection-omega 1
+collection-pictures 1
+collection-plainextra 1
+collection-pstricks 1
+collection-publishers 1
+collection-science 1
+collection-texworks 1
+collection-xetex 1
+in_place 0
+option_adjustrepo 0
+option_autobackup 1
+option_backupdir tlpkg/backups
+option_desktop_integration 1
+option_doc 1
+option_file_assocs 1
+option_fmt 1
+option_letter 1
+option_menu_integration 1
+option_path 0
+option_post_code 1
+option_src 1
+option_w32_multi_user 1
+option_write18_restricted 1
+portable 0
+EOF
+#option_sys_bin /usr/local/bin
+#option_sys_info /usr/local/share/info
+#option_sys_man /usr/local/share/man
+
+echo "============================================================"
+cat "$profile"
+echo "============================================================"
+
+(tar -xzf "$tmp_dir/$archive" -C "$tmp_dir" --strip-components=1) || \
+  panic "cannot extract archive"
+
+(cd "$tmp_dir" && ./install-tl -profile "$profile")
+
