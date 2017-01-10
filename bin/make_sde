@@ -8,7 +8,22 @@ panic()
 	exit 1
 }
 
-sde_top_dir="$HOME/public/dspg_lab"
+sde_top_dir=""
+while getopts d: opt; do
+	case "$opt" in
+	d)
+		sde_top_dir="$OPTARG";;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$sde_top_dir" ]; then
+	usage "no top directory specified"
+fi
+
 packages_dir="$sde_top_dir/packages"
 bin_dir="$sde_top_dir/bin"
 
