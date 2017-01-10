@@ -13,7 +13,8 @@ packages_dir="$sde_top_dir/packages"
 bin_dir="$sde_top_dir/bin"
 
 cmake_version=3.7.1
-gcc_version=6.3.0
+#gcc_version=6.3.0
+gcc_version=6.2.0
 clang_version=3.9.1
 
 install_cmake="$cmd_dir/install_cmake"
