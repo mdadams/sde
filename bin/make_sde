@@ -28,8 +28,8 @@ packages_dir="$sde_top_dir/packages"
 bin_dir="$sde_top_dir/bin"
 
 cmake_version=3.7.1
-#gcc_version=6.3.0
-gcc_version=6.2.0
+#gcc_version=6.2.0
+gcc_version=6.3.0
 clang_version=3.9.1
 
 install_cmake="$cmd_dir/install_cmake"
@@ -62,14 +62,14 @@ ln -s ../packages/cmake-$cmake_version/bin/cmake "$bin_dir" || \
 path="$bin_dir:$PATH"
 export PATH="$path"
 
-if [ ! -d "$clang_dir" ]; then
-	"$install_clang" -v "$clang_version" -d "$clang_dir" || \
-	  panic "cannot install clang"
-fi
-
 if [ ! -d "$gcc_dir" ]; then
 	"$install_gcc" -v "$gcc_version" -d "$gcc_dir" || \
 	  panic "cannot install gcc"
+fi
+
+if [ ! -d "$clang_dir" ]; then
+	"$install_clang" -v "$clang_version" -d "$clang_dir" || \
+	  panic "cannot install clang"
 fi
 
 if [ ! -d "$texlive_dir" ]; then
