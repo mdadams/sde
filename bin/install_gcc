@@ -14,7 +14,7 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 
 version=6.3.0
 install_dir="$cur_dir/gcc-$version"
-tmp_dir="/tmp/install_gcc-$user@$host-$$"
+tmp_dir="/tmp/install_gcc-$user-$host-$$"
 
 while getopts d:v: opt; do
 	case "$opt" in
@@ -36,14 +36,8 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
-#name=$(basename "$archive_file" .tar.bz2) || panic "failed"
-#version=$(echo "$name" | tr '-' ' ' | awk '{print $2;}') || panic "failed"
-#echo "$version"
-
-#make_opts="-j4"
 make_opts="-j2"
 
-#cur_dir="$(pwd)" || panic "cannot get working directory"
 top_dir="$tmp_dir/gcc-$version"
 src_dir="$top_dir/src"
 build_dir="$top_dir/build"
