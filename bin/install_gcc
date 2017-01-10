@@ -1,0 +1,84 @@
+#! /bin/bash
+
+panic()
+{
+	echo "ERROR"
+	exit 1
+}
+
+user=$(whoami) || panic "cannot get user name"
+host=$(hostname) || panic "cannot get host name"
+cur_dir=$(pwd) || panic "cannot get current directory"
+
+version=6.3.0
+install_dir="$cur_dir/gcc-$version"
+tmp_dir="/tmp/install_gcc-$user@$host-$$"
+
+while getopts d:v: opt; do
+	case "$opt" in
+	d)
+		install_dir="$OPTARG";;
+	v)
+		version="$OPTARG";;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$install_dir" ]; then
+	usage "no installation directory specified"
+fi
+if [ -z "$version" ]; then
+	usage "no version specified"
+fi
+
+#name=$(basename "$archive_file" .tar.bz2) || panic "failed"
+#version=$(echo "$name" | tr '-' ' ' | awk '{print $2;}') || panic "failed"
+#echo "$version"
+
+#make_opts="-j4"
+make_opts="-j2"
+
+#cur_dir="$(pwd)" || panic "cannot get working directory"
+top_dir="$tmp_dir/gcc-$version"
+src_dir="$top_dir/src"
+build_dir="$top_dir/build"
+archive_dir="$top_dir/archive"
+
+for dir in "$top_dir" "$archive_dir" "$src_dir" "$build_dir"; do
+	if [ ! -d "$dir" ]; then
+		mkdir -p "$dir" || panic "cannot make directory $dir"
+	fi
+done
+
+url="https://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.bz2"
+
+(cd "$archive_dir" && wget "$url" ) || \
+  panic "cannot download archive"
+
+archive_file="$archive_dir/gcc-$version.tar.bz2"
+tar -xjf "$archive_file" -C "$src_dir" --strip-components=1 || \
+  panic "cannot extract archive"
+
+(cd "$src_dir" && ./contrib/download_prerequisites) || \
+  panic "cannot download prerequisites"
+
+(cd "$build_dir" && 
+  ../src/configure --prefix="$install_dir" --program-suffix="-$version" \
+  --enable-threads=posix --enable-tls --disable-multilib) || \
+  panic "configure failed"
+
+(cd "$build_dir" && make "$make_opts") || \
+  panic "make failed"
+
+(cd "$build_dir" && make install) || \
+  panic "make install failed"
+
+cat <<- EOF
+	To cleanup, type:
+	rm -rf "$tmp_dir"
+EOF
+
+exit 0

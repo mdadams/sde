@@ -1,0 +1,111 @@
+#! /bin/bash
+
+# Reference: http://llvm.org/releases/download.html
+# Reference: http://llvm.org/docs/GettingStarted.html
+# Reference: http://llvm.org/docs/GettingStarted.html#compiling-the-llvm-suite-source-code
+# Reference: http://clang.llvm.org/get_started.html
+# Reference: https://llvm.org/svn/llvm-project/cfe/trunk/INSTALL.txt
+# Reference: https://gist.github.com/larsch/6823355
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+usage()
+{
+	echo "BAD USAGE: $@"
+	exit 2
+}
+
+user=$(whoami) || panic "cannot get user name"
+host=$(hostname) || panic "cannot get host name"
+cur_dir=$(pwd) || panic "cannot get current directory"
+
+version=3.7.1
+install_dir="$cur_dir/clang-$version"
+tmp_dir="/tmp/install_clang-$user@$host-$$"
+
+while getopts d:v: opt; do
+	case "$opt" in
+	d)
+		install_dir="$OPTARG";;
+	v)
+		version="$OPTARG";;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$install_dir" ]; then
+	usage "no installation directory specified"
+fi
+if [ -z "$version" ]; then
+	usage "no version specified"
+fi
+
+make_opts="-j4"
+cmake_opts="-DCMAKE_BUILD_TYPE=Release"
+
+top_dir="$tmp_dir/llvm-clang-$version"
+archive_dir="$top_dir/archives"
+src_dir="$top_dir/src"
+build_dir="$top_dir/build"
+
+for dir in "$top_dir" "$archive_dir" "$src_dir" "$build_dir"; do
+	if [ ! -d "$dir" ]; then
+		mkdir -p "$dir" || panic "cannot make directory $dir"
+	fi
+done
+
+for url in \
+  "http://llvm.org/releases/$version/cfe-$version.src.tar.xz" \
+  "http://llvm.org/releases/$version/llvm-$version.src.tar.xz" \
+  "http://llvm.org/releases/$version/compiler-rt-$version.src.tar.xz" \
+  "http://llvm.org/releases/$version/clang-tools-extra-$version.src.tar.xz" \
+  ; do
+	(cd "$archive_dir" && wget "$url") || panic "cannot get URL $url"
+done
+
+tar -xJf "$archive_dir/llvm-$version.src.tar.xz" \
+  -C "$src_dir" --strip-components=1 || panic "cannot extract llvm archive"
+
+extract_dir="$src_dir/tools/clang"
+if [ ! -d "$extract_dir" ]; then
+	mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+fi
+tar -xJf "$archive_dir/cfe-$version.src.tar.xz" \
+  -C "$extract_dir" --strip-components=1 || panic "cannot extract cfe archive"
+
+extract_dir="$src_dir/tools/clang/tools/extra"
+if [ ! -d "$extract_dir" ]; then
+	mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+fi
+tar -xJf "$archive_dir/clang-tools-extra-$version.src.tar.xz" \
+  -C "$extract_dir" --strip-components=1 || \
+  panic "cannot extract clang-tools-extra archive"
+
+extract_dir=$src_dir/projects/compiler-rt
+if [ ! -d "$extract_dir" ]; then
+	mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+fi
+tar -xJf "$archive_dir/compiler-rt-$version.src.tar.xz" \
+  -C "$extract_dir" --strip-components=1 || panic "cannot extract compiler-rt archive"
+
+(cd "$build_dir" &&
+  cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$install_dir" "$cmake_opts" \
+  "$src_dir") || \
+  panic "cmake failed"
+
+(cd "$build_dir" && make "$make_opts") || panic "make failed"
+
+(cd "$build_dir" && make install) || panic "make install failed"
+
+cat <<- EOF
+To cleanup, type:
+   rm -rf "$tmp_dir"
+EOF
+
