@@ -6,6 +6,12 @@ panic()
 	exit 1
 }
 
+usage()
+{
+	echo "BAD USAGE: $@" 1>&2
+	exit 2
+}
+
 eprint()
 {
 	echo "$@" 1>&2
@@ -13,47 +19,56 @@ eprint()
 
 cmd_dir=`dirname $0` || panic "cannot get command directory"
 
-if [ $# -ne 1 ]; then
-	eprint "usage: $0 top_dir"
-	exit 2
+sde_top_dir=""
+while getopts d: opt; do
+	case "$opt" in
+	d)
+		sde_top_dir="$OPTARG";;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$sde_top_dir" ]; then
+	usage "no top directory specified"
 fi
 
-top_dir=$1
-
-if [ ! -d $top_dir ]; then
-	panic "invalid top directory specified $top_dir"
+if [ ! -d "$sde_top_dir" ]; then
+	panic "invalid top directory specified $sde_top_dir"
 fi
 
 for dir in bin etc environments; do
-	if [ ! -d "$top_dir/$dir" ]; then
-		mkdir -p "$top_dir/$dir" || \
+	if [ ! -d "$sde_top_dir/$dir" ]; then
+		mkdir -p "$sde_top_dir/$dir" || \
 		  panic "cannot make directory $dir"
 	fi
 done
 
-# non-executables in $top_dir directory
+# non-executables in $sde_top_dir directory
 for file in README; do
-	echo "installing $file in $top_dir"
-	install -m a+r $cmd_dir/$file $top_dir/$file || \
+	echo "installing $file in $sde_top_dir"
+	install -m a+r $cmd_dir/$file $sde_top_dir/$file || \
 	  panic "cannot install $file"
 done
 
-# non-executables in $top_dir/etc directory
+# non-executables in $sde_top_dir/etc directory
 #for file in motd; do
-#	echo "installing $file in $top_dir/etc"
-#	install -m a+r $cmd_dir/$file $top_dir/etc || \
+#	echo "installing $file in $sde_top_dir/etc"
+#	install -m a+r $cmd_dir/$file $sde_top_dir/etc || \
 #	  panic "cannot install $file"
 #done
 
-# executables in $top_dir/bin directory
+# executables in $sde_top_dir/bin directory
 for file in sde_shell sde_make_setup wrapper; do
-	echo "installing $file in $top_dir/bin"
-	install -m a+rx $cmd_dir/$file $top_dir/bin || \
+	echo "installing $file in $sde_top_dir/bin"
+	install -m a+rx $cmd_dir/$file $sde_top_dir/bin || \
 	  panic "cannot install $file"
 done
 
 for file in g++ gcc clang++ clang cmake ctest cpack; do
-	target_file="$top_dir/bin/$file"
+	target_file="$sde_top_dir/bin/$file"
 	if [ -e "$target_file" ]; then
 		rm -f "$target_file"
 	fi
@@ -61,27 +76,28 @@ for file in g++ gcc clang++ clang cmake ctest cpack; do
 	  panic "cannot link"
 done
 
-# non-executables in $top_dir/bin directory
+# non-executables in $sde_top_dir/bin directory
 for file in sde_shell_bashrc; do
-	echo "installing $file in $top_dir/bin"
-	install -m a+r $cmd_dir/$file $top_dir/bin || \
+	echo "installing $file in $sde_top_dir/bin"
+	install -m a+r $cmd_dir/$file $sde_top_dir/bin || \
 	  panic "cannot install $file"
 done
 
 for file in default spl; do
-	install -m a+r $cmd_dir/../examples/$file $top_dir/environments || \
+	install -m a+r \
+	  "$cmd_dir/../examples/$file" "$sde_top_dir/environments" || \
 	  panic "cannot install $file"
 done
 
-# executables in $top_dir/root/usr/bin directory
+# executables in $sde_top_dir/root/usr/bin directory
 #for file in gcc g++ gdb; do
-#	echo "installing $file in $top_dir/root/usr/bin"
-#	install -m a+rx $cmd_dir/$file $top_dir/root/usr/bin || \
+#	echo "installing $file in $sde_top_dir/root/usr/bin"
+#	install -m a+rx $cmd_dir/$file $sde_top_dir/root/usr/bin || \
 #	  panic "cannot install $file"
 #done
 
 if [ 1 -ne 0 ]; then
-	echo "giving world access to $top_dir"
-	$cmd_dir/give_world_access $top_dir || panic "failed"
+	echo "giving world access to $sde_top_dir"
+	"$cmd_dir/give_world_access" "$sde_top_dir" || panic "failed"
 fi
 
