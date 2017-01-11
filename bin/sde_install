@@ -24,9 +24,10 @@ if [ ! -d $top_dir ]; then
 	panic "invalid top directory specified $top_dir"
 fi
 
-for dir in bin data etc SPL; do
+for dir in bin etc environments; do
 	if [ ! -d "$top_dir/$dir" ]; then
-		mkdir -p "$top_dir/$dir" || panic "cannot make directory $dir"
+		mkdir -p "$top_dir/$dir" || \
+		  panic "cannot make directory $dir"
 	fi
 done
 
@@ -38,23 +39,37 @@ for file in README; do
 done
 
 # non-executables in $top_dir/etc directory
-for file in motd; do
-	echo "installing $file in $top_dir/etc"
-	install -m a+r $cmd_dir/$file $top_dir/etc || \
-	  panic "cannot install $file"
-done
+#for file in motd; do
+#	echo "installing $file in $top_dir/etc"
+#	install -m a+r $cmd_dir/$file $top_dir/etc || \
+#	  panic "cannot install $file"
+#done
 
 # executables in $top_dir/bin directory
-for file in sde_shell sde_make_setup g++ gcc gdb; do
+for file in sde_shell sde_make_setup wrapper; do
 	echo "installing $file in $top_dir/bin"
 	install -m a+rx $cmd_dir/$file $top_dir/bin || \
 	  panic "cannot install $file"
+done
+
+for file in g++ gcc clang++ clang cmake; do
+	target_file="$top_dir/bin/$file"
+	if [ -e "$target_file" ]; then
+		rm -f "$target_file"
+	fi
+	ln -s wrapper "$target_file" || \
+	  panic "cannot link"
 done
 
 # non-executables in $top_dir/bin directory
 for file in sde_shell_bashrc; do
 	echo "installing $file in $top_dir/bin"
 	install -m a+r $cmd_dir/$file $top_dir/bin || \
+	  panic "cannot install $file"
+done
+
+for file in default spl splel; do
+	install -m a+r $cmd_dir/../examples/$file $top_dir/environments || \
 	  panic "cannot install $file"
 done
 

@@ -1,11 +1,13 @@
 sde_path_prefix=$sde_top_dir/bin
 sde_path_suffix=
 
+sde_spl_dir="$sde_top_dir/packages/SPL-$sde_spl_version"
+
 sde_gcc_version=6.3.0
 sde_gcc_dir="$sde_top_dir/packages/gcc-$sde_gcc_version"
 sde_gcc_cxx_program="$sde_gcc_dir/bin/g++"
-sde_gcc_cxx_options_prefix="-std=c++17"
-sde_gcc_cxx_options_suffix=
+sde_gcc_cxx_options_prefix="-std=c++17 -I$sde_spl_dir/include"
+sde_gcc_cxx_options_suffix="-L$sde_spl_dir/lib64"
 sde_gcc_c_program="$sde_gcc_dir/bin/gcc"
 sde_gcc_c_options_prefix="-std=c11"
 sde_gcc_c_options_suffix=
@@ -13,8 +15,8 @@ sde_gcc_c_options_suffix=
 sde_clang_version=3.9.1
 sde_clang_dir="$sde_top_dir/packages/clang-$sde_clang_version"
 sde_clang_cxx_program="$sde_clang_dir/bin/clang++"
-sde_clang_cxx_options_prefix="-std=c++17"
-sde_clang_cxx_options_suffix=
+sde_clang_cxx_options_prefix="-std=c++17 -I$sde_spl_dir/include"
+sde_clang_cxx_options_suffix="-L$sde_spl_dir/lib64"
 sde_clang_c_program="$sde_clang_dir/bin/clang"
 sde_clang_c_options_prefix="-std=c11"
 sde_clang_c_options_suffix=
@@ -22,7 +24,7 @@ sde_clang_c_options_suffix=
 sde_cmake_version=3.7.1
 sde_cmake_dir="$sde_top_dir/packages/cmake-$sde_cmake_version"
 sde_cmake_program="$sde_cmake_dir/bin/cmake"
-sde_cmake_path_prefix=
+sde_cmake_path_prefix="$sde_spl_dir"
 
 sde_ld_library_path_prefix=
 sde_ld_library_path_suffix=
