@@ -85,9 +85,9 @@ bash_setup()
 	  return 1
 
 	# CXX and CC environment variables
-	echo 'export CXX='"$sde_gcc_cxx_program"';' || \
+	echo 'export CXX='"$sde_top_dir/bin/g++"';' || \
 	  return 1
-	echo 'export CC='"$sde_gcc_c_program"';' || \
+	echo 'export CC='"$sde_top_dir/bin/gcc"';' || \
 	  return 1
 
 	echo 'export SDE_GDB_PROGRAM='"$sde_gdb_program"';' || \
