@@ -25,10 +25,9 @@ if [ -z "$sde_top_dir" ]; then
 fi
 
 packages_dir="$sde_top_dir/packages"
-bin_dir="$sde_top_dir/bin"
+boot_dir="$sde_top_dir/bootstrap"
 
 cmake_version=3.7.1
-#gcc_version=6.2.0
 gcc_version=6.3.0
 clang_version=3.9.1
 
@@ -50,16 +49,16 @@ if [ ! -d "$cmake_dir" ]; then
 	  panic "cannot install cmake"
 fi
 
-if [ ! -d "$bin_dir" ]; then
-	mkdir -p "$bin_dir" || panic "cannot make directory $bin_dir"
+if [ ! -d "$boot_dir" ]; then
+	mkdir -p "$boot_dir" || panic "cannot make directory $boot_dir"
 fi
-if [ -e "$bin_dir/cmake" ]; then
-	rm -f "$bin_dir/cmake"
+if [ -e "$boot_dir/cmake" ]; then
+	rm -f "$boot_dir/cmake"
 fi
-ln -s ../packages/cmake-$cmake_version/bin/cmake "$bin_dir" || \
+ln -s ../packages/cmake-$cmake_version/bin/cmake "$boot_dir" || \
   panic "cannot make symbolic link for cmake"
 
-path="$bin_dir:$PATH"
+path="$boot_dir:$PATH"
 export PATH="$path"
 
 if [ ! -d "$gcc_dir" ]; then
