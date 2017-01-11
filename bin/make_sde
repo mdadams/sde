@@ -8,6 +8,12 @@ panic()
 	exit 1
 }
 
+usage()
+{
+	echo "BAD USAGE: $@"
+	exit 2
+}
+
 sde_top_dir=""
 while getopts d: opt; do
 	case "$opt" in
@@ -30,16 +36,19 @@ boot_dir="$sde_top_dir/bootstrap"
 cmake_version=3.7.1
 gcc_version=6.3.0
 clang_version=3.9.1
+jasper_version=2.0.6
 
 install_cmake="$cmd_dir/install_cmake"
 install_gcc="$cmd_dir/install_gcc"
 install_clang="$cmd_dir/install_clang"
 install_texlive="$cmd_dir/install_texlive"
+install_jasper="$cmd_dir/install_jasper"
 
 cmake_dir="$packages_dir/cmake-$cmake_version"
 gcc_dir="$packages_dir/gcc-$gcc_version"
 clang_dir="$packages_dir/clang-$clang_version"
 texlive_dir="$packages_dir/texlive"
+jasper_dir="$packages_dir/jasper-$jasper_version"
 
 # Since some software requires CMake to build, install CMake before
 # building other software.
@@ -86,4 +95,9 @@ fi
 if [ ! -d "$texlive_dir" ]; then
 	"$install_texlive" -d "$texlive_dir" || \
 	  panic "cannot install texlive"
+fi
+
+if [ ! -d "$jasper_dir" ]; then
+	"$install_jasper" -d "$jasper_dir" || \
+	  panic "cannot install jasper"
 fi
