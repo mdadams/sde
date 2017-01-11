@@ -66,6 +66,18 @@ if [ ! -d "$gcc_dir" ]; then
 	  panic "cannot install gcc"
 fi
 
+if [ 0 -ne 0 ]; then
+	for file in gcc g++; do
+		dest_file="$boot_dir/$file"
+		if [ ! -e "$dest_file" ]; then
+			ln -s "../packages/gcc-$gcc_version/bin/$file" "$dest_file" || \
+			  panic "cannot make symbolic link for $file"
+		fi
+	done
+	export CC="$sde_top_dir/bootstrap/gcc"
+	export CXX="$sde_top_dir/bootstrap/g++"
+fi
+
 if [ ! -d "$clang_dir" ]; then
 	"$install_clang" -v "$clang_version" -d "$clang_dir" || \
 	  panic "cannot install clang"

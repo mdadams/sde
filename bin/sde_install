@@ -68,7 +68,7 @@ for file in sde_shell_bashrc; do
 	  panic "cannot install $file"
 done
 
-for file in default spl splel; do
+for file in default spl; do
 	install -m a+r $cmd_dir/../examples/$file $top_dir/environments || \
 	  panic "cannot install $file"
 done
