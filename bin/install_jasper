@@ -62,8 +62,8 @@ archive=$(basename "$url") || \
   panic "cannot extract archive"
 
 (cd "$build_dir" &&
-  cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$install_dir" "$cmake_opts" \
-  "$src_dir") || \
+  cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$install_dir" \
+  "$cmake_opts" "$src_dir") || \
   panic "cmake failed"
 
 (cd "$build_dir" && make "$make_opts") || panic "make failed"
