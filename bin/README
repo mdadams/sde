@@ -12,9 +12,11 @@ Software Development Environment (SDE)
 The directory hierarchy in which this README file resides contains
 the files for a complete C++/C software development environment (SDE).
 This SDE includes the following packages:
-    * binutils (i.e., assembler, linker, library archiver, etc.)
-    * GCC (configured as a cross compiler)
-    * GDB
+    * GCC
+    * Clang
+    * CMake
+    * TexLive
+    * JasPer
 In addition, the SDE contains some scripts for managing the SDE itself.
 
 As a matter of terminology, the top-level directory of the SDE is the
@@ -93,9 +95,16 @@ After the SDE has been initialized, all of the commands that are part
 of the SDE should be on your (command) search path.  The commands that
 are most likely to be of interest are as follows:
 
-    g++    The C++ compiler/linker
-    gcc    The C compiler/linker
-    gdb    The debugger
+    g++
+    gcc
+    clang++
+    clang
+    cmake
+    ctest
+    latex
+    pdflatex
+    gdb
+    imgcmp
 
 Do not change the PATH environment variable, except
 through the use of the sde_shell or sde_make_setup commands.
