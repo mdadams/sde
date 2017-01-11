@@ -12,7 +12,7 @@ eprint()
 }
 
 debug_level=${SDE_DEBUG_LEVEL:-0}
-debug_level=1
+#debug_level=1
 
 cmd_dir=`dirname $0` || panic "cannot get command directory"
 cmd_name=$(basename "$0")
