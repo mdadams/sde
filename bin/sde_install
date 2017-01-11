@@ -52,7 +52,7 @@ for file in sde_shell sde_make_setup wrapper; do
 	  panic "cannot install $file"
 done
 
-for file in g++ gcc clang++ clang cmake; do
+for file in g++ gcc clang++ clang cmake ctest cpack; do
 	target_file="$top_dir/bin/$file"
 	if [ -e "$target_file" ]; then
 		rm -f "$target_file"
