@@ -1,0 +1,112 @@
+#! /bin/bash
+
+panic()
+{
+	echo "FATAL ERROR: $@" 1>&2
+	exit 1
+}
+
+eprint()
+{
+	echo "$@" 1>&2
+}
+
+debug_level=${SDE_DEBUG_LEVEL:-0}
+debug_level=1
+
+cmd_dir=`dirname $0` || panic "cannot get command directory"
+cmd_name=$(basename "$0")
+
+case "$cmd_name" in
+
+g++)
+	if [ -z "$SDE_GCC_CXX_PROGRAM" ]; then
+		panic "SDE_GCC_CXX_PROGRAM not set"
+	fi
+	if [ ! -x "$SDE_GCC_CXX_PROGRAM" ]; then
+		panic "no execute permission on file $SDE_GCC_CXX_PROGRAM"
+	fi
+	command="$SDE_GCC_CXX_PROGRAM"
+	args=()
+	if [ -n "$SDE_GCC_CXX_OPTIONS_PREFIX" ]; then
+		args+=($SDE_GCC_CXX_OPTIONS_PREFIX)
+	fi
+	args+=("$@")
+	if [ -n "$SDE_GCC_CXX_OPTIONS_SUFFIX" ]; then
+		args+=($SDE_GCC_CXX_OPTIONS_SUFFIX)
+	fi
+	;;
+
+gcc)
+	if [ -z "$SDE_GCC_C_PROGRAM" ]; then
+		panic "SDE_GCC_C_PROGRAM not set"
+	fi
+	if [ ! -x "$SDE_GCC_C_PROGRAM" ]; then
+		panic "no execute permission on file $SDE_GCC_C_PROGRAM"
+	fi
+	command="$SDE_GCC_C_PROGRAM"
+	args=()
+	if [ -n "$SDE_GCC_C_OPTIONS_PREFIX" ]; then
+		args+=($SDE_GCC_C_OPTIONS_PREFIX)
+	fi
+	args+=("$@")
+	if [ -n "$SDE_GCC_C_OPTIONS_SUFFIX" ]; then
+		args+=($SDE_GCC_C_OPTIONS_SUFFIX)
+	fi
+	;;
+
+clang++)
+	if [ -z "$SDE_CLANG_CXX_PROGRAM" ]; then
+		panic "SDE_CLANG_CXX_PROGRAM not set"
+	fi
+	if [ ! -x "$SDE_CLANG_CXX_PROGRAM" ]; then
+		panic "no execute permission on file $SDE_CLANG_CXX_PROGRAM"
+	fi
+	command="$SDE_CLANG_CXX_PROGRAM"
+	args=()
+	if [ -n "$SDE_CLANG_CXX_OPTIONS_PREFIX" ]; then
+		args+=($SDE_CLANG_CXX_OPTIONS_PREFIX)
+	fi
+	args+=("$@")
+	if [ -n "$SDE_CLANG_CXX_OPTIONS_SUFFIX" ]; then
+		args+=($SDE_CLANG_CXX_OPTIONS_SUFFIX)
+	fi
+	;;
+
+clang)
+	if [ -z "$SDE_CLANG_C_PROGRAM" ]; then
+		panic "SDE_CLANG_C_PROGRAM not set"
+	fi
+	if [ ! -x "$SDE_CLANG_C_PROGRAM" ]; then
+		panic "no execute permission on file $SDE_CLANG_C_PROGRAM"
+	fi
+	command="$SDE_CLANG_C_PROGRAM"
+	args=()
+	if [ -n "$SDE_CLANG_C_OPTIONS_PREFIX" ]; then
+		args+=($SDE_CLANG_C_OPTIONS_PREFIX)
+	fi
+	args+=("$@")
+	if [ -n "$SDE_CLANG_C_OPTIONS_SUFFIX" ]; then
+		args+=($SDE_CLANG_C_OPTIONS_SUFFIX)
+	fi
+	;;
+
+cmake)
+	if [ -z "$SDE_CMAKE_PROGRAM" ]; then
+		panic "SDE_CMAKE_PROGRAM not set"
+	fi
+	if [ ! -x "$SDE_CMAKE_PROGRAM" ]; then
+		panic "no execute permission on file $SDE_CMAKE_PROGRAM"
+	fi
+	command="$SDE_CMAKE_PROGRAM"
+	args=()
+	args+=("$@")
+	export CMAKE_PATH_PREFIX="$SDE_CMAKE_PATH_PREFIX"
+	;;
+
+esac
+
+if [ "$debug_level" -ge 1 ]; then
+	eprint "Running $command ${args[@]}"
+fi
+"$command" "${args[@]}"

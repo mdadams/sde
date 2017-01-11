@@ -17,21 +17,17 @@ bashrc="$cmd_dir/sde_shell_bashrc"
 setup="$cmd_dir/sde_setup"
 make_setup="$cmd_dir/sde_make_setup"
 
-gcc_version=
-while getopts V:s: opt; do
+name=default
+while getopts n: opt; do
 	case "$opt" in
-	V)
-		gcc_version="$OPTARG";;
+	v)
+		name="$OPTARG";;
 	esac
 done
 
 shell=`basename "$SHELL"` || panic "cannot get shell"
 
-unset make_setup_opts
-if [ -n "$gcc_version" ]; then
-	opts+=(-V "$gcc_version")
-fi
-
+make_setup_opts=()
 eval `$make_setup "${opts[@]}" -s bash` || panic "eval failed"
 
 motd_file="$top_dir/etc/motd"
