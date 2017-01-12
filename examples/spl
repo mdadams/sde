@@ -18,7 +18,11 @@ sde_path_suffix=
 sde_dll_options="-Wl,-rpath -Wl,$sde_gcc_dir/lib64"
 
 sde_gcc_cxx_program="$sde_gcc_dir/bin/g++"
-sde_gcc_cxx_options_prefix="-std=c++17"
+sde_gcc_cxx_options_prefix=
+sde_gcc_cxx_options_prefix="$sde_gcc_cxx_options_prefix -std=c++17"
+# Note: -fext-numeric-literals is to workaround an apparent bug in GCC
+# Reference: http://stackoverflow.com/questions/25365160/boostmultiprecisionfloat128-and-c11
+sde_gcc_cxx_options_prefix="$sde_gcc_cxx_options_prefix -fext-numeric-literals"
 sde_gcc_cxx_options_suffix="$sde_dll_options"
 sde_gcc_c_program="$sde_gcc_dir/bin/gcc"
 sde_gcc_c_options_prefix="-std=c11"
@@ -32,7 +36,7 @@ sde_clang_c_options_prefix="-std=c11"
 sde_clang_c_options_suffix="$sde_dll_options"
 
 sde_cmake_program="$sde_cmake_dir/bin/cmake"
-sde_cmake_prefix_path="$sde_spl_dir"
+sde_cmake_prefix_path="$HOME/local:$sde_spl_dir"
 
 #sde_ld_library_path_prefix="$sde_gcc_dir/lib64"
 sde_ld_library_path_prefix=
