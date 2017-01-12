@@ -20,7 +20,7 @@ make_setup="$cmd_dir/sde_make_setup"
 name=default
 while getopts n: opt; do
 	case "$opt" in
-	v)
+	n)
 		name="$OPTARG";;
 	esac
 done
@@ -28,7 +28,8 @@ done
 shell=`basename "$SHELL"` || panic "cannot get shell"
 
 make_setup_opts=()
-eval `$make_setup "${opts[@]}" -s bash` || panic "eval failed"
+make_setup_opts+=(-n "$name")
+eval `$make_setup "${make_setup_opts[@]}" -s bash` || panic "eval failed"
 
 motd_file="$top_dir/etc/motd"
 if [ -f "$motd_file" ]; then

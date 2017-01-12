@@ -101,7 +101,7 @@ cmake)
 	command="$SDE_CMAKE_PROGRAM"
 	args=()
 	args+=("$@")
-	export CMAKE_PATH_PREFIX="$SDE_CMAKE_PATH_PREFIX"
+	export CMAKE_PREFIX_PATH="$SDE_CMAKE_PREFIX_PATH"
 	;;
 
 cpack|ctest)
@@ -117,7 +117,7 @@ cpack|ctest)
 	args=()
 	args+=("$@")
 	# Note: Is this needed?
-	#export CMAKE_PATH_PREFIX="$SDE_CMAKE_PATH_PREFIX"
+	#export CMAKE_PREFIX_PATH="$SDE_CMAKE_PREFIX_PATH"
 	;;
 
 esac

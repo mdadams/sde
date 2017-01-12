@@ -81,7 +81,7 @@ bash_setup()
 	# CMake
 	echo 'export SDE_CMAKE_PROGRAM='"$sde_cmake_program"';' || \
 	  return 1
-	echo 'export SDE_CMAKE_PREFIX='"$sde_cmake_prefix"';' || \
+	echo 'export SDE_CMAKE_PREFIX_PATH='"$sde_cmake_prefix_path"';' || \
 	  return 1
 
 	# CXX and CC environment variables
