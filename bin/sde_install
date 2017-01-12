@@ -54,11 +54,11 @@ for file in README; do
 done
 
 # non-executables in $sde_top_dir/etc directory
-#for file in motd; do
-#	echo "installing $file in $sde_top_dir/etc"
-#	install -m a+r $cmd_dir/$file $sde_top_dir/etc || \
-#	  panic "cannot install $file"
-#done
+for file in motd; do
+	echo "installing $file in $sde_top_dir/etc"
+	install -m a+r "$cmd_dir/$file" "$sde_top_dir/etc" || \
+	  panic "cannot install $file"
+done
 
 # executables in $sde_top_dir/bin directory
 for file in sde_shell sde_make_setup wrapper; do
