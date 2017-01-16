@@ -70,6 +70,12 @@ mkdir -p "$install_dir" || \
 tar -x -z --strip-components=1 -C "$install_dir" -f "$tmp_dir/$archive" || \
   panic "cannot extract archive"
 
+for file in ccmake cmake cmake-gui cpack ctest; do
+	target_file="$install_dir/bin/$file"
+	chmod a+rx "$target_file" || \
+	  panic "cannot set permission for $target_file"
+done
+
 rm -f "$tmp_dir/$archive"
 rmdir "$tmp_dir" || warn "cannot remove temporary directory $tmp_dir"
 
