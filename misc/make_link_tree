@@ -1,0 +1,32 @@
+#! /bin/bash
+
+cmd_dir=`dirname $0` || exit 1
+abs_cmd_dir=`( cd "$cmd_dir" && echo $PWD )`
+helper=$abs_cmd_dir/make_link_tree_helper
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+if [ $# -ne 2 ]; then
+	echo "usage: $0 src_dir dst_dir"
+	exit 2
+fi
+
+src_dir="$1"
+dst_dir="$2"
+
+if [ ! -d "dst_dir" ]; then
+	mkdir -p "$dst_dir" || panic "cannot make directory"
+fi
+
+dst_dir=`readlink -f "$dst_dir"` || panic "readlink failed"
+
+( \
+	cd "$src_dir" && \
+	find . -type d -a -not -perm -u+rx,g+rx,o+rx -prune \
+	-o -true -exec $helper "$src_dir" "$dst_dir" "{}" \; \
+) || panic "find failed"
+
