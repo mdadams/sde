@@ -47,6 +47,12 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
 make_opts="-j4"
 cmake_opts="-DCMAKE_BUILD_TYPE=Release"
 

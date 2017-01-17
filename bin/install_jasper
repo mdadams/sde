@@ -39,6 +39,12 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
 tmp_dir="/tmp/install_jasper-$user@$host-$$"
 src_dir="$tmp_dir"
 build_dir="$tmp_dir/tmp_cmake"

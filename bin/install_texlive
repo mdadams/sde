@@ -43,6 +43,10 @@ if [ -z "$install_dir" ]; then
 	usage "no installation directory specified"
 fi
 
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
 umask 022
 
 profile=$tmp_dir/profile

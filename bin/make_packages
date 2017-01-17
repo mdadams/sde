@@ -30,6 +30,12 @@ if [ -z "$sde_top_dir" ]; then
 	usage "no top directory specified"
 fi
 
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
 packages_dir="$sde_top_dir/packages"
 boot_dir="$sde_top_dir/bootstrap"
 

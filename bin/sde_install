@@ -39,6 +39,12 @@ if [ ! -d "$sde_top_dir" ]; then
 	panic "invalid top directory specified $sde_top_dir"
 fi
 
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
 for dir in bin etc environments; do
 	if [ ! -d "$sde_top_dir/$dir" ]; then
 		mkdir -p "$sde_top_dir/$dir" || \
@@ -96,8 +102,8 @@ done
 #	  panic "cannot install $file"
 #done
 
-if [ 1 -ne 0 ]; then
-	echo "giving world access to $sde_top_dir"
-	"$cmd_dir/give_world_access" "$sde_top_dir" || panic "failed"
-fi
+#if [ 1 -ne 0 ]; then
+#	echo "giving world access to $sde_top_dir"
+#	"$cmd_dir/give_world_access" "$sde_top_dir" || panic "failed"
+#fi
 

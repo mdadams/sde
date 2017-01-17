@@ -49,6 +49,12 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
 short_version=$(echo "$version" | sed -e 's/\.[0-9]*$//') || \
   panic "cannot extract short version"
 url="https://cmake.org/files/v$short_version/cmake-$version-Linux-x86_64.tar.gz"
