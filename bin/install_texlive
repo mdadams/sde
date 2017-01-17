@@ -43,6 +43,8 @@ if [ -z "$install_dir" ]; then
 	usage "no installation directory specified"
 fi
 
+umask 022
+
 profile=$tmp_dir/profile
 installer_url="http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz"
 
