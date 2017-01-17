@@ -35,8 +35,8 @@ if [ -z "$sde_top_dir" ]; then
 	usage "no top directory specified"
 fi
 
-if [ ! -d "$sde_top_dir" ]; then
-	panic "invalid top directory specified $sde_top_dir"
+if [ -d "$sde_top_dir" ]; then
+	panic "top directory already exists $sde_top_dir"
 fi
 
 # Set the user file-creation mask to allow read and execute permissions
