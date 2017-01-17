@@ -1,0 +1,52 @@
+#! /bin/bash
+
+panic()
+{
+	echo "FATAL ERROR: $@" 1>&2
+	exit 1
+}
+
+usage()
+{
+	echo "BAD USAGE: $@" 1>&2
+	exit 2
+}
+
+eprint()
+{
+	echo "$@" 1>&2
+}
+
+cmd_dir=`dirname $0` || panic "cannot get command directory"
+
+sde_top_dir=""
+while getopts d: opt; do
+	case "$opt" in
+	d)
+		sde_top_dir="$OPTARG";;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$sde_top_dir" ]; then
+	usage "no top directory specified"
+fi
+
+if [ ! -d "$sde_top_dir" ]; then
+	panic "invalid top directory specified $sde_top_dir"
+fi
+
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
+"$cmd_dir/install_packages" -d "$sde_top_dir" || \
+  panic "package installation failed"
+
+"$cmd_dir/sde_install" -d "$sde_top_dir" || \
+  panic "SDE installation failed"
