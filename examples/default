@@ -9,6 +9,8 @@ sde_cmake_dir="$sde_top_dir/packages/cmake-$sde_cmake_version"
 sde_jasper_version=2.0.6
 sde_jasper_dir="$sde_top_dir/packages/jasper-$sde_jasper_version"
 sde_texlive_dir="$sde_top_dir/packages/texlive"
+sde_gdb_version=7.12
+sde_gdb_dir="$sde_top_dir/packages/gdb-$sde_gdb_version"
 
 sde_path_prefix="$sde_top_dir/bin:$sde_texlive_dir/2016/bin/x86_64-linux:$sde_jasper_dir/bin"
 sde_path_suffix=
@@ -39,3 +41,5 @@ sde_cmake_prefix_path="$HOME/local"
 #sde_ld_library_path_prefix="$sde_gcc_dir/lib64"
 sde_ld_library_path_prefix=
 sde_ld_library_path_suffix=
+
+sde_gdb_program="$sde_gdb_dir/bin/gdb"

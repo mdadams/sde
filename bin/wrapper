@@ -55,6 +55,18 @@ gcc)
 	fi
 	;;
 
+gdb)
+	if [ -z "$SDE_GDB_PROGRAM" ]; then
+		panic "SDE_GDB_PROGRAM not set"
+	fi
+	if [ ! -x "$SDE_GDB_PROGRAM" ]; then
+		panic "no execute permission on file $SDE_GDB_PROGRAM"
+	fi
+	command="$SDE_GDB_PROGRAM"
+	args=()
+	args+=("$@")
+	;;
+
 clang++)
 	if [ -z "$SDE_CLANG_CXX_PROGRAM" ]; then
 		panic "SDE_CLANG_CXX_PROGRAM not set"
