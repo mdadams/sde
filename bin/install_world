@@ -19,11 +19,14 @@ eprint()
 
 cmd_dir=`dirname $0` || panic "cannot get command directory"
 
+force=0
 sde_top_dir=""
-while getopts d: opt; do
+while getopts d:f opt; do
 	case "$opt" in
 	d)
 		sde_top_dir="$OPTARG";;
+	f)
+		force=1;;
 	\?)
 		usage
 		break;;
@@ -35,7 +38,7 @@ if [ -z "$sde_top_dir" ]; then
 	usage "no top directory specified"
 fi
 
-if [ -d "$sde_top_dir" ]; then
+if [ "$force" -eq 0 -a -d "$sde_top_dir" ]; then
 	panic "top directory already exists $sde_top_dir"
 fi
 
