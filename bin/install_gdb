@@ -1,0 +1,84 @@
+#! /bin/bash
+
+panic()
+{
+	echo "ERROR"
+	exit 1
+}
+
+user=$(whoami) || panic "cannot get user name"
+host=$(hostname) || panic "cannot get host name"
+cur_dir=$(pwd) || panic "cannot get current directory"
+
+version=7.12
+install_dir="$cur_dir/gdb-$version"
+
+# Do not use user@host in the following pathname, since the GCC build
+# process cannot seem to handle "@" characters in pathnames.
+tmp_dir="/tmp/install_gdb-$user-$host-$$"
+
+while getopts d:v: opt; do
+	case "$opt" in
+	d)
+		install_dir="$OPTARG";;
+	v)
+		version="$OPTARG";;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$install_dir" ]; then
+	usage "no installation directory specified"
+fi
+if [ -z "$version" ]; then
+	usage "no version specified"
+fi
+
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
+make_opts="-j2"
+
+top_dir="$tmp_dir/gdb-$version"
+src_dir="$top_dir/src"
+build_dir="$top_dir/build"
+archive_dir="$top_dir/archive"
+
+for dir in "$top_dir" "$archive_dir" "$src_dir" "$build_dir"; do
+	if [ ! -d "$dir" ]; then
+		mkdir -p "$dir" || panic "cannot make directory $dir"
+	fi
+done
+
+url="http://ftp.gnu.org/gnu/gdb/gdb-$version.tar.xz"
+
+(cd "$archive_dir" && wget "$url" ) || \
+  panic "cannot download archive"
+
+archive_file="$archive_dir/gdb-$version.tar.xz"
+tar -xJf "$archive_file" -C "$src_dir" --strip-components=1 || \
+  panic "cannot extract archive"
+
+#(cd "$src_dir" && ./contrib/download_prerequisites) || \
+#  panic "cannot download prerequisites"
+
+(cd "$build_dir" && 
+  ../src/configure --prefix="$install_dir" \
+  ) || \
+  panic "configure failed"
+
+(cd "$build_dir" && make "$make_opts") || \
+  panic "make failed"
+
+(cd "$build_dir" && make install) || \
+  panic "make install failed"
+
+rm -rf "$tmp_dir"
+
+exit 0

@@ -43,18 +43,21 @@ cmake_version=3.7.1
 gcc_version=6.3.0
 clang_version=3.9.1
 jasper_version=2.0.6
+gdb_version=7.12
 
 install_cmake="$cmd_dir/install_cmake"
 install_gcc="$cmd_dir/install_gcc"
 install_clang="$cmd_dir/install_clang"
 install_texlive="$cmd_dir/install_texlive"
 install_jasper="$cmd_dir/install_jasper"
+install_gdb="$cmd_dir/install_gdb"
 
 cmake_dir="$packages_dir/cmake-$cmake_version"
 gcc_dir="$packages_dir/gcc-$gcc_version"
 clang_dir="$packages_dir/clang-$clang_version"
 texlive_dir="$packages_dir/texlive"
 jasper_dir="$packages_dir/jasper-$jasper_version"
+gdb_dir="$packages_dir/gdb-$gdb_version"
 
 # Since some software requires CMake to build, install CMake before
 # building other software.
@@ -96,6 +99,11 @@ fi
 if [ ! -d "$clang_dir" ]; then
 	"$install_clang" -v "$clang_version" -d "$clang_dir" || \
 	  panic "cannot install clang"
+fi
+
+if [ ! -d "$gdb_dir" ]; then
+	"$install_gdb" -v "$gdb_version" -d "$gdb_dir" || \
+	  panic "cannot install gdb"
 fi
 
 if [ ! -d "$texlive_dir" ]; then
