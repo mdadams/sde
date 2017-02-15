@@ -13,7 +13,7 @@ sde_spl_version=2.0.3
 sde_spl_dir="$sde_top_dir/packages/SPL-$sde_spl_version"
 
 sde_path_prefix="$sde_top_dir/bin:$sde_texlive_dir/2016/bin/x86_64-linux:$sde_jasper_dir/bin"
-sde_path_suffix=
+sde_path_suffix="$sde_top_dir/packages/aristotle/bin"
 
 sde_dll_options="-Wl,-rpath -Wl,$sde_gcc_dir/lib64 -Wl,-rpath -Wl,$sde_spl_dir/lib64"
 sde_incl_dir_options="-I$sde_spl_dir/include"

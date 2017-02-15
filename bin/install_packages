@@ -58,6 +58,7 @@ clang_dir="$packages_dir/clang-$clang_version"
 texlive_dir="$packages_dir/texlive"
 jasper_dir="$packages_dir/jasper-$jasper_version"
 gdb_dir="$packages_dir/gdb-$gdb_version"
+aristotle_bin_dir="$packages_dir/aristotle/bin"
 
 # Since some software requires CMake to build, install CMake before
 # building other software.
@@ -125,3 +126,9 @@ if [ ! -d "$jasper_dir" ]; then
 	"$install_jasper" -v "$jasper_version" -d "$jasper_dir" || \
 	  panic "cannot install jasper"
 fi
+
+if [ ! -d "$aristotle_bin_dir" ]; then
+	mkdir -p "$aristotle_bin_dir" || \
+	  panic "cannot make directory $aristotle_bin_dir"
+fi
+
