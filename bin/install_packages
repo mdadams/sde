@@ -45,6 +45,7 @@ clang_version=3.9.1
 jasper_version=2.0.6
 gdb_version=7.12
 spl_version=2.0.4
+ndiff_version=2.00
 
 install_cmake="$cmd_dir/install_cmake"
 install_gcc="$cmd_dir/install_gcc"
@@ -53,6 +54,7 @@ install_texlive="$cmd_dir/install_texlive"
 install_jasper="$cmd_dir/install_jasper"
 install_gdb="$cmd_dir/install_gdb"
 install_spl="$cmd_dir/install_spl"
+install_ndiff="$cmd_dir/install_ndiff"
 
 cmake_dir="$packages_dir/cmake-$cmake_version"
 gcc_dir="$packages_dir/gcc-$gcc_version"
@@ -61,6 +63,7 @@ texlive_dir="$packages_dir/texlive"
 jasper_dir="$packages_dir/jasper-$jasper_version"
 gdb_dir="$packages_dir/gdb-$gdb_version"
 spl_dir="$packages_dir/SPL-$spl_version"
+ndiff_dir="$packages_dir/ndiff-$ndiff_version"
 aristotle_bin_dir="$packages_dir/aristotle/bin"
 
 # Since some software requires CMake to build, install CMake before
@@ -133,6 +136,11 @@ fi
 if [ ! -d "$spl_dir" ]; then
 	"$install_spl" -v "$spl_version" -d "$spl_dir" || \
 	  panic "cannot install SPL"
+fi
+
+if [ ! -d "$ndiff_dir" ]; then
+	"$install_ndiff" -v "$ndiff_version" -d "$ndiff_dir" || \
+	  panic "cannot install ndiff"
 fi
 
 
