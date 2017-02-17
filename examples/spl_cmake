@@ -13,10 +13,12 @@ sde_gdb_version=7.12
 sde_gdb_dir="$sde_top_dir/packages/gdb-$sde_gdb_version"
 sde_spl_version=2.0.4
 sde_spl_dir="$sde_top_dir/packages/SPL-$sde_spl_version"
+sde_ndiff_version=2.00
+sde_ndiff_dir="$sde_top_dir/packages/ndiff-$sde_ndiff_version"
 sde_aristotle_dir="$sde_top_dir/packages/aristotle"
 
 sde_path_prefix="$sde_top_dir/bin:$sde_texlive_dir/2016/bin/x86_64-linux:$sde_jasper_dir/bin"
-sde_path_suffix="$sde_aristotle_dir/bin:$sde_spl_dir/bin"
+sde_path_suffix="$sde_ndiff_dir/bin:$sde_aristotle_dir/bin"
 
 sde_dll_options="-Wl,-rpath -Wl,$sde_gcc_dir/lib64"
 

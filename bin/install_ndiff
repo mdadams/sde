@@ -80,4 +80,6 @@ done
 
 (cd "$src_dir" && make install) || panic "make install failed"
 
+ln -s ndiff $install_dir/bin/numeric_diff || panic "cannot make link"
+
 #rm -rf "$tmp_dir"
