@@ -44,6 +44,7 @@ gcc_version=6.3.0
 clang_version=3.9.1
 jasper_version=2.0.6
 gdb_version=7.12
+spl_version=2.0.4
 
 install_cmake="$cmd_dir/install_cmake"
 install_gcc="$cmd_dir/install_gcc"
@@ -126,6 +127,12 @@ if [ ! -d "$jasper_dir" ]; then
 	"$install_jasper" -v "$jasper_version" -d "$jasper_dir" || \
 	  panic "cannot install jasper"
 fi
+
+if [ ! -d "$spl_dir" ]; then
+	"$install_spl" -v "$spl_version" -d "$spl_dir" || \
+	  panic "cannot install SPL"
+fi
+
 
 if [ ! -d "$aristotle_bin_dir" ]; then
 	mkdir -p "$aristotle_bin_dir" || \
