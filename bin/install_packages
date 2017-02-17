@@ -52,6 +52,7 @@ install_clang="$cmd_dir/install_clang"
 install_texlive="$cmd_dir/install_texlive"
 install_jasper="$cmd_dir/install_jasper"
 install_gdb="$cmd_dir/install_gdb"
+install_spl="$cmd_dir/install_spl"
 
 cmake_dir="$packages_dir/cmake-$cmake_version"
 gcc_dir="$packages_dir/gcc-$gcc_version"
