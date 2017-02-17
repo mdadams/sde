@@ -60,6 +60,7 @@ clang_dir="$packages_dir/clang-$clang_version"
 texlive_dir="$packages_dir/texlive"
 jasper_dir="$packages_dir/jasper-$jasper_version"
 gdb_dir="$packages_dir/gdb-$gdb_version"
+spl_dir="$packages_dir/SPL-$spl_version"
 aristotle_bin_dir="$packages_dir/aristotle/bin"
 
 # Since some software requires CMake to build, install CMake before
