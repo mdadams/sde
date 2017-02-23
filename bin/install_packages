@@ -117,24 +117,27 @@ if [ ! -d "$texlive_dir" ]; then
 	"$install_texlive" -d "$texlive_dir" || \
 	  panic "cannot install texlive"
 fi
-for file in latex pdflatex; do
-	target_file="$boot_dir/$file"
-	if [ -e "$target_file" ]; then
-		rm -f "$target_file"
-	fi
-	ln -s "../packages/texlive/2016/bin/x86_64-linux/$file" "$target_file" || \
-	  panic "link failed"
-done
+#for file in latex pdflatex; do
+#	target_file="$boot_dir/$file"
+#	if [ -e "$target_file" ]; then
+#		rm -f "$target_file"
+#	fi
+#	ln -s "../packages/texlive/2016/bin/x86_64-linux/$file" "$target_file" || \
+#	  panic "link failed"
+#done
+texlive_bin_dir="$texlive_dir/2016/bin/x86_64-linux"
 
 # JasPer might need a more recent LaTeX version
 # Install JasPer after LaTeX.
 if [ ! -d "$jasper_dir" ]; then
-	"$install_jasper" -v "$jasper_version" -d "$jasper_dir" || \
+	PATH="$texlive_bin_dir:$PATH" \
+	  "$install_jasper" -v "$jasper_version" -d "$jasper_dir" || \
 	  panic "cannot install jasper"
 fi
 
 if [ ! -d "$spl_dir" ]; then
-	"$install_spl" -v "$spl_version" -d "$spl_dir" || \
+	PATH="$texlive_bin_dir:$PATH" \
+	  "$install_spl" -v "$spl_version" -d "$spl_dir" || \
 	  panic "cannot install SPL"
 fi
 
