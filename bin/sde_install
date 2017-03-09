@@ -9,6 +9,9 @@ panic()
 usage()
 {
 	echo "BAD USAGE: $@" 1>&2
+	cat <<- EOF
+	usage: $0 -d top_dir
+	EOF
 	exit 2
 }
 
