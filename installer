@@ -9,6 +9,18 @@ panic()
 usage()
 {
 	echo "BAD USAGE: $@" 1>&2
+	cat <<- EOF
+	usage: $0 [options]
+	options:
+	-d sde_top_dir
+	    Set the top-level directory to top_dir.
+	-e default_environment
+	    Set the default environment to default_environment.
+	-f
+	    Allow the use of an existing directory.
+	examples:
+	    ./installer -d /usr/local/sde -e elec486
+	EOF
 	exit 2
 }
 
@@ -17,14 +29,18 @@ eprint()
 	echo "$@" 1>&2
 }
 
-cmd_dir=`dirname $0` || panic "cannot get command directory"
+cmd_dir=$(dirname $0) || panic "cannot get command directory"
+bin_dir="$cmd_dir/bin"
 
+default_environment=
 force=0
 sde_top_dir=""
-while getopts d:f opt; do
+while getopts d:fe: opt; do
 	case "$opt" in
 	d)
 		sde_top_dir="$OPTARG";;
+	e)
+		default_environment="$OPTARG";;
 	f)
 		force=1;;
 	\?)
@@ -48,8 +64,12 @@ fi
 # will be accessible by all users.
 umask 022
 
-"$cmd_dir/install_packages" -d "$sde_top_dir" || \
+"$bin_dir/install_packages" -d "$sde_top_dir" || \
   panic "package installation failed"
 
-"$cmd_dir/sde_install" -d "$sde_top_dir" || \
+opts=()
+if [ -n "$default_environment" ]; then
+	opts+=(-e "$default_environment")
+fi
+"$bin_dir/install_sde" -d "$sde_top_dir" "${opts[@]}" || \
   panic "SDE installation failed"

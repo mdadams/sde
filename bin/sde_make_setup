@@ -135,9 +135,13 @@ tcsh_setup()
 	  return 1
 }
 
+cmd_dir=$(dirname "$0") || panic "cannot get command directory"
+top_dir="$cmd_dir/.."
+default_environment_file="$top_dir/etc/default_environment"
+
 verbose=0
 shell=bash
-name=default
+name=
 
 while getopts vn:s: opt; do
 	case "$opt" in
@@ -149,6 +153,11 @@ while getopts vn:s: opt; do
 		verbose=1;;
 	esac
 done
+
+if [ -z "$name" ]; then
+	name=$(cat "$default_environment_file" 2> /dev/null) || \
+	  panic "cannot determine default environment"
+fi
 
 case "$SHELL" in
 *bash*)

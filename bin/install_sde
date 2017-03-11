@@ -22,11 +22,14 @@ eprint()
 
 cmd_dir=`dirname $0` || panic "cannot get command directory"
 
+default_environment=
 sde_top_dir=""
-while getopts d: opt; do
+while getopts d:e: opt; do
 	case "$opt" in
 	d)
 		sde_top_dir="$OPTARG";;
+	e)
+		default_environment="$OPTARG";;
 	\?)
 		usage
 		break;;
@@ -47,6 +50,8 @@ fi
 # This will help to increase the likelihood that the installed software
 # will be accessible by all users.
 umask 022
+
+default_environment_file="$sde_top_dir/etc/default_environment"
 
 for dir in bin etc environments; do
 	if [ ! -d "$sde_top_dir/$dir" ]; then
@@ -98,15 +103,18 @@ for file in default spl_cmake spl_make elec486; do
 	  panic "cannot install $file"
 done
 
+if [ -f "$default_environment_file" ]; then
+	rm -f "$default_environment_file" || \
+	  panic "cannot remove file $default_environment_file"
+fi
+if [ -n "$default_environment" ]; then
+	echo "$default_environment" > "$default_environment_file"
+fi
+
 # executables in $sde_top_dir/root/usr/bin directory
 #for file in gcc g++ gdb; do
 #	echo "installing $file in $sde_top_dir/root/usr/bin"
 #	install -m a+rx $cmd_dir/$file $sde_top_dir/root/usr/bin || \
 #	  panic "cannot install $file"
 #done
-
-#if [ 1 -ne 0 ]; then
-#	echo "giving world access to $sde_top_dir"
-#	"$cmd_dir/give_world_access" "$sde_top_dir" || panic "failed"
-#fi
 
