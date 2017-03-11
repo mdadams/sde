@@ -29,7 +29,9 @@ shell=`basename "$SHELL"` || panic "cannot get shell"
 
 make_setup_opts=()
 make_setup_opts+=(-n "$name")
-eval `$make_setup "${make_setup_opts[@]}" -s bash` || panic "eval failed"
+#eval $($make_setup "${make_setup_opts[@]}" -s bash) || panic "eval failed"
+buffer=$($make_setup "${make_setup_opts[@]}" -s bash) || panic "sde_make_setup failed"
+eval "$buffer" || panic
 
 motd_file="$top_dir/etc/motd"
 if [ -f "$motd_file" ]; then

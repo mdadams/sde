@@ -172,9 +172,9 @@ sde_path_prefix="$sde_top_dir/bin"
 # Read settings from configuration file.
 config_file="$cmd_dir/../environments/$name"
 if [ ! -f "$config_file" ]; then
-	panic "no such name"
+	panic "no such environment $name"
 fi
-source "$config_file" || panic
+source "$config_file" || panic "source of configuration file failed"
 
 if [ $verbose -ne 0 ]; then
 	eecho "name $name"
