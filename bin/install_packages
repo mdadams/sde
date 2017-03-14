@@ -41,7 +41,7 @@ boot_dir="$sde_top_dir/bootstrap"
 
 cmake_version=3.7.1
 gcc_version=6.3.0
-clang_version=3.9.1
+clang_version=4.0.0
 jasper_version=2.0.6
 gdb_version=7.12
 spl_version=2.0.4
