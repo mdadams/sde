@@ -2,7 +2,7 @@
 
 sde_gcc_version=6.3.0
 sde_gcc_dir="$sde_top_dir/packages/gcc-$sde_gcc_version"
-sde_clang_version=3.9.1
+sde_clang_version=4.0.0
 sde_clang_dir="$sde_top_dir/packages/clang-$sde_clang_version"
 sde_cmake_version=3.7.1
 sde_cmake_dir="$sde_top_dir/packages/cmake-$sde_cmake_version"
