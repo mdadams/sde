@@ -14,6 +14,7 @@ the files for a complete C++/C software development environment (SDE).
 This SDE includes the following packages:
     * GCC
     * Clang
+    * GDB
     * CMake
     * TexLive
     * JasPer
