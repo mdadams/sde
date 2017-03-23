@@ -44,7 +44,7 @@ gcc_version=6.3.0
 clang_version=4.0.0
 jasper_version=2.0.6
 gdb_version=7.12
-spl_version=2.0.4
+spl_version=2.0.5
 ndiff_version=2.00
 
 install_cmake="$cmd_dir/install_cmake"
@@ -146,9 +146,7 @@ if [ ! -d "$ndiff_dir" ]; then
 	  panic "cannot install ndiff"
 fi
 
-
 if [ ! -d "$aristotle_bin_dir" ]; then
 	mkdir -p "$aristotle_bin_dir" || \
 	  panic "cannot make directory $aristotle_bin_dir"
 fi
-

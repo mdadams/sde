@@ -16,7 +16,7 @@ user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
-version=2.0.4
+version=2.0.5
 install_dir="$cur_dir/SPL-$version"
 
 while getopts d:v: opt; do
