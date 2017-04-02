@@ -83,8 +83,8 @@ done
 
 for file in g++ gcc clang++ clang cmake ctest cpack gdb; do
 	target_file="$sde_top_dir/bin/$file"
-	if [ -e "$target_file" ]; then
-		rm -f "$target_file"
+	if [ -L "$target_file" -o -e "$target_file" ]; then
+		rm -f "$target_file" || panic "cannot remove file $target_file"
 	fi
 	ln -s wrapper "$target_file" || \
 	  panic "cannot link"
