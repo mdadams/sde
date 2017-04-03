@@ -135,6 +135,22 @@ tcsh_setup()
 	  return 1
 }
 
+usage()
+{
+	echo "$@"
+	cat <<- EOF
+	usage: $0 [options]
+	options:
+	-n env
+	    Set the environment to env.
+	-s shell
+	    Set the shell to shell.
+	-v
+	    Increase the verbosity level of output.
+	EOF
+	exit 2
+}
+
 cmd_dir=$(dirname "$0") || panic "cannot get command directory"
 top_dir="$cmd_dir/.."
 default_environment_file="$top_dir/etc/default_environment"
@@ -153,6 +169,11 @@ while getopts vn:s: opt; do
 		verbose=1;;
 	esac
 done
+shift $((OPTIND - 1))
+
+if [ $# -ne 0 ]; then
+	usage "unexpected arguments $@"
+fi
 
 if [ -z "$name" ]; then
 	name=$(cat "$default_environment_file" 2> /dev/null) || \

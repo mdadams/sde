@@ -11,6 +11,18 @@ eprint()
 	echo "$@" 1>&2
 }
 
+usage()
+{
+	echo "$@"
+	cat <<- EOF
+	usage: $0 [options]
+	options:
+	-n env
+	    Set the environment to env.
+	EOF
+	exit 2
+}
+
 cmd_dir=`dirname $0` || panic "cannot get command directory"
 top_dir="$cmd_dir/.."
 bashrc="$cmd_dir/sde_shell_bashrc"
@@ -24,6 +36,11 @@ while getopts n: opt; do
 		name="$OPTARG";;
 	esac
 done
+shift $((OPTIND - 1))
+
+if [ $# -ne 0 ]; then
+	usage "unexpected arguments $@"
+fi
 
 shell=`basename "$SHELL"` || panic "cannot get shell"
 
