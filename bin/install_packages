@@ -39,11 +39,11 @@ umask 022
 packages_dir="$sde_top_dir/packages"
 boot_dir="$sde_top_dir/bootstrap"
 
-cmake_version=3.7.1
+cmake_version=3.8.1
 gcc_version=7.1.0
 clang_version=4.0.0
-jasper_version=2.0.6
-gdb_version=7.12
+jasper_version=2.0.12
+gdb_version=7.12.1
 spl_version=2.0.5
 ndiff_version=2.00
 

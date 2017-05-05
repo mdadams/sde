@@ -23,7 +23,7 @@ user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
-version=3.7.1
+version=4.0.0
 install_dir="$cur_dir/clang-$version"
 tmp_dir="/tmp/install_clang-$user@$host-$$"
 
