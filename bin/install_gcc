@@ -15,7 +15,7 @@ user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
-version=6.3.0
+version=7.1.0
 install_dir="$cur_dir/gcc-$version"
 
 # Do not use user@host in the following pathname, since the GCC build

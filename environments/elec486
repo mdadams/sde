@@ -1,6 +1,6 @@
 # Reference: http://stackoverflow.com/questions/20357033/how-to-fix-program-name-usr-lib-x86-64-linux-gnu-libstdc-so-6-version-cxx
 
-sde_gcc_version=6.3.0
+sde_gcc_version=7.1.0
 sde_gcc_dir="$sde_top_dir/packages/gcc-$sde_gcc_version"
 sde_clang_version=4.0.0
 sde_clang_dir="$sde_top_dir/packages/clang-$sde_clang_version"
