@@ -17,7 +17,7 @@ sde_ndiff_version=2.00
 sde_ndiff_dir="$sde_top_dir/packages/ndiff-$sde_ndiff_version"
 sde_aristotle_dir="$sde_top_dir/packages/aristotle"
 
-sde_path_prefix="$sde_top_dir/bin:$sde_texlive_dir/2016/bin/x86_64-linux:$sde_jasper_dir/bin"
+sde_path_prefix="$sde_top_dir/bin:$sde_texlive_dir/2016/bin/x86_64-linux:$sde_jasper_dir/bin:$sde_gcc_dir/bin:$sde_clang_dir/bin"
 sde_path_suffix="$sde_ndiff_dir/bin:$sde_aristotle_dir/bin:$sde_spl_dir/bin"
 
 sde_dll_options="-Wl,-rpath -Wl,$sde_gcc_dir/lib64"
