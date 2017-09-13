@@ -61,13 +61,17 @@ for dir in "$top_dir" "$archive_dir" "$src_dir" "$build_dir"; do
 	fi
 done
 
-url="https://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.bz2"
+#url="https://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.bz2"
+url="https://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.xz"
 
 (cd "$archive_dir" && wget "$url" ) || \
   panic "cannot download archive"
 
-archive_file="$archive_dir/gcc-$version.tar.bz2"
-tar -xjf "$archive_file" -C "$src_dir" --strip-components=1 || \
+#archive_file="$archive_dir/gcc-$version.tar.bz2"
+archive_file="$archive_dir/gcc-$version.tar.xz"
+#tar -xjf "$archive_file" -C "$src_dir" --strip-components=1 || \
+#  panic "cannot extract archive"
+tar -xJf "$archive_file" -C "$src_dir" --strip-components=1 || \
   panic "cannot extract archive"
 
 (cd "$src_dir" && ./contrib/download_prerequisites) || \
