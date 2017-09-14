@@ -23,16 +23,22 @@ user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
-version=4.0.0
-install_dir="$cur_dir/clang-$version"
+#version=4.0.0
 tmp_dir="/tmp/install_clang-$user@$host-$$"
+install_dir="$cur_dir/clang-$version"
+gcc_dir=""
+use_old_host_toolchain=0
 
-while getopts d:v: opt; do
+while getopts fg:d:v: opt; do
 	case "$opt" in
+	f)
+		use_old_host_toolchain=1;;
 	d)
 		install_dir="$OPTARG";;
 	v)
 		version="$OPTARG";;
+	g)
+		gcc_dir="$OPTARG";;
 	\?)
 		usage
 		break;;
@@ -52,9 +58,6 @@ fi
 # This will help to increase the likelihood that the installed software
 # will be accessible by all users.
 umask 022
-
-make_opts="-j4"
-cmake_opts="-DCMAKE_BUILD_TYPE=Release"
 
 top_dir="$tmp_dir/llvm-clang-$version"
 archive_dir="$top_dir/archives"
@@ -101,12 +104,31 @@ fi
 tar -xJf "$archive_dir/compiler-rt-$version.src.tar.xz" \
   -C "$extract_dir" --strip-components=1 || panic "cannot extract compiler-rt archive"
 
-(cd "$build_dir" &&
-  cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$install_dir" "$cmake_opts" \
-  "$src_dir") || \
+cmake_opts=()
+
+cmake_opts+=(-G "Unix Makefiles")
+cmake_opts+=(-DCMAKE_INSTALL_PREFIX="$install_dir")
+cmake_opts+=(-DCMAKE_VERBOSE_MAKEFILE=true)
+cmake_opts+=(-DCMAKE_BUILD_TYPE=Release)
+if [ "$use_old_host_toolchain" -ne 0 ]; then
+	cmake_opts+=(-DLLVM_FORCE_USE_OLD_HOST_TOOLCHAIN=true)
+fi
+
+if [ -n "$gcc_dir" ]; then
+	cmake_opts+=(-DCMAKE_C_COMPILER="${gcc_dir}/bin/gcc")
+	cmake_opts+=(-DCMAKE_CXX_COMPILER="${gcc_dir}/bin/g++")
+	cmake_opts+=(-DGCC_INSTALL_PREFIX="${gcc_dir}")
+#	cmake_opts+=(-DCMAKE_CXX_LINK_FLAGS="-L${gcc_dir}/lib64 -Wl,-rpath,${gcc_dir}/lib64")
+fi
+
+echo "Running cd $build_dir && cmake ${cmake_opts[@]} $src_dir"
+(cd "$build_dir" && cmake "${cmake_opts[@]}" "$src_dir") || \
   panic "cmake failed"
 
-(cd "$build_dir" && make "$make_opts") || panic "make failed"
+make_opts=()
+make_opts+=(-j4)
+
+(cd "$build_dir" && make "${make_opts[@]}") || panic "make failed"
 
 (cd "$build_dir" && make install) || panic "make install failed"
 
