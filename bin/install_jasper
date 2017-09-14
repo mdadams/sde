@@ -50,9 +50,6 @@ src_dir="$tmp_dir"
 build_dir="$tmp_dir/tmp_cmake"
 url="http://www.ece.uvic.ca/~mdadams/jasper/software/jasper-$version.tar.gz"
 
-make_opts="-j4"
-cmake_opts="-DCMAKE_BUILD_TYPE=Debug"
-
 for dir in "$tmp_dir" "$build_dir"; do
 	mkdir -p "$dir" || \
 	  panic "cannot make directory $dir"
@@ -67,12 +64,20 @@ archive=$(basename "$url") || \
 (cd "$tmp_dir" && tar -xzf "$archive" --strip-components=1) || \
   panic "cannot extract archive"
 
+cmake_opts=()
+cmake_opts+=(-G "Unix Makefiles")
+cmake_opts+=(-DCMAKE_INSTALL_PREFIX="$install_dir")
+cmake_opts+=(-DCMAKE_BUILD_TYPE=Debug)
+cmake_opts+=(-DJAS_ENABLE_DOC=false)
+
 (cd "$build_dir" &&
-  cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$install_dir" \
-  "$cmake_opts" "$src_dir") || \
+  cmake "${cmake_opts[@]}" "$src_dir") || \
   panic "cmake failed"
 
-(cd "$build_dir" && make "$make_opts") || panic "make failed"
+make_opts=()
+make_opts+=(-j4)
+
+(cd "$build_dir" && make "${make_opts[@]}") || panic "make failed"
 
 (cd "$build_dir" && make install) || panic "make install failed"
 

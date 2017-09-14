@@ -6,7 +6,7 @@ sde_clang_version=5.0.0
 sde_clang_dir="$sde_top_dir/packages/clang-$sde_clang_version"
 sde_cmake_version=3.9.2
 sde_cmake_dir="$sde_top_dir/packages/cmake-$sde_cmake_version"
-sde_jasper_version=2.0.12
+sde_jasper_version=2.0.14
 sde_jasper_dir="$sde_top_dir/packages/jasper-$sde_jasper_version"
 sde_texlive_dir="$sde_top_dir/packages/texlive"
 sde_gdb_version=8.0.1
@@ -17,7 +17,7 @@ sde_ndiff_version=2.00
 sde_ndiff_dir="$sde_top_dir/packages/ndiff-$sde_ndiff_version"
 sde_aristotle_dir="$sde_top_dir/packages/aristotle"
 
-sde_path_prefix="$sde_top_dir/bin:$sde_texlive_dir/2016/bin/x86_64-linux:$sde_jasper_dir/bin:$sde_gcc_dir/bin:$sde_clang_dir/bin"
+sde_path_prefix="$sde_top_dir/bin:$sde_texlive_dir/2017/bin/x86_64-linux:$sde_jasper_dir/bin:$sde_gcc_dir/bin:$sde_clang_dir/bin"
 sde_path_suffix="$HOME/local/bin:$sde_ndiff_dir/bin:$sde_aristotle_dir/bin"
 
 sde_dll_options="-Wl,-rpath -Wl,$sde_gcc_dir/lib64"
