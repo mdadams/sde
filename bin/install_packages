@@ -94,18 +94,21 @@ fi
 
 if [ ! -d "$clang_dir" ]; then
 	# Try to compile Clang with Clang if it is available.
-	compiler_name="Clang"
-	cpp_compiler_command=$(type -P clang++) || cpp_compiler_command=""
-	c_compiler_command=$(type -P clang) || c_compiler_command=""
+	#compiler_name="Clang"
+	#cpp_compiler_command=$(type -P clang++) || cpp_compiler_command=""
+	#c_compiler_command=$(type -P clang) || c_compiler_command=""
+	compiler_name="Previously-Installed GCC"
+	cpp_compiler_command=$(type -P g++) || cpp_compiler_command=""
+	c_compiler_command=$(type -P gcc) || c_compiler_command=""
 	if [ -z "$cpp_compiler_command" -o -z "$c_compiler_command" ]; then
-		# Clang is not available.  Use GCC to build Clang.
-		compiler_name="GCC"
+		# Use SDE-installed version of GCC to build Clang.
+		compiler_name="SDE-installed GCC"
 		cpp_compiler_command="$gcc_dir/bin/g++"
 		c_compiler_command="$gcc_dir/bin/gcc"
 	fi
 	echo "Building Clang with $compiler_name"
 	CXX="$cpp_compiler_command" CC="$c_compiler_command" \
-	"$install_clang" -v "$clang_version" -d "$clang_dir" || \
+	"$install_clang" -v "$clang_version" -d "$clang_dir" -f || \
 	  panic "cannot install clang"
 fi
 
