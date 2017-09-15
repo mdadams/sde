@@ -29,7 +29,7 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 
 install_dir="$cur_dir/texlive"
 tmp_dir="/tmp/install_texlive-$user@$host-$$"
-version=current
+version=2017
 
 while getopts d:v: opt; do
 	case "$opt" in
@@ -58,23 +58,16 @@ fi
 # will be accessible by all users.
 umask 022
 
-#installer_url="http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz"
-#year=$(date +%Y) || panic "cannot get year"
-if [ "$version" = "current" ]; then
-	repository_url="ftp://tug.org/texlive/tlnet"
-	installer_url="$repository_url/install-tl-unx.tar.gz"
-else
-	repository_url="ftp://tug.org/historic/systems/texlive/$version/tlnet-final"
-	installer_url="$repository_url/install-tl-unx.tar.gz"
+if [ -d "$install_dir" ]; then
+	panic "installation directory already exists"
 fi
 
 profile=$tmp_dir/profile
 
-archive=$(basename "$installer_url") || panic "cannot extract archive name"
+installer_url="http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz"
+repository_url=""
 
-if [ -d "$install_dir" ]; then
-	panic "installation directory already exists"
-fi
+archive=$(basename "$installer_url") || panic "cannot extract archive name"
 
 mkdir -p "$tmp_dir" || \
   panic "cannot make temporary directory $tmp_dir"
@@ -82,17 +75,25 @@ mkdir -p "$tmp_dir" || \
 (cd "$tmp_dir" && wget "$installer_url") || \
   panic "cannot download archive"
 
-mkdir -p "$install_dir" || \
-  panic "cannot make directory $install_dir"
-
 (tar -xzf "$tmp_dir/$archive" -C "$tmp_dir" --strip-components=1) || \
   panic "cannot extract archive"
 
-if [ "$version" = "current" ]; then
-	version=$( (cd "$tmp_dir" && ./install-tl -version | \
-	  grep -E -e '[Vv]ersion [0-9]+' -o) | \
-	  awk '{print $2;}' - ) || panic "cannot get version"
-	echo "installing version $version"
+current_version=$( (cd "$tmp_dir" && ./install-tl -version | \
+  grep -E -e '[Vv]ersion [0-9]+' -o) | \
+  awk '{print $2;}' - ) || panic "cannot get current version"
+echo "current TeX Live version is $current_version"
+
+if [ "$version" != "$current_version" ]; then
+	echo "old version ($version) requested for installation"
+	# Assume that the requested version of TeX Live is an old one.
+	repository_url="ftp://tug.org/historic/systems/texlive/$version/tlnet-final"
+	installer_url="$repository_url/install-tl-unx.tar.gz"
+	rm -f "$tmp_dir/$archive" || \
+	panic "cannot remove file $tmp_dir/$archive"
+	(cd "$tmp_dir" && wget "$installer_url") || \
+	  panic "cannot download archive"
+	(tar -xzf "$tmp_dir/$archive" -C "$tmp_dir" --strip-components=1) || \
+	  panic "cannot extract archive"
 fi
 
 cat > "$profile" <<- EOF
@@ -129,8 +130,13 @@ echo "============================================================"
 cat "$profile"
 echo "============================================================"
 
+mkdir -p "$install_dir" || \
+  panic "cannot make directory $install_dir"
+
 install_opts=()
 install_opts+=(-profile "$profile")
-install_opts+=(-repository "$repository_url")
+if [ -n "$repository_url" ]; then
+	install_opts+=(-repository "$repository_url")
+fi
 (cd "$tmp_dir" && ./install-tl "${install_opts[@]}")
 
