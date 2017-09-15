@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 # Reference: http://www.linuxfromscratch.org/blfs/view/cvs/general/gcc.html
 

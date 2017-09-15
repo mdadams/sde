@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 # Reference: http://llvm.org/releases/download.html
 # Reference: http://llvm.org/docs/GettingStarted.html

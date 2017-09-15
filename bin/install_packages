@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 cmd_dir=$(dirname "$0") || exit 1
 
@@ -121,7 +121,7 @@ if [ ! -d "$texlive_dir" ]; then
 	"$install_texlive" -d "$texlive_dir" || \
 	  panic "cannot install texlive"
 fi
-texlive_bin_dir="$texlive_dir/2016/bin/x86_64-linux"
+texlive_bin_dir="$texlive_dir/2017/bin/x86_64-linux"
 
 # JasPer might need a more recent LaTeX version
 # Install JasPer after LaTeX.
