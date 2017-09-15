@@ -46,6 +46,7 @@ jasper_version=2.0.14
 gdb_version=8.0.1
 spl_version=2.0.5
 ndiff_version=2.00
+texlive_version=2017
 
 install_cmake="$cmd_dir/install_cmake"
 install_gcc="$cmd_dir/install_gcc"
@@ -59,7 +60,7 @@ install_ndiff="$cmd_dir/install_ndiff"
 cmake_dir="$packages_dir/cmake-$cmake_version"
 gcc_dir="$packages_dir/gcc-$gcc_version"
 clang_dir="$packages_dir/clang-$clang_version"
-texlive_dir="$packages_dir/texlive"
+texlive_dir="$packages_dir/texlive-$texlive_version"
 jasper_dir="$packages_dir/jasper-$jasper_version"
 gdb_dir="$packages_dir/gdb-$gdb_version"
 spl_dir="$packages_dir/SPL-$spl_version"
@@ -121,7 +122,7 @@ if [ ! -d "$texlive_dir" ]; then
 	"$install_texlive" -d "$texlive_dir" || \
 	  panic "cannot install texlive"
 fi
-texlive_bin_dir="$texlive_dir/2017/bin/x86_64-linux"
+texlive_bin_dir="$texlive_dir/bin"
 
 # JasPer might need a more recent LaTeX version
 # Install JasPer after LaTeX.

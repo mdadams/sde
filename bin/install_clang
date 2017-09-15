@@ -24,8 +24,10 @@ host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
 #version=4.0.0
+#install_dir="$cur_dir/clang-$version"
+version=
+install_dir=
 tmp_dir="/tmp/install_clang-$user@$host-$$"
-install_dir="$cur_dir/clang-$version"
 gcc_dir=""
 use_old_host_toolchain=0
 

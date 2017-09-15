@@ -25,8 +25,10 @@ host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
 #version=3.6.3
-version=3.8.1
-install_dir="$cur_dir/cmake-$version"
+#version=3.8.1
+#install_dir="$cur_dir/cmake-$version"
+version=
+install_dir=
 tmp_dir="/tmp/install_cmake-$user@$host-$$"
 
 while getopts d:v: opt; do

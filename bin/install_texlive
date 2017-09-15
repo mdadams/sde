@@ -27,9 +27,11 @@ user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
-install_dir="$cur_dir/texlive"
+#version=2017
+#install_dir="$cur_dir/texlive-$version"
+version=
+install_dir=
 tmp_dir="/tmp/install_texlive-$user@$host-$$"
-version=2017
 
 while getopts d:v: opt; do
 	case "$opt" in
@@ -98,13 +100,13 @@ fi
 
 cat > "$profile" <<- EOF
 selected_scheme scheme-full
-TEXDIR $install_dir/$version
-TEXMFCONFIG ~/.texlive$version/texmf-config
-TEXMFHOME ~/texmf
+TEXDIR $install_dir
+TEXMFSYSCONFIG $install_dir/texmf-config
 TEXMFLOCAL $install_dir/texmf-local
-TEXMFSYSCONFIG $install_dir/$version/texmf-config
-TEXMFSYSVAR $install_dir/$version/texmf-var
-TEXMFVAR ~/.texlive$version/texmf-var
+TEXMFSYSVAR $install_dir/texmf-var
+TEXMFHOME ~/texmf
+TEXMFCONFIG ~/.texlive/texmf-config
+TEXMFVAR ~/.texlive/texmf-var
 binary_x86_64-linux 1
 instopt_adjustpath 0
 instopt_adjustrepo 1
@@ -122,6 +124,11 @@ tlpdbopt_install_srcfiles 1
 tlpdbopt_post_code 1
 tlpdbopt_w32_multi_user 0
 EOF
+#TEXDIR $install_dir/$version
+#TEXMFCONFIG ~/.texlive$version/texmf-config
+#TEXMFSYSCONFIG $install_dir/$version/texmf-config
+#TEXMFSYSVAR $install_dir/$version/texmf-var
+#TEXMFVAR ~/.texlive$version/texmf-var
 #tlpdbopt_sys_bin /usr/local/bin
 #tlpdbopt_sys_info /usr/local/share/info
 #tlpdbopt_sys_man /usr/local/share/man
@@ -139,4 +146,12 @@ if [ -n "$repository_url" ]; then
 	install_opts+=(-repository "$repository_url")
 fi
 (cd "$tmp_dir" && ./install-tl "${install_opts[@]}")
+
+texlive_bin_dir="$install_dir/bin"
+texlive_arch_dir="$texlive_bin_dir/x86_64-linux"
+if [ ! -d "$texlive_arch_dir" ]; then
+	panic "expected bin directory is missing"
+fi
+(cd "$texlive_bin_dir" && ln -s x86_64-linux/* .) || \
+  panic "cannot link files"
 
