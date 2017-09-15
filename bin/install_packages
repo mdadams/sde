@@ -119,7 +119,7 @@ if [ ! -d "$gdb_dir" ]; then
 fi
 
 if [ ! -d "$texlive_dir" ]; then
-	"$install_texlive" -d "$texlive_dir" || \
+	"$install_texlive" -v "$texlive_version" -d "$texlive_dir" || \
 	  panic "cannot install texlive"
 fi
 texlive_bin_dir="$texlive_dir/bin"
