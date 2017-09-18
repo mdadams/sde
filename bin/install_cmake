@@ -15,8 +15,30 @@ warn()
 
 usage()
 {
-	echo "BAD USAGE: $@"
-	echo "usage: $0 -v version -p install_dir"
+	if [ $# -gt 0 ]; then
+		echo "BAD USAGE: $@"
+	fi
+	cat <<- EOF
+	usage: $0 [options]
+
+	This command downloads and installs CMake.
+	The -v and -d options must be specified.
+
+	Options:
+	-v \$version
+	    Specify the version of CMake to install as \$version
+	    (e.g., 5.0.0).
+	    This option must be spcified.
+	-d \$install_dir
+	    Set the installation directory to \$install_dir.
+	    This option must be spcified.
+	-O \$os
+	    Set the operating system type to \$os (e.g., linux-gnu).
+	    This option defaults to the currently running operating system.
+	-A \$arch
+	    Set the architecture type to \$arch (e.g., x86_64).
+	    This option defaults to the architecture of the current platform.
+	EOF
 	exit 2
 }
 
@@ -30,16 +52,23 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 version=
 install_dir=
 tmp_dir="/tmp/install_cmake-$user@$host-$$"
+os="$OSTYPE"
+arch="x86_64"
 
-while getopts d:v: opt; do
+while getopts d:v:O:A:h opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
 	v)
 		version="$OPTARG";;
+	O)
+		os="$OPTARG";;
+	A)
+		arch="$OPTARG";;
+	h)
+		usage;;
 	\?)
-		usage
-		break;;
+		usage;;
 	esac
 done
 shift $((OPTIND - 1))
@@ -50,6 +79,12 @@ fi
 if [ -z "$version" ]; then
 	usage "no version specified"
 fi
+if [ -z "$os" ]; then
+	usage "no operating system specified"
+fi
+if [ -z "$os" ]; then
+	usage "no architecture specified"
+fi
 
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
@@ -57,9 +92,21 @@ fi
 # will be accessible by all users.
 umask 022
 
+case "$os" in
+linux*)
+	cmake_os=Linux;;
+darwin*)
+	cmake_os=Darwin;;
+*)
+	panic "unknown operating system $os"
+	;;
+esac
+
+cmake_arch="$arch"
+
 short_version=$(echo "$version" | sed -e 's/\.[0-9]*$//') || \
   panic "cannot extract short version"
-url="https://cmake.org/files/v$short_version/cmake-$version-Linux-x86_64.tar.gz"
+url="https://cmake.org/files/v$short_version/cmake-$version-$cmake_os-$cmake_arch.tar.gz"
 archive=$(basename $url) || panic "cannot extract archive name"
 
 if [ -d "$install_dir" ]; then
@@ -78,10 +125,28 @@ mkdir -p "$install_dir" || \
 tar -x -z --strip-components=1 -C "$install_dir" -f "$tmp_dir/$archive" || \
   panic "cannot extract archive"
 
+case "$os" in
+linux*)
+	cmake_bin_dir="bin";;
+darwin*)
+	cmake_bin_dir="CMake.app/Contents/bin";;
+*)
+	panic "unknown operating system $os";;
+esac
+
+if [ "$cmake_bin_dir" != "bin" ]; then
+	mkdir -p "$install_dir/bin" || panic "cannot make directory"
+fi
+
 for file in ccmake cmake cmake-gui cpack ctest; do
-	target_file="$install_dir/bin/$file"
+	target_file="$install_dir/$cmake_bin_dir/$file"
 	chmod a+rx "$target_file" || \
 	  panic "cannot set permission for $target_file"
+	if [ "$cmake_bin_dir" != "bin" ]; then
+		# NOTE: It would be better to use a relative path for the
+		# symbolic link created here.
+		ln -s "$target_file" "$install_dir/bin" || panic "cannot link file"
+	fi
 done
 
 rm -f "$tmp_dir/$archive"
