@@ -35,6 +35,7 @@ bin_dir="$cmd_dir/bin"
 default_environment=
 force=0
 sde_top_dir=""
+
 while getopts d:fe: opt; do
 	case "$opt" in
 	d)

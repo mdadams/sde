@@ -24,6 +24,7 @@ cmd_dir=`dirname $0` || panic "cannot get command directory"
 
 default_environment=
 sde_top_dir=""
+
 while getopts d:e: opt; do
 	case "$opt" in
 	d)
