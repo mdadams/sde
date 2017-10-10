@@ -138,10 +138,10 @@ if [ ! -d "$clang_dir" ]; then
 	  panic "cannot install clang"
 fi
 
-#if [ ! -d "$boost_dir" ]; then
-#	"$install_boost" -v "$boost_version" -d "$boost_dir" || \
-#	  panic "cannot install boost"
-#fi
+if [ ! -d "$boost_dir" ]; then
+	"$install_boost" -v "$boost_version" -d "$boost_dir" || \
+	  panic "cannot install boost"
+fi
 
 if [ ! -d "$gdb_dir" ]; then
 	"$install_gdb" -v "$gdb_version" -d "$gdb_dir" || \
