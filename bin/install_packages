@@ -61,12 +61,12 @@ fi
 packages_dir="$sde_top_dir/packages"
 boot_dir="$sde_top_dir/bootstrap"
 
-cmake_version=3.9.2
+cmake_version=3.9.4
 gcc_version=7.2.0
 clang_version=5.0.0
 jasper_version=2.0.14
 gdb_version=8.0.1
-spl_version=2.0.5
+spl_version=2.0.6
 ndiff_version=2.00
 texlive_version=2017
 boost_version=1.65.1
@@ -134,7 +134,7 @@ if [ ! -d "$clang_dir" ]; then
 	fi
 	echo "Building Clang with $compiler_name"
 	CXX="$cpp_compiler_command" CC="$c_compiler_command" \
-	"$install_clang" -v "$clang_version" -d "$clang_dir" -f || \
+	"$install_clang" -l -v "$clang_version" -d "$clang_dir" -f || \
 	  panic "cannot install clang"
 fi
 
