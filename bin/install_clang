@@ -30,9 +30,12 @@ install_dir=
 tmp_dir="/tmp/install_clang-$user@$host-$$"
 gcc_dir=""
 use_old_host_toolchain=0
+install_libcxx=0
 
-while getopts fg:d:v: opt; do
+while getopts lfg:d:v: opt; do
 	case "$opt" in
+	l)
+		install_libcxx=1;;
 	f)
 		use_old_host_toolchain=1;;
 	d)
@@ -72,39 +75,68 @@ for dir in "$top_dir" "$archive_dir" "$src_dir" "$build_dir"; do
 	fi
 done
 
-for url in \
-  "http://llvm.org/releases/$version/cfe-$version.src.tar.xz" \
-  "http://llvm.org/releases/$version/llvm-$version.src.tar.xz" \
-  "http://llvm.org/releases/$version/compiler-rt-$version.src.tar.xz" \
-  "http://llvm.org/releases/$version/clang-tools-extra-$version.src.tar.xz" \
-  ; do
+llvm_url="http://llvm.org/releases/$version/llvm-$version.src.tar.xz"
+cfe_url="http://llvm.org/releases/$version/cfe-$version.src.tar.xz"
+cr_url="http://llvm.org/releases/$version/compiler-rt-$version.src.tar.xz"
+cte_url="http://llvm.org/releases/$version/clang-tools-extra-$version.src.tar.xz"
+libcxx_url="http://releases.llvm.org/$version/libcxx-$version.src.tar.xz"
+libcxxabi_url="http://releases.llvm.org/$version/libcxxabi-$version.src.tar.xz"
+
+urls=()
+urls+=("$llvm_url")
+urls+=("$cfe_url")
+urls+=("$cr_url")
+urls+=("$cte_url")
+if [ "$install_libcxx" -ne 0 ]; then
+	urls+=("$libcxx_url")
+	urls+=("$libcxxabi_url")
+fi
+for url in "${urls[@]}"; do
 	(cd "$archive_dir" && wget "$url") || panic "cannot get URL $url"
 done
 
-tar -xJf "$archive_dir/llvm-$version.src.tar.xz" \
+tar -xJf "$archive_dir/$(basename "$llvm_url")" \
   -C "$src_dir" --strip-components=1 || panic "cannot extract llvm archive"
 
 extract_dir="$src_dir/tools/clang"
 if [ ! -d "$extract_dir" ]; then
 	mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
 fi
-tar -xJf "$archive_dir/cfe-$version.src.tar.xz" \
+tar -xJf "$archive_dir/$(basename "$cfe_url")" \
   -C "$extract_dir" --strip-components=1 || panic "cannot extract cfe archive"
 
 extract_dir="$src_dir/tools/clang/tools/extra"
 if [ ! -d "$extract_dir" ]; then
 	mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
 fi
-tar -xJf "$archive_dir/clang-tools-extra-$version.src.tar.xz" \
+tar -xJf "$archive_dir/$(basename "$cte_url")" \
   -C "$extract_dir" --strip-components=1 || \
   panic "cannot extract clang-tools-extra archive"
 
-extract_dir=$src_dir/projects/compiler-rt
+extract_dir="$src_dir/projects/compiler-rt"
 if [ ! -d "$extract_dir" ]; then
 	mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
 fi
-tar -xJf "$archive_dir/compiler-rt-$version.src.tar.xz" \
+tar -xJf "$archive_dir/$(basename "$cr_url")" \
   -C "$extract_dir" --strip-components=1 || panic "cannot extract compiler-rt archive"
+
+if [ "$install_libcxx" -ne 0 ]; then
+	extract_dir="$src_dir/projects/libcxx"
+	if [ ! -d "$extract_dir" ]; then
+		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+	fi
+	tar -xJf "$archive_dir/$(basename "$libcxx_url")" \
+	  -C "$extract_dir" --strip-components=1 || panic "cannot extract libcxx archive"
+fi
+
+if [ "$install_libcxx" -ne 0 ]; then
+	extract_dir="$src_dir/projects/libcxxabi"
+	if [ ! -d "$extract_dir" ]; then
+		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+	fi
+	tar -xJf "$archive_dir/$(basename "$libcxxabi_url")" \
+	  -C "$extract_dir" --strip-components=1 || panic "cannot extract libcxx archive"
+fi
 
 cmake_opts=()
 
