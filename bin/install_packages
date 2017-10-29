@@ -83,6 +83,7 @@ install_ndiff="$cmd_dir/install_ndiff"
 
 cmake_dir="$packages_dir/cmake-$cmake_version"
 gcc_dir="$packages_dir/gcc-$gcc_version"
+gcc_bin_dir="$gcc_dir/bin"
 clang_dir="$packages_dir/clang-$clang_version"
 boost_dir="$packages_dir/boost-$boost_version"
 texlive_dir="$packages_dir/texlive-$texlive_version"
@@ -163,7 +164,7 @@ if [ -d "$texlive_dir" -a ! -d "$jasper_dir" ]; then
 fi
 
 if [ -d "$texlive_dir" -a ! -d "$spl_dir" ]; then
-	PATH="$texlive_bin_dir:$PATH" \
+	PATH="$gcc_bin_dir:$texlive_bin_dir:$PATH" \
 	  "$install_spl" -v "$spl_version" -d "$spl_dir" || \
 	  panic "cannot install SPL"
 fi
