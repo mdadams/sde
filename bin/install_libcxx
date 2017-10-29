@@ -1,0 +1,148 @@
+#! /usr/bin/env bash
+
+set -xv
+# Reference: https://libcxx.llvm.org/docs/BuildingLibcxx.html
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+usage()
+{
+	echo "BAD USAGE: $@"
+	cat <<- EOF
+	-d \$install_dir
+	    Set the installation directory to \$install_dir.
+	-v \$version
+	    Set the version to install to \$version.
+	    (e.g. 5.0.0)
+	EOF
+	exit 2
+}
+
+user=$(whoami) || panic "cannot get user name"
+host=$(hostname) || panic "cannot get host name"
+cur_dir=$(pwd) || panic "cannot get current directory"
+
+version=
+install_dir=
+tmp_dir="/tmp/install_libcxx-$user@$host-$$"
+gcc_dir=""
+use_old_host_toolchain=0
+
+while getopts fg:d:v: opt; do
+	case "$opt" in
+	f)
+		use_old_host_toolchain=1;;
+	d)
+		install_dir="$OPTARG";;
+	v)
+		version="$OPTARG";;
+	g)
+		gcc_dir="$OPTARG";;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$install_dir" ]; then
+	usage "no installation directory specified"
+fi
+if [ -z "$version" ]; then
+	usage "no version specified"
+fi
+
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
+top_dir="$tmp_dir/llvm-clang-$version"
+archive_dir="$top_dir/archives"
+top_src_dir="$top_dir/src"
+top_build_dir="$top_dir/build"
+
+for dir in "$top_dir" "$archive_dir" "$top_src_dir" "$top_build_dir"; do
+	if [ ! -d "$dir" ]; then
+		mkdir -p "$dir" || panic "cannot make directory $dir"
+	fi
+done
+
+llvm_url="http://llvm.org/releases/$version/llvm-$version.src.tar.xz"
+libcxx_url="http://releases.llvm.org/$version/libcxx-$version.src.tar.xz"
+libcxxabi_url="http://releases.llvm.org/$version/libcxxabi-$version.src.tar.xz"
+
+urls=()
+#urls+=("$llvm_url")
+urls+=("$libcxx_url")
+urls+=("$libcxxabi_url")
+for url in "${urls[@]}"; do
+	(cd "$archive_dir" && wget "$url") || panic "cannot get URL $url"
+done
+
+#tar -xJf "$archive_dir/$(basename "$llvm_url")" \
+#  -C "$top_src_dir" --strip-components=1 || panic "cannot extract llvm archive"
+
+extract_dir="$top_src_dir/projects/libcxx"
+if [ ! -d "$extract_dir" ]; then
+	mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+fi
+tar -xJf "$archive_dir/$(basename "$libcxx_url")" \
+  -C "$extract_dir" --strip-components=1 || \
+  panic "cannot extract libcxx archive"
+
+extract_dir="$top_src_dir/projects/libcxxabi"
+if [ ! -d "$extract_dir" ]; then
+	mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+fi
+tar -xJf "$archive_dir/$(basename "$libcxxabi_url")" \
+  -C "$extract_dir" --strip-components=1 || \
+  panic "cannot extract libcxxabi archive"
+
+cmake_opts=()
+
+cmake_opts+=(-G "Unix Makefiles")
+cmake_opts+=(-DCMAKE_INSTALL_PREFIX="$install_dir")
+cmake_opts+=(-DCMAKE_VERBOSE_MAKEFILE=true)
+cmake_opts+=(-DCMAKE_BUILD_TYPE=Release)
+if [ "$use_old_host_toolchain" -ne 0 ]; then
+	cmake_opts+=(-DLLVM_FORCE_USE_OLD_HOST_TOOLCHAIN=true)
+fi
+
+if [ -n "$gcc_dir" ]; then
+	cmake_opts+=(-DCMAKE_C_COMPILER="${gcc_dir}/bin/gcc")
+	cmake_opts+=(-DCMAKE_CXX_COMPILER="${gcc_dir}/bin/g++")
+	cmake_opts+=(-DGCC_INSTALL_PREFIX="${gcc_dir}")
+#	cmake_opts+=(-DCMAKE_CXX_LINK_FLAGS="-L${gcc_dir}/lib64 -Wl,-rpath,${gcc_dir}/lib64")
+fi
+
+cmake_opts+=(-DLIBCXXABI_LIBCXX_INCLUDES="$install_dir/include/c++/v1")
+
+names=()
+names+=("libcxx")
+names+=("libcxxabi")
+for name in "${names[@]}"; do
+	build_dir="$top_build_dir/$name"
+	if [ ! -d "$build_dir" ]; then
+		mkdir -p "$build_dir" || panic "cannot make directory $build_dir"
+	fi
+	src_dir="$top_src_dir/projects/$name"
+	echo "Running cd $build_dir && cmake ${cmake_opts[@]} $src_dir"
+	(cd "$build_dir" && cmake "${cmake_opts[@]}" "$src_dir") || \
+	  panic "cmake failed"
+done
+
+for name in "${names[@]}"; do
+	build_dir="$top_build_dir/$name"
+	make_opts=()
+	make_opts+=(-j4)
+	(cd "$build_dir" && make "${make_opts[@]}") || panic "make failed"
+	(cd "$build_dir" && make install) || panic "make install failed"
+done
+
+rm -rf "$tmp_dir"
