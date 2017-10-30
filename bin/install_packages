@@ -28,6 +28,8 @@ usage()
 	exit 2
 }
 
+sde_config="$cmd_dir/sde_config"
+
 sde_top_dir=""
 
 while getopts d:h opt; do
@@ -96,85 +98,123 @@ aristotle_bin_dir="$packages_dir/aristotle/bin"
 # Since some software requires CMake to build, install CMake before
 # building other software.
 
-if [ ! -d "$cmake_dir" ]; then
-	"$install_cmake" -v "$cmake_version" -d "$cmake_dir" || \
-	  panic "cannot install cmake"
-fi
+if [ -n "$cmake_dir" ]; then
+	if [ ! -d "$cmake_dir" ]; then
+		"$install_cmake" -v "$cmake_version" -d "$cmake_dir" || \
+		  panic "cannot install cmake"
+	fi
+	"$sde_config" -d "$sde_top_dir" -p cmake -v "$cmake_version" || \
+	  panic "cannot configure cmake"
 
-if [ ! -d "$boot_dir" ]; then
-	mkdir -p "$boot_dir" || panic "cannot make directory $boot_dir"
+	if [ ! -d "$boot_dir" ]; then
+		mkdir -p "$boot_dir" || panic "cannot make directory $boot_dir"
+	fi
+	target_file="$boot_dir/cmake"
+	if [ -L "$target_file" -o -e "$target_file" ]; then
+		rm -f "$target_file" || panic "cannot remove file $target_file"
+	fi
+	ln -s ../packages/cmake-$cmake_version/bin/cmake "$target_file" || \
+	  panic "cannot make symbolic link for cmake"
 fi
-target_file="$boot_dir/cmake"
-if [ -L "$target_file" -o -e "$target_file" ]; then
-	rm -f "$target_file" || panic "cannot remove file $target_file"
-fi
-ln -s ../packages/cmake-$cmake_version/bin/cmake "$target_file" || \
-  panic "cannot make symbolic link for cmake"
 
 path="$boot_dir:$PATH"
 export PATH="$path"
 
-if [ ! -d "$gcc_dir" ]; then
-	"$install_gcc" -v "$gcc_version" -d "$gcc_dir" || \
-	  panic "cannot install gcc"
-fi
-
-if [ ! -d "$clang_dir" ]; then
-	# Try to compile Clang with Clang if it is available.
-	#compiler_name="Clang"
-	#cpp_compiler_command=$(type -P clang++) || cpp_compiler_command=""
-	#c_compiler_command=$(type -P clang) || c_compiler_command=""
-	compiler_name="Previously-Installed GCC"
-	cpp_compiler_command=$(type -P g++) || cpp_compiler_command=""
-	c_compiler_command=$(type -P gcc) || c_compiler_command=""
-	if [ -z "$cpp_compiler_command" -o -z "$c_compiler_command" ]; then
-		# Use SDE-installed version of GCC to build Clang.
-		compiler_name="SDE-installed GCC"
-		cpp_compiler_command="$gcc_dir/bin/g++"
-		c_compiler_command="$gcc_dir/bin/gcc"
+if [ -n "$gcc_dir" ]; then
+	if [ ! -d "$gcc_dir" ]; then
+		"$install_gcc" -v "$gcc_version" -d "$gcc_dir" || \
+		  panic "cannot install gcc"
 	fi
-	echo "Building Clang with $compiler_name"
-	CXX="$cpp_compiler_command" CC="$c_compiler_command" \
-	"$install_clang" -l -v "$clang_version" -d "$clang_dir" -f || \
-	  panic "cannot install clang"
+	"$sde_config" -d "$sde_top_dir" -p gcc -v "$gcc_version" || \
+	  panic "cannot configure gcc"
 fi
 
-if [ ! -d "$boost_dir" ]; then
-	"$install_boost" -v "$boost_version" -d "$boost_dir" || \
-	  panic "cannot install boost"
+if [ -n "$clang_dir" ]; then
+	if [ ! -d "$clang_dir" ]; then
+		# Try to compile Clang with Clang if it is available.
+		#compiler_name="Clang"
+		#cpp_compiler_command=$(type -P clang++) || cpp_compiler_command=""
+		#c_compiler_command=$(type -P clang) || c_compiler_command=""
+		compiler_name="Previously-Installed GCC"
+		cpp_compiler_command=$(type -P g++) || cpp_compiler_command=""
+		c_compiler_command=$(type -P gcc) || c_compiler_command=""
+		if [ -z "$cpp_compiler_command" -o -z "$c_compiler_command" ]; then
+			# Use SDE-installed version of GCC to build Clang.
+			compiler_name="SDE-installed GCC"
+			cpp_compiler_command="$gcc_dir/bin/g++"
+			c_compiler_command="$gcc_dir/bin/gcc"
+		fi
+		echo "Building Clang with $compiler_name"
+		CXX="$cpp_compiler_command" CC="$c_compiler_command" \
+		"$install_clang" -l -v "$clang_version" -d "$clang_dir" -f || \
+		  panic "cannot install clang"
+	fi
+	"$sde_config" -d "$sde_top_dir" -p clang -v "$clang_version" || \
+	  panic "cannot configure clang"
 fi
 
-if [ ! -d "$gdb_dir" ]; then
-	"$install_gdb" -v "$gdb_version" -d "$gdb_dir" || \
-	  panic "cannot install gdb"
+if [ -n "$boost_dir" ]; then
+	if [ ! -d "$boost_dir" ]; then
+		"$install_boost" -v "$boost_version" -d "$boost_dir" || \
+		  panic "cannot install boost"
+	fi
+	"$sde_config" -d "$sde_top_dir" -p boost -v "$boost_version" || \
+	  panic "cannot configure boost"
 fi
 
-if [ "$enable_texlive_install" -ne 0 -a ! -d "$texlive_dir" ]; then
-	"$install_texlive" -v "$texlive_version" -d "$texlive_dir" || \
-	  panic "cannot install texlive"
+if [ -n "$gdb_dir" ]; then
+	if [ ! -d "$gdb_dir" ]; then
+		"$install_gdb" -v "$gdb_version" -d "$gdb_dir" || \
+		  panic "cannot install gdb"
+	fi
+	"$sde_config" -d "$sde_top_dir" -p gdb -v "$gdb_version" || \
+	  panic "cannot configure gdb"
+fi
+
+if [ "$enable_texlive_install" -ne 0 ]; then
+	if [ ! -d "$texlive_dir" ]; then
+		"$install_texlive" -v "$texlive_version" -d "$texlive_dir" || \
+		  panic "cannot install texlive"
+	fi
+	"$sde_config" -d "$sde_top_dir" -p texlive -v "$texlive_version" || \
+	  panic "cannot configure texlive"
 fi
 texlive_bin_dir="$texlive_dir/bin"
 
 # JasPer might need a more recent LaTeX version
 # Install JasPer after LaTeX.
-if [ -d "$texlive_dir" -a ! -d "$jasper_dir" ]; then
-	PATH="$texlive_bin_dir:$PATH" \
-	  "$install_jasper" -v "$jasper_version" -d "$jasper_dir" || \
-	  panic "cannot install jasper"
+if [ -n "$jasper_dir" -a -d "$texlive_dir" ]; then
+	if [ ! -d "$jasper_dir" ]; then
+		PATH="$texlive_bin_dir:$PATH" \
+		  "$install_jasper" -v "$jasper_version" -d "$jasper_dir" || \
+		  panic "cannot install jasper"
+	fi
+	"$sde_config" -d "$sde_top_dir" -p jasper -v "$jasper_version" || \
+	  panic "cannot configure jasper"
 fi
 
-if [ -d "$texlive_dir" -a ! -d "$spl_dir" ]; then
-	PATH="$gcc_bin_dir:$texlive_bin_dir:$PATH" \
-	  "$install_spl" -v "$spl_version" -d "$spl_dir" || \
-	  panic "cannot install SPL"
+if [ -n "$spl_dir" -a -d "$texlive_dir" ]; then
+	if [ ! -d "$spl_dir" ]; then
+		PATH="$gcc_bin_dir:$texlive_bin_dir:$PATH" \
+		  "$install_spl" -v "$spl_version" -d "$spl_dir" || \
+		  panic "cannot install SPL"
+	fi
+	"$sde_config" -d "$sde_top_dir" -p SPL -v "$spl_version" || \
+	  panic "cannot configure SPL"
 fi
 
-if [ ! -d "$ndiff_dir" ]; then
-	"$install_ndiff" -v "$ndiff_version" -d "$ndiff_dir" || \
-	  panic "cannot install ndiff"
+if [ -n "$ndiff_dir" ]; then
+	if [ ! -d "$ndiff_dir" ]; then
+		"$install_ndiff" -v "$ndiff_version" -d "$ndiff_dir" || \
+		  panic "cannot install ndiff"
+	fi
+	"$sde_config" -d "$sde_top_dir" -p ndiff -v "$ndiff_version" || \
+	  panic "cannot configure ndiff"
 fi
 
-if [ ! -d "$aristotle_bin_dir" ]; then
-	mkdir -p "$aristotle_bin_dir" || \
-	  panic "cannot make directory $aristotle_bin_dir"
+if [ -n "$aristotle_bin_dir" ]; then
+	if [ ! -d "$aristotle_bin_dir" ]; then
+		mkdir -p "$aristotle_bin_dir" || \
+		  panic "cannot make directory $aristotle_bin_dir"
+	fi
 fi

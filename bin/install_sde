@@ -76,7 +76,7 @@ for file in motd; do
 done
 
 # executables in $sde_top_dir/bin directory
-for file in sde_shell sde_make_setup wrapper; do
+for file in sde_shell sde_make_setup wrapper sde_config; do
 	echo "installing $file in $sde_top_dir/bin"
 	install -m a+rx $cmd_dir/$file $sde_top_dir/bin || \
 	  panic "cannot install $file"
@@ -98,7 +98,7 @@ for file in sde_shell_bashrc; do
 	  panic "cannot install $file"
 done
 
-for file in default spl_cmake spl_make elec486; do
+for file in default spl_cmake spl_make elec486 default_new; do
 	install -m a+r \
 	  "$cmd_dir/../environments/$file" "$sde_top_dir/environments" || \
 	  panic "cannot install $file"

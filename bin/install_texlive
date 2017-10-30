@@ -91,7 +91,7 @@ if [ "$version" != "$current_version" ]; then
 	repository_url="ftp://tug.org/historic/systems/texlive/$version/tlnet-final"
 	installer_url="$repository_url/install-tl-unx.tar.gz"
 	rm -f "$tmp_dir/$archive" || \
-	panic "cannot remove file $tmp_dir/$archive"
+	  panic "cannot remove file $tmp_dir/$archive"
 	(cd "$tmp_dir" && wget "$installer_url") || \
 	  panic "cannot download archive"
 	(tar -xzf "$tmp_dir/$archive" -C "$tmp_dir" --strip-components=1) || \
@@ -145,7 +145,8 @@ install_opts+=(-profile "$profile")
 if [ -n "$repository_url" ]; then
 	install_opts+=(-repository "$repository_url")
 fi
-(cd "$tmp_dir" && ./install-tl "${install_opts[@]}")
+(cd "$tmp_dir" && ./install-tl "${install_opts[@]}") || \
+  panic "installer failed"
 
 texlive_bin_dir="$install_dir/bin"
 texlive_arch_dir="$texlive_bin_dir/x86_64-linux"
