@@ -98,7 +98,7 @@ for file in sde_shell_bashrc; do
 	  panic "cannot install $file"
 done
 
-for file in default spl_cmake spl_make elec486 default_new; do
+for file in minimal default seng475; do
 	install -m a+r \
 	  "$cmd_dir/../environments/$file" "$sde_top_dir/environments" || \
 	  panic "cannot install $file"

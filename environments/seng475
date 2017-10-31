@@ -39,7 +39,6 @@ sde_clang_cxx_transform=1
 sde_clang_cxx_options_prefix=""
 # Avoid linking problems due to the std::string ABI fiasco.
 #sde_clang_cxx_options_prefix="$sde_clang_cxx_options_prefix -stdlib=libc++ -isystem $clang_dir/include/c++/v1"
-#sde_clang_cxx_options_prefix="$sde_clang_cxx_options_prefix -isystem $sde_gcc_dir/include/c++/7.2.0 -L$sde_gcc_dir/lib64"
 sde_clang_cxx_options_prefix="$sde_clang_cxx_options_prefix -isystem $sde_boost_dir/include -L$sde_boost_dir/lib"
 sde_clang_cxx_options_suffix="$sde_clang_dll_options"
 

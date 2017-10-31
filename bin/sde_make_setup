@@ -49,45 +49,65 @@ bash_setup()
 	# GNU C++ compiler
 	echo 'export SDE_GCC_CXX_PROGRAM='"$sde_gcc_cxx_program"';' || \
 	  return 1
-	echo 'export SDE_GCC_CXX_OPTIONS_PREFIX='\""$sde_gcc_cxx_options_prefix"\"';' || \
+	echo 'export SDE_GCC_CXX_TRANSFORM='\""$sde_gcc_cxx_transform"\"';' || \
 	  return 1
-	echo 'export SDE_GCC_CXX_OPTIONS_SUFFIX='\""$sde_gcc_cxx_options_suffix"\"';' || \
-	  return 1
+	if [ ${sde_gcc_cxx_transform:-0} -ne 0 ]; then
+		echo 'export SDE_GCC_CXX_OPTIONS_PREFIX='\""$sde_gcc_cxx_options_prefix"\"';' || \
+		  return 1
+		echo 'export SDE_GCC_CXX_OPTIONS_SUFFIX='\""$sde_gcc_cxx_options_suffix"\"';' || \
+		  return 1
+	fi
 
 	# GNU C compiler
 	echo 'export SDE_GCC_C_PROGRAM='"$sde_gcc_c_program"';' || \
 	  return 1
-	echo 'export SDE_GCC_C_OPTIONS_PREFIX='\""$sde_gcc_c_options_prefix"\"';' || \
+	echo 'export SDE_GCC_C_TRANSFORM='\""$sde_gcc_c_transform"\"';' || \
 	  return 1
-	echo 'export SDE_GCC_C_OPTIONS_SUFFIX='\""$sde_gcc_c_options_suffix"\"';' || \
-	  return 1
+	if [ ${sde_gcc_c_transform:-0} -ne 0 ]; then
+		echo 'export SDE_GCC_C_OPTIONS_PREFIX='\""$sde_gcc_c_options_prefix"\"';' || \
+		  return 1
+		echo 'export SDE_GCC_C_OPTIONS_SUFFIX='\""$sde_gcc_c_options_suffix"\"';' || \
+		  return 1
+	fi
 
 	# Clang C++ compiler
 	echo 'export SDE_CLANG_CXX_PROGRAM='"$sde_clang_cxx_program"';' || \
 	  return 1
-	echo 'export SDE_CLANG_CXX_OPTIONS_PREFIX='\""$sde_clang_cxx_options_prefix"\"';' || \
+	echo 'export SDE_CLANG_CXX_TRANSFORM='\""$sde_clang_cxx_transform"\"';' || \
 	  return 1
-	echo 'export SDE_CLANG_CXX_OPTIONS_SUFFIX='\""$sde_clang_cxx_options_suffix"\"';' || \
-	  return 1
+	if [ ${sde_clang_cxx_transform:-0} -ne 0 ]; then
+		echo 'export SDE_CLANG_CXX_OPTIONS_PREFIX='\""$sde_clang_cxx_options_prefix"\"';' || \
+		  return 1
+		echo 'export SDE_CLANG_CXX_OPTIONS_SUFFIX='\""$sde_clang_cxx_options_suffix"\"';' || \
+		  return 1
+	fi
 
 	# Clang C compiler
 	echo 'export SDE_CLANG_C_PROGRAM='"$sde_clang_c_program"';' || \
 	  return 1
-	echo 'export SDE_CLANG_C_OPTIONS_PREFIX='\""$sde_clang_c_options_prefix"\"';' || \
+	echo 'export SDE_CLANG_C_TRANSFORM='\""$sde_clang_c_transform"\"';' || \
 	  return 1
-	echo 'export SDE_CLANG_C_OPTIONS_SUFFIX='\""$sde_clang_c_options_suffix"\"';' || \
-	  return 1
+	if [ ${sde_clang_c_transform:-0} -ne 0 ]; then
+		echo 'export SDE_CLANG_C_OPTIONS_PREFIX='\""$sde_clang_c_options_prefix"\"';' || \
+		  return 1
+		echo 'export SDE_CLANG_C_OPTIONS_SUFFIX='\""$sde_clang_c_options_suffix"\"';' || \
+		  return 1
+	fi
 
 	# CMake
 	echo 'export SDE_CMAKE_PROGRAM='"$sde_cmake_program"';' || \
 	  return 1
-	echo 'export SDE_CMAKE_PREFIX_PATH='"$sde_cmake_prefix_path"';' || \
+	echo 'export SDE_CMAKE_TRANSFORM='"$sde_cmake_transform"';' || \
 	  return 1
+	if [ ${sde_cmake_transform:-0} -ne 0 ]; then
+		echo 'export SDE_CMAKE_PREFIX_PATH='"$sde_cmake_prefix_path"';' || \
+		  return 1
+	fi
 
 	# CXX and CC environment variables
-	echo 'export CXX='"$sde_top_dir/bin/g++"';' || \
+	echo 'export SDE_CXX='"$SDE_GCC_CXX_PROGRAM"';' || \
 	  return 1
-	echo 'export CC='"$sde_top_dir/bin/gcc"';' || \
+	echo 'export SDE_CC='"$SDE_GCC_CC_PROGRAM"';' || \
 	  return 1
 
 	echo 'export SDE_GDB_PROGRAM='"$sde_gdb_program"';' || \

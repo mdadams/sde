@@ -27,13 +27,17 @@ g++)
 		panic "no execute permission on file $SDE_GCC_CXX_PROGRAM"
 	fi
 	command="$SDE_GCC_CXX_PROGRAM"
-	args=()
-	if [ -n "$SDE_GCC_CXX_OPTIONS_PREFIX" ]; then
-		args+=($SDE_GCC_CXX_OPTIONS_PREFIX)
-	fi
-	args+=("$@")
-	if [ -n "$SDE_GCC_CXX_OPTIONS_SUFFIX" ]; then
-		args+=($SDE_GCC_CXX_OPTIONS_SUFFIX)
+	if [ ${SDE_GCC_CXX_TRANSFORM:-0} -ne 0 ]; then
+		args=()
+		if [ -n "$SDE_GCC_CXX_OPTIONS_PREFIX" ]; then
+			args+=($SDE_GCC_CXX_OPTIONS_PREFIX)
+		fi
+		args+=("$@")
+		if [ -n "$SDE_GCC_CXX_OPTIONS_SUFFIX" ]; then
+			args+=($SDE_GCC_CXX_OPTIONS_SUFFIX)
+		fi
+	else
+		args+=("$@")
 	fi
 	;;
 
@@ -45,14 +49,19 @@ gcc)
 		panic "no execute permission on file $SDE_GCC_C_PROGRAM"
 	fi
 	command="$SDE_GCC_C_PROGRAM"
-	args=()
-	if [ -n "$SDE_GCC_C_OPTIONS_PREFIX" ]; then
-		args+=($SDE_GCC_C_OPTIONS_PREFIX)
+	if [ ${SDE_GCC_C_TRANSFORM:-0} -ne 0 ]; then
+		args=()
+		if [ -n "$SDE_GCC_C_OPTIONS_PREFIX" ]; then
+			args+=($SDE_GCC_C_OPTIONS_PREFIX)
+		fi
+		args+=("$@")
+		if [ -n "$SDE_GCC_C_OPTIONS_SUFFIX" ]; then
+			args+=($SDE_GCC_C_OPTIONS_SUFFIX)
+		fi
+	else
+		args+=("$@")
 	fi
-	args+=("$@")
-	if [ -n "$SDE_GCC_C_OPTIONS_SUFFIX" ]; then
-		args+=($SDE_GCC_C_OPTIONS_SUFFIX)
-	fi
+
 	;;
 
 gdb)
@@ -75,13 +84,17 @@ clang++)
 		panic "no execute permission on file $SDE_CLANG_CXX_PROGRAM"
 	fi
 	command="$SDE_CLANG_CXX_PROGRAM"
-	args=()
-	if [ -n "$SDE_CLANG_CXX_OPTIONS_PREFIX" ]; then
-		args+=($SDE_CLANG_CXX_OPTIONS_PREFIX)
-	fi
-	args+=("$@")
-	if [ -n "$SDE_CLANG_CXX_OPTIONS_SUFFIX" ]; then
-		args+=($SDE_CLANG_CXX_OPTIONS_SUFFIX)
+	if [ ${SDE_CLANG_CXX_TRANSFORM:-0} -ne 0 ]; then
+		args=()
+		if [ -n "$SDE_CLANG_CXX_OPTIONS_PREFIX" ]; then
+			args+=($SDE_CLANG_CXX_OPTIONS_PREFIX)
+		fi
+		args+=("$@")
+		if [ -n "$SDE_CLANG_CXX_OPTIONS_SUFFIX" ]; then
+			args+=($SDE_CLANG_CXX_OPTIONS_SUFFIX)
+		fi
+	else
+		args+=("$@")
 	fi
 	;;
 
@@ -93,13 +106,17 @@ clang)
 		panic "no execute permission on file $SDE_CLANG_C_PROGRAM"
 	fi
 	command="$SDE_CLANG_C_PROGRAM"
-	args=()
-	if [ -n "$SDE_CLANG_C_OPTIONS_PREFIX" ]; then
-		args+=($SDE_CLANG_C_OPTIONS_PREFIX)
-	fi
-	args+=("$@")
-	if [ -n "$SDE_CLANG_C_OPTIONS_SUFFIX" ]; then
-		args+=($SDE_CLANG_C_OPTIONS_SUFFIX)
+	if [ ${SDE_CLANG_C_TRANSFORM:-0} -ne 0 ]; then
+		args=()
+		if [ -n "$SDE_CLANG_C_OPTIONS_PREFIX" ]; then
+			args+=($SDE_CLANG_C_OPTIONS_PREFIX)
+		fi
+		args+=("$@")
+		if [ -n "$SDE_CLANG_C_OPTIONS_SUFFIX" ]; then
+			args+=($SDE_CLANG_C_OPTIONS_SUFFIX)
+		fi
+	else
+		args+=("$@")
 	fi
 	;;
 
@@ -111,9 +128,13 @@ cmake)
 		panic "no execute permission on file $SDE_CMAKE_PROGRAM"
 	fi
 	command="$SDE_CMAKE_PROGRAM"
-	args=()
-	args+=("$@")
-	export CMAKE_PREFIX_PATH="$SDE_CMAKE_PREFIX_PATH"
+	if [ ${SDE_CMAKE_TRANSFORM:-0} -ne 0 ]; then
+		args=()
+		args+=("$@")
+		export CMAKE_PREFIX_PATH="$SDE_CMAKE_PREFIX_PATH"
+	else
+		args+=("$@")
+	fi
 	;;
 
 cpack|ctest)

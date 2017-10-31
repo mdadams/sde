@@ -19,7 +19,7 @@ usage()
 	-f
 	    Allow the use of an existing directory.
 	examples:
-	    ./installer -d /usr/local/sde -e elec486
+	    ./installer -d /usr/local/sde -e default
 	EOF
 	exit 2
 }

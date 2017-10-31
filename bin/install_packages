@@ -131,13 +131,21 @@ fi
 
 if [ -n "$clang_dir" ]; then
 	if [ ! -d "$clang_dir" ]; then
+
 		# Try to compile Clang with Clang if it is available.
 		#compiler_name="Clang"
 		#cpp_compiler_command=$(type -P clang++) || cpp_compiler_command=""
 		#c_compiler_command=$(type -P clang) || c_compiler_command=""
-		compiler_name="Previously-Installed GCC"
-		cpp_compiler_command=$(type -P g++) || cpp_compiler_command=""
-		c_compiler_command=$(type -P gcc) || c_compiler_command=""
+
+		# Try to build CLang with previously-installed version of GCC.
+		#compiler_name="Previously-Installed GCC"
+		#cpp_compiler_command=$(type -P g++) || cpp_compiler_command=""
+		#c_compiler_command=$(type -P gcc) || c_compiler_command=""
+
+		# Always build Clang with the SDE-installed version of GCC.
+		cpp_compiler_command=""
+		c_compiler_command=""
+
 		if [ -z "$cpp_compiler_command" -o -z "$c_compiler_command" ]; then
 			# Use SDE-installed version of GCC to build Clang.
 			compiler_name="SDE-installed GCC"
