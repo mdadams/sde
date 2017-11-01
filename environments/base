@@ -32,7 +32,7 @@ sde_clang_glibcpp_options_1="--gcc-toolchain=$sde_gcc_dir"
 sde_clang_glibcpp_options_2="-L$sde_gcc_dir/lib64 -Wl,-rpath,$sde_gcc_dir/lib64 -L$sde_clang_dir/lib -Wl,-rpath,$sde_clang_dir/lib"
 
 # NOTE: Uncomment the following lines to use the LLVM libc++ library.
-#sde_clang_clibcpp_options_1="-stdlib=libc++ -isystem  -isystem $sde_clang_dir/include/c++/v1"
+#sde_clang_clibcpp_options_1="-stdlib=libc++ -isystem $sde_clang_dir/include/c++/v1"
 #sde_clang_clibcpp_options_2="-L$sde_clang_dir/lib -Wl,-rpath,$sde_clang_dir/lib"
 
 # NOTE: Uncomment the following lines to use the SDE-installed version of Boost.
