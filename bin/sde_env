@@ -1,0 +1,54 @@
+#! /usr/bin/env bash
+
+panic()
+{
+	echo "ERROR"
+	exit 1
+}
+
+sde_root_dir="${SDE_TOP_DIR}"
+
+while getopts d: opt; do
+	case "$opt" in
+	d)
+		sde_root_dir="$OPTARG";;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$sde_root_dir" ]; then
+	usage "no SDE root directory specified"
+fi
+
+if [ $# -ge 1 ]; then
+	if [ $# -ne 1 ]; then
+		usage "invalid number of arguments"
+	fi
+	modify=1
+	default_environment="$1"
+else
+	modify=0
+fi
+
+default_environment_file="$sde_root_dir/etc/default_environment"
+
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+umask 022
+
+if [ "$modify" -ne 0 ]; then
+	if [ -f "$default_environment_file" ]; then
+		rm -f "$default_environment_file" || \
+		  panic "cannot remove file $default_environment_file"
+	fi
+	if [ -n "$default_environment" ]; then
+		echo "$default_environment" > "$default_environment_file" || \
+		  panic "cannot create file $default_environment_file"
+	fi
+else
+	cat "$default_environment_file" || \
+	  panic "cannot read default environment file"
+fi

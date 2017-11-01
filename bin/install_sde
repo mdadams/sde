@@ -52,7 +52,8 @@ fi
 # will be accessible by all users.
 umask 022
 
-default_environment_file="$sde_top_dir/etc/default_environment"
+#default_environment_file="$sde_top_dir/etc/default_environment"
+sde_cmd="$cmd_dir/sde"
 
 for dir in bin etc environments; do
 	if [ ! -d "$sde_top_dir/$dir" ]; then
@@ -76,7 +77,7 @@ for file in motd; do
 done
 
 # executables in $sde_top_dir/bin directory
-for file in sde_shell sde_make_setup wrapper sde_config; do
+for file in sde_shell sde_make_setup wrapper sde sde_env sde_pkg; do
 	echo "installing $file in $sde_top_dir/bin"
 	install -m a+rx $cmd_dir/$file $sde_top_dir/bin || \
 	  panic "cannot install $file"
@@ -98,19 +99,24 @@ for file in sde_shell_bashrc; do
 	  panic "cannot install $file"
 done
 
-for file in minimal default seng475; do
+for file in $cmd_dir/../environments/*; do
+	file=$(basename "$file") || panic "cannot get basename"
 	install -m a+r \
 	  "$cmd_dir/../environments/$file" "$sde_top_dir/environments" || \
 	  panic "cannot install $file"
 done
 
-if [ -f "$default_environment_file" ]; then
-	rm -f "$default_environment_file" || \
-	  panic "cannot remove file $default_environment_file"
-fi
 if [ -n "$default_environment" ]; then
-	echo "$default_environment" > "$default_environment_file"
+	"$sde_cmd" env -d "$sde_top_dir" "$default_environment" || \
+	  panic "cannot set default environment"
 fi
+#if [ -f "$default_environment_file" ]; then
+#	rm -f "$default_environment_file" || \
+#	  panic "cannot remove file $default_environment_file"
+#fi
+#if [ -n "$default_environment" ]; then
+#	echo "$default_environment" > "$default_environment_file"
+#fi
 
 # executables in $sde_top_dir/root/usr/bin directory
 #for file in gcc g++ gdb; do

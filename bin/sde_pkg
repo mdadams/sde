@@ -1,0 +1,60 @@
+#! /usr/bin/env bash
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+sde_root_dir="${SDE_TOP_DIR}"
+
+while getopts d: opt; do
+	case "$opt" in
+	d)
+		sde_root_dir="$OPTARG";;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$sde_root_dir" ]; then
+	usage "no SDE root directory specified"
+fi
+
+if [ $# -eq 2 ]; then
+	package="$1"
+	version="$2"
+	modify=1
+elif [ $# -eq 1 ]; then
+	package="$1"
+	modify=0
+else
+	usage "invalid usage"
+fi
+
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+umask 022
+
+packages_dir="$sde_root_dir/packages"
+package_symlink="$packages_dir/$package"
+
+if [ "$modify" -ne 0 ]; then
+	if [ -L "$package_symlink" ]; then
+		rm -f "$package_symlink" || panic "cannot remove $package_symlink"
+	fi
+
+	ln -s "$package-$version" "$package_symlink" || \
+	  panic "cannot make symbolic link $package_symlink"
+else
+	if [ ! -L "$package_symlink" ]; then
+		if [ -e "$package_symlink" ]; then
+			panic "not a package"
+		fi
+		panic "no selected version"
+	fi
+	target=$(readlink "$package_symlink") || panic "cannot read symlink"
+	echo "$target"
+fi

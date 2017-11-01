@@ -28,7 +28,7 @@ usage()
 	exit 2
 }
 
-sde_config="$cmd_dir/sde_config"
+sde_cmd="$cmd_dir/sde"
 
 sde_top_dir=""
 
@@ -103,7 +103,7 @@ if [ -n "$cmake_dir" ]; then
 		"$install_cmake" -v "$cmake_version" -d "$cmake_dir" || \
 		  panic "cannot install cmake"
 	fi
-	"$sde_config" -d "$sde_top_dir" -p cmake -v "$cmake_version" || \
+	"$sde_cmd" pkg -d "$sde_top_dir" cmake "$cmake_version" || \
 	  panic "cannot configure cmake"
 
 	if [ ! -d "$boot_dir" ]; then
@@ -125,7 +125,7 @@ if [ -n "$gcc_dir" ]; then
 		"$install_gcc" -v "$gcc_version" -d "$gcc_dir" || \
 		  panic "cannot install gcc"
 	fi
-	"$sde_config" -d "$sde_top_dir" -p gcc -v "$gcc_version" || \
+	"$sde_cmd" pkg -d "$sde_top_dir" gcc "$gcc_version" || \
 	  panic "cannot configure gcc"
 fi
 
@@ -157,7 +157,7 @@ if [ -n "$clang_dir" ]; then
 		"$install_clang" -l -v "$clang_version" -d "$clang_dir" -f || \
 		  panic "cannot install clang"
 	fi
-	"$sde_config" -d "$sde_top_dir" -p clang -v "$clang_version" || \
+	"$sde_cmd" pkg -d "$sde_top_dir" clang "$clang_version" || \
 	  panic "cannot configure clang"
 fi
 
@@ -166,7 +166,7 @@ if [ -n "$boost_dir" ]; then
 		"$install_boost" -v "$boost_version" -d "$boost_dir" || \
 		  panic "cannot install boost"
 	fi
-	"$sde_config" -d "$sde_top_dir" -p boost -v "$boost_version" || \
+	"$sde_cmd" pkg -d "$sde_top_dir" boost "$boost_version" || \
 	  panic "cannot configure boost"
 fi
 
@@ -175,7 +175,7 @@ if [ -n "$gdb_dir" ]; then
 		"$install_gdb" -v "$gdb_version" -d "$gdb_dir" || \
 		  panic "cannot install gdb"
 	fi
-	"$sde_config" -d "$sde_top_dir" -p gdb -v "$gdb_version" || \
+	"$sde_cmd" pkg -d "$sde_top_dir" gdb "$gdb_version" || \
 	  panic "cannot configure gdb"
 fi
 
@@ -184,7 +184,7 @@ if [ "$enable_texlive_install" -ne 0 ]; then
 		"$install_texlive" -v "$texlive_version" -d "$texlive_dir" || \
 		  panic "cannot install texlive"
 	fi
-	"$sde_config" -d "$sde_top_dir" -p texlive -v "$texlive_version" || \
+	"$sde_cmd" pkg -d "$sde_top_dir" texlive "$texlive_version" || \
 	  panic "cannot configure texlive"
 fi
 texlive_bin_dir="$texlive_dir/bin"
@@ -197,7 +197,7 @@ if [ -n "$jasper_dir" -a -d "$texlive_dir" ]; then
 		  "$install_jasper" -v "$jasper_version" -d "$jasper_dir" || \
 		  panic "cannot install jasper"
 	fi
-	"$sde_config" -d "$sde_top_dir" -p jasper -v "$jasper_version" || \
+	"$sde_cmd" pkg -d "$sde_top_dir" jasper "$jasper_version" || \
 	  panic "cannot configure jasper"
 fi
 
@@ -207,7 +207,7 @@ if [ -n "$spl_dir" -a -d "$texlive_dir" ]; then
 		  "$install_spl" -v "$spl_version" -d "$spl_dir" || \
 		  panic "cannot install SPL"
 	fi
-	"$sde_config" -d "$sde_top_dir" -p SPL -v "$spl_version" || \
+	"$sde_cmd" pkg -d "$sde_top_dir" SPL "$spl_version" || \
 	  panic "cannot configure SPL"
 fi
 
@@ -216,7 +216,7 @@ if [ -n "$ndiff_dir" ]; then
 		"$install_ndiff" -v "$ndiff_version" -d "$ndiff_dir" || \
 		  panic "cannot install ndiff"
 	fi
-	"$sde_config" -d "$sde_top_dir" -p ndiff -v "$ndiff_version" || \
+	"$sde_cmd" pkg -d "$sde_top_dir" ndiff "$ndiff_version" || \
 	  panic "cannot configure ndiff"
 fi
 

@@ -2,7 +2,6 @@
 # GCC and Clang both use the SDE version of Boost.
 # GCC and Clang both use the native C++ standard library.
 # GCC and Clang both use rpath specifications when linking.
-# CMAKE_PREFIX_PATH is set to $HOME/local
 
 sde_gcc_dir="$sde_top_dir/packages/gcc"
 sde_clang_dir="$sde_top_dir/packages/clang"
@@ -26,7 +25,7 @@ sde_clang_lib_options="-L$sde_gcc_dir/lib64 -Wl,-rpath,$sde_gcc_dir/lib64 -L$sde
 
 sde_cmake_program="$sde_cmake_dir/bin/cmake"
 sde_cmake_transform=1
-sde_cmake_prefix_path="$HOME/local"
+sde_cmake_prefix_path="$HOME/local:$sde_boost_dir"
 
 sde_gcc_cxx_program="$sde_gcc_dir/bin/g++"
 sde_gcc_cxx_transform=1

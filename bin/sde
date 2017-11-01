@@ -1,0 +1,31 @@
+#! /usr/bin/env bash
+
+cmd_dir=$(dirname "$0") || exit 1
+
+panic()
+{
+	echo "ERROR: $@" 1>&2
+	exit 1
+}
+
+usage()
+{
+	echo "$@"
+	cat <<- EOF
+	Usage:
+	$0 command [options]
+	EOF
+	exit 2
+}
+
+if [ $# -lt 1 ]; then
+	usage "no command specified"
+fi
+
+name="$1"
+shift 1
+command="$cmd_dir/sde_${name}"
+if [ ! -x "$command" ]; then
+	panic "unknown command $name"
+fi
+exec "$command" "$@"
