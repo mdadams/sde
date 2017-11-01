@@ -19,7 +19,7 @@ cmd_name=$(basename "$0")
 
 case "$cmd_name" in
 
-g++)
+c++|g++)
 	if [ -z "$SDE_GCC_CXX_PROGRAM" ]; then
 		panic "SDE_GCC_CXX_PROGRAM not set"
 	fi
@@ -41,7 +41,7 @@ g++)
 	fi
 	;;
 
-gcc)
+cc|gcc)
 	if [ -z "$SDE_GCC_C_PROGRAM" ]; then
 		panic "SDE_GCC_C_PROGRAM not set"
 	fi

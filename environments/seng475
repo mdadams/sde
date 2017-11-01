@@ -18,8 +18,11 @@ sde_boost_dir="$sde_top_dir/packages/boost"
 sde_path_prefix="$sde_top_dir/bin:$sde_texlive_dir/bin:$sde_jasper_dir/bin:$sde_gcc_dir/bin:$sde_clang_dir/bin"
 sde_path_suffix="$HOME/local/bin:$sde_ndiff_dir/bin:$sde_aristotle_dir/bin"
 
-sde_gcc_dll_options="-Wl,-rpath,$sde_gcc_dir/lib64 -Wl,-rpath,$sde_boost_dir/lib"
-sde_clang_dll_options="-Wl,-rpath,$sde_clang_dir/lib -Wl,-rpath,$sde_boost_dir/lib"
+sde_gcc_inc_options="-isystem $sde_boost_dir/include"
+sde_gcc_lib_options="-L$sde_gcc_dir/lib64 -Wl,-rpath,$sde_gcc_dir/lib64 -L$sde_boost_dir/lib -Wl,-rpath,$sde_boost_dir/lib"
+sde_clang_lib_options="-L$sde_gcc_dir/lib64 -Wl,-rpath,$sde_gcc_dir/lib64 -L$sde_clang_dir/lib -Wl,-rpath,$sde_clang_dir/lib -L$sde_boost_dir/lib -Wl,-rpath,$sde_boost_dir/lib"
+sde_clang_inc_options="--gcc-toolchain=$sde_gcc_dir -isystem $sde_boost_dir/include"
+sde_clang_lib_options="-L$sde_gcc_dir/lib64 -Wl,-rpath,$sde_gcc_dir/lib64 -L$sde_clang_dir/lib -Wl,-rpath,$sde_clang_dir/lib -L$sde_boost_dir/lib -Wl,-rpath,$sde_boost_dir/lib"
 
 sde_cmake_program="$sde_cmake_dir/bin/cmake"
 sde_cmake_transform=1
@@ -27,35 +30,33 @@ sde_cmake_prefix_path="$HOME/local"
 
 sde_gcc_cxx_program="$sde_gcc_dir/bin/g++"
 sde_gcc_cxx_transform=1
-sde_gcc_cxx_options_prefix=""
-sde_gcc_cxx_options_prefix="$sde_gcc_cxx_options_prefix -isystem $sde_boost_dir/include -L$sde_boost_dir/lib"
+sde_gcc_cxx_options_prefix="$sde_gcc_inc_options $sde_gcc_lib_options"
 # Note: -fext-numeric-literals is to workaround an apparent bug in GCC
 # Reference: http://stackoverflow.com/questions/25365160/boostmultiprecisionfloat128-and-c11
 #sde_gcc_cxx_options_prefix="$sde_gcc_cxx_options_prefix -fext-numeric-literals"
-sde_gcc_cxx_options_suffix="$sde_gcc_dll_options"
+sde_gcc_cxx_options_suffix=""
 
 sde_clang_cxx_program="$sde_clang_dir/bin/clang++"
 sde_clang_cxx_transform=1
 sde_clang_cxx_options_prefix=""
 # Avoid linking problems due to the std::string ABI fiasco.
 #sde_clang_cxx_options_prefix="$sde_clang_cxx_options_prefix -stdlib=libc++ -isystem $clang_dir/include/c++/v1"
-sde_clang_cxx_options_prefix="$sde_clang_cxx_options_prefix -isystem $sde_boost_dir/include -L$sde_boost_dir/lib"
-sde_clang_cxx_options_suffix="$sde_clang_dll_options"
+sde_clang_cxx_options_prefix="$sde_clang_inc_options $sde_clang_lib_options"
+sde_clang_cxx_options_suffix=""
 
 sde_gcc_c_program="$sde_gcc_dir/bin/gcc"
 sde_gcc_c_transform=1
-sde_gcc_c_options_prefix=""
-sde_gcc_c_options_suffix="$sde_gcc_dll_options"
+sde_gcc_c_options_prefix="$sde_gcc_inc_options"
+sde_gcc_c_options_suffix="$sde_gcc_lib_options"
 
 sde_clang_c_program="$sde_clang_dir/bin/clang"
 sde_clang_c_transform=1
-sde_clang_c_options_prefix=""
-sde_clang_c_options_suffix="$sde_clang_dll_options"
+sde_clang_c_options_prefix="$sde_clang_inc_options"
+sde_clang_c_options_suffix="$sde_clang_lib_options"
 
 sde_gdb_program="$sde_gdb_dir/bin/gdb"
 sde_gdb_transform=1
 
-#sde_ld_library_path_prefix="$sde_gcc_dir/lib64"
-sde_ld_library_path_prefix=
-sde_ld_library_path_suffix=
+sde_ld_library_path_prefix=""
+sde_ld_library_path_suffix=""
 

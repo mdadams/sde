@@ -82,7 +82,7 @@ for file in sde_shell sde_make_setup wrapper sde_config; do
 	  panic "cannot install $file"
 done
 
-for file in g++ gcc clang++ clang cmake ctest cpack gdb; do
+for file in c++ g++ clang++ cc gcc clang cmake ctest cpack gdb; do
 	target_file="$sde_top_dir/bin/$file"
 	if [ -L "$target_file" -o -e "$target_file" ]; then
 		rm -f "$target_file" || panic "cannot remove file $target_file"
