@@ -84,4 +84,4 @@ done
 
 ln -s ndiff $install_dir/bin/numeric_diff || panic "cannot make link"
 
-#rm -rf "$tmp_dir"
+rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"

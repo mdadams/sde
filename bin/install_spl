@@ -16,17 +16,26 @@ user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
-#version=2.0.5
-#install_dir="$cur_dir/SPL-$version"
 version=
 install_dir=
+build_doc=1
 
-while getopts d:v: opt; do
+while getopts d:v:o: opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
 	v)
 		version="$OPTARG";;
+	o)
+		case "$OPTARG" in
+		build_doc)
+			build_doc=1;;
+		no_build_doc)
+			build_doc=0;;
+		*)
+			usage;;
+		esac
+		;;
 	\?)
 		usage
 		break;;
@@ -53,7 +62,6 @@ build_dir="$tmp_dir/tmp_cmake"
 url="http://www.ece.uvic.ca/~mdadams/SPL/software/SPL-$version.tar.gz"
 
 make_opts="-j4"
-#cmake_opts="-DCMAKE_BUILD_TYPE=Debug"
 
 for dir in "$tmp_dir" "$build_dir"; do
 	mkdir -p "$dir" || \
@@ -69,13 +77,20 @@ archive=$(basename "$url") || \
 (cd "$tmp_dir" && tar -xzf "$archive" --strip-components=1) || \
   panic "cannot extract archive"
 
+cmake_opts=()
+#cmake_opts+=("-DCMAKE_BUILD_TYPE=Debug")
+if [ "$build_doc" -ne 0 ]; then
+	cmake_opts+=("-DSPL_ENABLE_DOC=true")
+else
+	cmake_opts+=("-DSPL_ENABLE_DOC=false")
+fi
 (cd "$build_dir" &&
   cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$install_dir" \
-  "$cmake_opts" "$src_dir") || \
+  "${cmake_opts[@]}" "$src_dir") || \
   panic "cmake failed"
 
 (cd "$build_dir" && make "$make_opts") || panic "make failed"
 
 (cd "$build_dir" && make install) || panic "make install failed"
 
-#rm -rf "$tmp_dir"
+rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"

@@ -1,6 +1,12 @@
 #! /usr/bin/env bash
 
+get_real_path()
+{
+	perl -MCwd -e 'print Cwd::abs_path shift' "$1"
+}
+
 cmd_dir=$(dirname "$0") || exit 1
+abs_cmd_dir=$(get_real_path "$cmd_dir") || exit 1
 
 panic()
 {
@@ -28,4 +34,9 @@ command="$cmd_dir/sde_${name}"
 if [ ! -x "$command" ]; then
 	panic "unknown command $name"
 fi
+
+if [ -z ${SDE_TOP_DIR+x} ]; then
+	export SDE_TOP_DIR="$abs_cmd_dir/.."
+fi
+
 exec "$command" "$@"

@@ -146,4 +146,4 @@ for name in "${names[@]}"; do
 	(cd "$build_dir" && make install) || panic "make install failed"
 done
 
-rm -rf "$tmp_dir"
+rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"

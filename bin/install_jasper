@@ -20,13 +20,24 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 #install_dir="$cur_dir/jasper-$version"
 version=
 install_dir=
+build_doc=1
 
-while getopts d:v: opt; do
+while getopts d:v:o: opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
 	v)
 		version="$OPTARG";;
+	o)
+		case "$OPTARG" in
+		build_doc)
+			build_doc=1;;
+		no_build_doc)
+			build_doc=0;;
+		*)
+			usage "bad option name";;
+		esac
+		;;
 	\?)
 		usage
 		break;;
@@ -70,7 +81,11 @@ cmake_opts=()
 cmake_opts+=(-G "Unix Makefiles")
 cmake_opts+=(-DCMAKE_INSTALL_PREFIX="$install_dir")
 cmake_opts+=(-DCMAKE_BUILD_TYPE=Debug)
-cmake_opts+=(-DJAS_ENABLE_DOC=false)
+if [ "$build_doc" -ne 0 ]; then
+	cmake_opts+=(-DJAS_ENABLE_DOC=true)
+else
+	cmake_opts+=(-DJAS_ENABLE_DOC=false)
+fi
 
 (cd "$build_dir" &&
   cmake "${cmake_opts[@]}" "$src_dir") || \
@@ -83,4 +98,4 @@ make_opts+=(-j4)
 
 (cd "$build_dir" && make install) || panic "make install failed"
 
-#rm -rf "$tmp_dir"
+rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"

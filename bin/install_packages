@@ -72,6 +72,7 @@ spl_version=2.0.6
 ndiff_version=2.00
 texlive_version=2017
 boost_version=1.65.1
+aristotle_version=2.23.0
 
 install_cmake="$cmd_dir/install_cmake"
 install_gcc="$cmd_dir/install_gcc"
@@ -82,6 +83,7 @@ install_jasper="$cmd_dir/install_jasper"
 install_gdb="$cmd_dir/install_gdb"
 install_spl="$cmd_dir/install_spl"
 install_ndiff="$cmd_dir/install_ndiff"
+install_aristotle="$cmd_dir/install_aristotle"
 
 cmake_dir="$packages_dir/cmake-$cmake_version"
 gcc_dir="$packages_dir/gcc-$gcc_version"
@@ -93,7 +95,7 @@ jasper_dir="$packages_dir/jasper-$jasper_version"
 gdb_dir="$packages_dir/gdb-$gdb_version"
 spl_dir="$packages_dir/SPL-$spl_version"
 ndiff_dir="$packages_dir/ndiff-$ndiff_version"
-aristotle_bin_dir="$packages_dir/aristotle/bin"
+aristotle_dir="$packages_dir/aristotle-$aristotle_version"
 
 # Since some software requires CMake to build, install CMake before
 # building other software.
@@ -191,20 +193,37 @@ texlive_bin_dir="$texlive_dir/bin"
 
 # JasPer might need a more recent LaTeX version
 # Install JasPer after LaTeX.
-if [ -n "$jasper_dir" -a -d "$texlive_dir" ]; then
+if [ -n "$jasper_dir" ]; then
 	if [ ! -d "$jasper_dir" ]; then
-		PATH="$texlive_bin_dir:$PATH" \
-		  "$install_jasper" -v "$jasper_version" -d "$jasper_dir" || \
+		options=()
+		if [ -d "$texlive_dir" ]; then
+			options+=(-o build_doc)
+			path_string="$texlive_bin_dir:"
+		else
+			options+=(-o no_build_doc)
+			path_string=""
+		fi
+		PATH="${path_string}$PATH" \
+		  "$install_jasper" -v "$jasper_version" -d "$jasper_dir" \
+		  "${options[@]}" || \
 		  panic "cannot install jasper"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" jasper "$jasper_version" || \
 	  panic "cannot configure jasper"
 fi
 
-if [ -n "$spl_dir" -a -d "$texlive_dir" ]; then
+if [ -n "$spl_dir" ]; then
 	if [ ! -d "$spl_dir" ]; then
-		PATH="$gcc_bin_dir:$texlive_bin_dir:$PATH" \
-		  "$install_spl" -v "$spl_version" -d "$spl_dir" || \
+		options=()
+		if [ -d "$texlive_dir" ]; then
+			options+=(-o build_doc)
+			path_string="$texlive_bin_dir:"
+		else
+			options+=(-o no_build_doc)
+			path_string=""
+		fi
+		PATH="$gcc_bin_dir:${path_string}$PATH" \
+		  "$install_spl" -v "$spl_version" -d "$spl_dir" "${options[@]}" || \
 		  panic "cannot install SPL"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" SPL "$spl_version" || \
@@ -220,9 +239,18 @@ if [ -n "$ndiff_dir" ]; then
 	  panic "cannot configure ndiff"
 fi
 
-if [ -n "$aristotle_bin_dir" ]; then
-	if [ ! -d "$aristotle_bin_dir" ]; then
-		mkdir -p "$aristotle_bin_dir" || \
-		  panic "cannot make directory $aristotle_bin_dir"
+if [ -n "$aristotle_dir" ]; then
+	if [ ! -d "$aristotle_dir" ]; then
+		"$install_aristotle" -v "$aristotle_version" -d "$aristotle_dir" || \
+		  panic "cannot install aristotle"
 	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" aristotle "$aristotle_version" || \
+	  panic "cannot configure aristotle"
 fi
+
+#if [ -n "$aristotle_bin_dir" ]; then
+#	if [ ! -d "$aristotle_bin_dir" ]; then
+#		mkdir -p "$aristotle_bin_dir" || \
+#		  panic "cannot make directory $aristotle_bin_dir"
+#	fi
+#fi

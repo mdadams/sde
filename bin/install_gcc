@@ -94,6 +94,6 @@ tar -xJf "$archive_file" -C "$src_dir" --strip-components=1 || \
 (cd "$build_dir" && make install) || \
   panic "make install failed"
 
-rm -rf "$tmp_dir"
+rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"
 
 exit 0
