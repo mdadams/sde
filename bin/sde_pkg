@@ -6,15 +6,20 @@ panic()
 	exit 1
 }
 
+usage()
+{
+	echo "bad usage: $@"
+	exit 2
+}
+
 sde_root_dir="${SDE_TOP_DIR}"
 
 while getopts d: opt; do
 	case "$opt" in
 	d)
 		sde_root_dir="$OPTARG";;
-	\?)
-		usage
-		break;;
+	*)
+		usage "invalid option";;
 	esac
 done
 shift $((OPTIND - 1))
