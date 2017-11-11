@@ -75,8 +75,11 @@ boost_version=1.65.1
 aristotle_version=2.23.0
 
 gcc_install_options=()
-#gcc_install_options+=(-o new_abi)
-gcc_install_options+=(-o old_abi)
+if [ "${SDE_GCC_USE_OLD_ABI:-0}" -ne 0 ]; then
+	gcc_install_options+=(-o old_abi)
+else
+	gcc_install_options+=(-o new_abi)
+fi
 
 install_cmake="$cmd_dir/install_cmake"
 install_gcc="$cmd_dir/install_gcc"
