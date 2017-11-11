@@ -74,6 +74,10 @@ texlive_version=2017
 boost_version=1.65.1
 aristotle_version=2.23.0
 
+gcc_install_options=()
+#gcc_install_options+=(-o new_abi)
+gcc_install_options+=(-o old_abi)
+
 install_cmake="$cmd_dir/install_cmake"
 install_gcc="$cmd_dir/install_gcc"
 install_clang="$cmd_dir/install_clang"
@@ -124,7 +128,8 @@ export PATH="$path"
 
 if [ -n "$gcc_dir" ]; then
 	if [ ! -d "$gcc_dir" ]; then
-		"$install_gcc" -v "$gcc_version" -d "$gcc_dir" || \
+		"$install_gcc" -v "$gcc_version" -d "$gcc_dir" \
+		  "${gcc_install_options[@]}" || \
 		  panic "cannot install gcc"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" gcc "$gcc_version" || \

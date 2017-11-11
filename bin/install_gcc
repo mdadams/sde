@@ -24,12 +24,24 @@ install_dir=
 # process cannot seem to handle "@" characters in pathnames.
 tmp_dir="/tmp/install_gcc-$user-$host-$$"
 
-while getopts d:v: opt; do
+old_abi=0
+
+while getopts d:v:o: opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
 	v)
 		version="$OPTARG";;
+	o)
+		case "$OPTARG" in
+		old_abi)
+			old_abi=1;;
+		new_abi)
+			old_abi=0;;
+		*)
+			usage;;
+		esac
+		;;
 	\?)
 		usage
 		break;;
@@ -79,13 +91,15 @@ tar -xJf "$archive_file" -C "$src_dir" --strip-components=1 || \
 (cd "$src_dir" && ./contrib/download_prerequisites) || \
   panic "cannot download prerequisites"
 
+options=()
+if [ "$old_abi" -ne 0 ]; then
+	options+=(--with-default-libstdcxx-abi=gcc4-compatible)
+fi
+options+=(--enable-threads=posix)
+options+=(--enable-tls)
+options+=(--disable-multilib)
 (cd "$build_dir" && 
-  ../src/configure --prefix="$install_dir" \
-  --with-default-libstdcxx-abi=gcc4-compatible \
-  --enable-threads=posix \
-  --enable-tls \
-  --disable-multilib \
-  ) || \
+  ../src/configure --prefix="$install_dir" "${options[@]}") || \
   panic "configure failed"
 
 (cd "$build_dir" && make "$make_opts") || \
