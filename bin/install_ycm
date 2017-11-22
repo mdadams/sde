@@ -1,0 +1,79 @@
+#! /usr/bin/env bash
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+usage()
+{
+	echo "BAD USAGE: $@"
+	exit 2
+}
+
+user=$(whoami) || panic "cannot get user name"
+host=$(hostname) || panic "cannot get host name"
+cur_dir=$(pwd) || panic "cannot get current directory"
+
+version=current
+install_dir=
+tmp_dir="/tmp/install_ycm-$user@$host-$$"
+
+while getopts d:v: opt; do
+	case "$opt" in
+	d)
+		install_dir="$OPTARG";;
+	v)
+		version="$OPTARG";;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$install_dir" ]; then
+	usage "no installation directory specified"
+fi
+if [ -z "$version" ]; then
+	usage "no version specified"
+fi
+if [ "$version" != current ]; then
+	usage "can only install current version"
+fi
+
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
+top_dir="$tmp_dir/ycm-$version"
+
+src_dir="$install_dir/YouCompleteMe"
+#build_dir="$top_dir/build"
+build_dir="$install_dir/build"
+
+for dir in "$top_dir" "$src_dir" "$build_dir"; do
+	if [ ! -d "$dir" ]; then
+		mkdir -p "$dir" || panic "cannot make directory $dir"
+	fi
+done
+
+ycm_url="https://github.com/Valloric/YouCompleteMe.git"
+
+(cd "$install_dir" && git clone "$ycm_url" YouCompleteMe) || \
+  panic "cannot clone repo"
+
+(cd "$install_dir/YouCompleteMe" && \
+  git submodule update --init --recursive) || \
+  panic "cannot submodule update"
+
+(cd "$build_dir" && cmake . "$src_dir/third_party/ycmd/cpp") || \
+  panic "cmake failed"
+
+(cd "$build_dir" && cmake --build . --target ycm_core --config Release) || \
+  panic
+
+rm -rf "$tmp_dir"
