@@ -261,7 +261,8 @@ fi
 
 if [ -n "$ycm_dir" ]; then
 	if [ ! -d "$ycm_dir" ]; then
-		"$install_ycm" -v "$ycm_version" -d "$ycm_dir" || \
+		PATH="$clang_dir/bin:$PATH" \
+		  "$install_ycm" -v "$ycm_version" -d "$ycm_dir" || \
 		  panic "cannot install ycm"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" ycm "$ycm_version" || \
