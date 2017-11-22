@@ -1,5 +1,7 @@
 #! /usr/bin/env bash
 
+# Reference: https://valloric.github.io/YouCompleteMe
+
 panic()
 {
 	echo "ERROR: $@"
@@ -70,8 +72,18 @@ ycm_url="https://github.com/Valloric/YouCompleteMe.git"
   git submodule update --init --recursive) || \
   panic "cannot submodule update"
 
-(cd "$build_dir" && cmake . "$src_dir/third_party/ycmd/cpp") || \
+#(cd "$build_dir" && cmake . "$src_dir/third_party/ycmd/cpp") || \
+#  panic "cmake failed"
+
+cmake_opts=()
+cmake_opts+=(-DUSE_CLANG_COMPLETER=on)
+cmake_opts+=(-DUSE_SYSTEM_LIBCLANG=on)
+(cd "$build_dir" && \
+  cmake "${cmake_opts[@]}" "$src_dir/third_party/ycmd/cpp") || \
   panic "cmake failed"
+
+#(cd "$build_dir" && cmake --build . --target ycm_core --config Release) || \
+#  panic
 
 (cd "$build_dir" && cmake --build . --target ycm_core --config Release) || \
   panic
