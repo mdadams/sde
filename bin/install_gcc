@@ -11,6 +11,12 @@ panic()
 	exit 1
 }
 
+usage()
+{
+	echo "bad usage: $@"
+	exit 2
+}
+
 user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"

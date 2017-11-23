@@ -74,6 +74,7 @@ texlive_version=2017
 boost_version=1.65.1
 aristotle_version=2.23.0
 ycm_version=31abb9cee59d5f74bbff14b6107e9c9316b6fc83
+vim_version=8.0
 
 gcc_install_options=()
 if [ "${SDE_GCC_USE_OLD_ABI:-0}" -ne 0 ]; then
@@ -93,6 +94,7 @@ install_spl="$cmd_dir/install_spl"
 install_ndiff="$cmd_dir/install_ndiff"
 install_aristotle="$cmd_dir/install_aristotle"
 install_ycm="$cmd_dir/install_ycm"
+install_vim="$cmd_dir/install_vim"
 
 cmake_dir="$packages_dir/cmake-$cmake_version"
 gcc_dir="$packages_dir/gcc-$gcc_version"
@@ -106,6 +108,7 @@ spl_dir="$packages_dir/SPL-$spl_version"
 ndiff_dir="$packages_dir/ndiff-$ndiff_version"
 aristotle_dir="$packages_dir/aristotle-$aristotle_version"
 ycm_dir="$packages_dir/ycm-$ycm_version"
+vim_dir="$packages_dir/vim-$vim_version"
 
 # Since some software requires CMake to build, install CMake before
 # building other software.
@@ -257,6 +260,15 @@ if [ -n "$aristotle_dir" ]; then
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" aristotle "$aristotle_version" || \
 	  panic "cannot configure aristotle"
+fi
+
+if [ -n "$vim_dir" ]; then
+	if [ ! -d "$vim_dir" ]; then
+		"$install_vim" -v "$vim_version" -d "$vim_dir" || \
+		  panic "cannot install vim"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" vim "$vim_version" || \
+	  panic "cannot configure vim"
 fi
 
 if [ -n "$ycm_dir" ]; then
