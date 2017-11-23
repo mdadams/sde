@@ -1,0 +1,96 @@
+#! /usr/bin/env bash
+
+# Reference: https://www.xorpd.net/blog/vim_python3_install.html
+
+usage()
+{
+	echo "bad usage: $@"
+	exit 2
+}
+
+panic()
+{
+	echo "ERROR"
+	exit 1
+}
+
+user=$(whoami) || panic "cannot get user name"
+host=$(hostname) || panic "cannot get host name"
+cur_dir=$(pwd) || panic "cannot get current directory"
+
+version=
+install_dir=
+
+tmp_dir="/tmp/install_vim-$user-$host-$$"
+
+while getopts d:v: opt; do
+	case "$opt" in
+	d)
+		install_dir="$OPTARG";;
+	v)
+		version="$OPTARG";;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$install_dir" ]; then
+	usage "no installation directory specified"
+fi
+if [ -z "$version" ]; then
+	usage "no version specified"
+fi
+
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
+top_dir="$tmp_dir/vim-$version"
+archive_dir="$top_dir/archive"
+src_dir="$top_dir/src"
+#build_dir="$top_dir/build"
+
+for dir in "$top_dir" "$archive_dir" "$src_dir"; do
+	if [ ! -d "$dir" ]; then
+		mkdir -p "$dir" || panic "cannot make directory $dir"
+	fi
+done
+
+url="ftp://ftp.vim.org/pub/vim/unix/vim-$version.tar.bz2"
+
+(cd "$archive_dir" && wget "$url" ) || \
+  panic "cannot download archive"
+
+archive_file="$archive_dir/$(basename "$url")"
+tar -xjf "$archive_file" -C "$src_dir" --strip-components=1 || \
+  panic "cannot extract archive"
+
+options=()
+options+=(--prefix="$install_dir")
+options+=(--enable-perlinterp)
+options+=(--enable-pythoninterp)
+options+=(--enable-rubyinterp)
+options+=(--enable-cscope)
+options+=(--enable-gui=auto)
+options+=(--enable-gtk2-check)
+options+=(--enable-gnome-check)
+options+=(--with-features=huge)
+options+=(--enable-multibyte)
+options+=(--with-x)
+(cd "$src_dir" && ./configure "${options[@]}") || \
+  panic "configure failed"
+
+make_opts=("-j2")
+(cd "$src_dir" && make "${make_opts[@]}") || \
+  panic "make failed"
+
+(cd "$src_dir" && make install) || \
+  panic "make install failed"
+
+rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"
+
+exit 0
