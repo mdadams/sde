@@ -108,7 +108,7 @@ spl_dir="$packages_dir/SPL-$spl_version"
 ndiff_dir="$packages_dir/ndiff-$ndiff_version"
 aristotle_dir="$packages_dir/aristotle-$aristotle_version"
 ycm_dir="$packages_dir/ycm-$ycm_version"
-vim_dir="$packages_dir/vim-$vim_version"
+#vim_dir="$packages_dir/vim-$vim_version"
 
 # Since some software requires CMake to build, install CMake before
 # building other software.
