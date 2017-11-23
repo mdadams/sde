@@ -1,5 +1,7 @@
 #! /usr/bin/env bash
 
+#set -xv
+
 # Reference: https://valloric.github.io/YouCompleteMe
 
 panic()
@@ -11,6 +13,17 @@ panic()
 usage()
 {
 	echo "BAD USAGE: $@"
+	cat <<- EOF
+	usage:
+	$0 -d \$install_dir [-v \$version]
+
+	options:
+	-d \$install_dir
+	    Set the installation directory to \$install_dir.
+	-v \$version
+	    Set the version (i.e., branch/commit) to install.
+	    e.g., 31abb9cee59d5f74bbff14b6107e9c9316b6fc83
+	EOF
 	exit 2
 }
 
@@ -18,7 +31,7 @@ user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
-version=current
+version=master
 install_dir=
 tmp_dir="/tmp/install_ycm-$user@$host-$$"
 
@@ -41,9 +54,6 @@ fi
 if [ -z "$version" ]; then
 	usage "no version specified"
 fi
-if [ "$version" != current ]; then
-	usage "can only install current version"
-fi
 
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
@@ -65,15 +75,14 @@ done
 
 ycm_url="https://github.com/Valloric/YouCompleteMe.git"
 
-(cd "$install_dir" && git clone "$ycm_url" YouCompleteMe) || \
+git clone "$ycm_url" "$src_dir" || \
   panic "cannot clone repo"
 
-(cd "$install_dir/YouCompleteMe" && \
-  git submodule update --init --recursive) || \
-  panic "cannot submodule update"
+(cd "$src_dir" && git checkout "$version") || \
+  panic "cannot clone repo"
 
-#(cd "$build_dir" && cmake . "$src_dir/third_party/ycmd/cpp") || \
-#  panic "cmake failed"
+(cd "$src_dir" && git submodule update --init --recursive) || \
+  panic "cannot submodule update"
 
 cmake_opts=()
 cmake_opts+=(-DUSE_CLANG_COMPLETER=on)
@@ -81,9 +90,6 @@ cmake_opts+=(-DUSE_SYSTEM_LIBCLANG=on)
 (cd "$build_dir" && \
   cmake "${cmake_opts[@]}" "$src_dir/third_party/ycmd/cpp") || \
   panic "cmake failed"
-
-#(cd "$build_dir" && cmake --build . --target ycm_core --config Release) || \
-#  panic
 
 (cd "$build_dir" && cmake --build . --target ycm_core --config Release) || \
   panic

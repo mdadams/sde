@@ -73,7 +73,7 @@ ndiff_version=2.00
 texlive_version=2017
 boost_version=1.65.1
 aristotle_version=2.23.0
-ycm_version=current
+ycm_version=31abb9cee59d5f74bbff14b6107e9c9316b6fc83
 
 gcc_install_options=()
 if [ "${SDE_GCC_USE_OLD_ABI:-0}" -ne 0 ]; then
