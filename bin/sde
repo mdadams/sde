@@ -24,6 +24,22 @@ usage()
 	exit 2
 }
 
+sde_root_dir="${SDE_TOP_DIR:-$abs_cmd_dir/..}"
+
+while getopts d: opt; do
+	case "$opt" in
+	d)
+		sde_root_dir="$OPTARG";;
+	*)
+		usage "invalid option";;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$sde_root_dir" ]; then
+	usage "no SDE root directory specified"
+fi
+
 if [ $# -lt 1 ]; then
 	usage "no command specified"
 fi
@@ -35,8 +51,6 @@ if [ ! -x "$command" ]; then
 	panic "unknown command $name"
 fi
 
-if [ -z ${SDE_TOP_DIR+x} ]; then
-	export SDE_TOP_DIR="$abs_cmd_dir/.."
-fi
+export SDE_TOP_DIR="$sde_root_dir"
 
 exec "$command" "$@"

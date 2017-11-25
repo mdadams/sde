@@ -1,0 +1,92 @@
+#! /usr/bin/env bash
+
+#set -xv
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+usage()
+{
+	echo "bad usage: $@"
+	exit 2
+}
+
+sde_root_dir="${SDE_TOP_DIR}"
+
+if [ -z "$sde_root_dir" ]; then
+	usage "no SDE root directory specified"
+fi
+if [ ! -d "$sde_root_dir/packages" ]; then
+	panic "specified SDE root directory does not exist"
+fi
+
+if [ $# -ne 1 ]; then
+	usage "no command specified"
+fi
+
+command="$1"
+
+vim_dir="$HOME/.vim"
+start_plugin_dir="$vim_dir/pack/sde/start"
+packages_dir="$sde_root_dir/packages"
+ycm_dir="$packages_dir/ycm"
+
+case "$command" in
+enable)
+	if [ ! -d "$start_plugin_dir" ]; then
+		mkdir -p "$start_plugin_dir" || \
+		  panic "cannot make directory $start_plugin_dir"
+	fi
+	if [ -e "$start_plugin_dir/YouCompleteMe" ]; then
+		panic "already enabled"
+	fi
+	ln -s "$SDE_TOP_DIR/packages/ycm/YouCompleteMe" \
+	  "$start_plugin_dir/YouCompleteMe" || \
+	  panic "cannot make link"
+	echo "The YCM plugin will now be automatically loaded by Vim upon startup."
+	cat <<- EOF
+	NOTE:
+	In order for YCM to provide much of its functionality, it must know
+	what compiler flags are used to build your code.  This information
+	is conveyed by a configuration file named ".ycm_extra_conf.py" that you
+	must provide.  You can either configure a default for this file or
+	place one in each directory containing source code.
+	An example of such a .ycm_extra_conf.py file can be found in the
+	directory
+	    $ycm_dir/misc
+	The initial "." in the file name has been omitted in the case of this
+	example file, but the file that you use must be named with the
+	initial ".".
+	You can copy the above file and simply change the complier flags
+	section to match the compiler flags that you are using to build your code.
+	EOF
+	;;
+
+disable)
+	if [ ! -d "$start_plugin_dir" -o ! -e "$start_plugin_dir/YouCompleteMe" ];
+	  then
+		panic "YCM is not enabled"
+	fi
+	target="$start_plugin_dir/YouCompleteMe"
+	rm -f "$target" || panic "cannot remove link $target"
+	echo "The YCM plugin will no longer be automatically loaded by Vim upon startup."
+	;;
+
+status)
+	if [ -e "$start_plugin_dir/YouCompleteMe" ]; then
+		status="enabled"
+	else
+		status="disabled"
+	fi
+	echo "$status"
+	;;
+
+*)
+	panic "bad command $command"
+	;;
+
+esac
+
