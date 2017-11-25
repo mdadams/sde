@@ -52,16 +52,10 @@ enable)
 	In order for YCM to provide much of its functionality, it must know
 	what compiler flags are used to build your code.  This information
 	is conveyed by a configuration file named ".ycm_extra_conf.py" that you
-	must provide.  You can either configure a default for this file or
-	place one in each directory containing source code.
-	An example of such a .ycm_extra_conf.py file can be found in the
-	directory
-	    $ycm_dir/misc
-	The initial "." in the file name has been omitted in the case of this
-	example file, but the file that you use must be named with the
-	initial ".".
-	You can copy the above file and simply change the complier flags
-	section to match the compiler flags that you are using to build your code.
+	must provide.  For the sake of simplicity, it is recommended that
+	you add the following line to your Vim configuration file
+	(i.e., ~/.vimrc):
+	    let g:ycm_global_ycm_extra_conf = '$SDE_TOP_DIR/packages/ycm_extras/.ycm_extra_conf.py'
 	EOF
 	;;
 
