@@ -72,8 +72,11 @@ top_dir="$tmp_dir/ycm-$version"
 src_dir="$install_dir/YouCompleteMe"
 #build_dir="$top_dir/build"
 build_dir="$install_dir/build"
+misc_dir="$install_dir/misc"
 
-for dir in "$top_dir" "$src_dir" "$build_dir"; do
+example_file="$src_dir/third_party/ycmd/examples/.ycm_extra_conf.py"
+
+for dir in "$top_dir" "$src_dir" "$build_dir" "$misc_dir"; do
 	if [ ! -d "$dir" ]; then
 		mkdir -p "$dir" || panic "cannot make directory $dir"
 	fi
@@ -100,6 +103,10 @@ git clone "$ycm_url" "$src_dir" || \
 (cd "$src_dir" && git submodule update --init --recursive) || \
   panic "cannot submodule update"
 
+if [ ! -e "$example_file" ]; then
+	panic "example file is missing"
+fi
+
 cmake_opts=()
 cmake_opts+=(-DUSE_CLANG_COMPLETER=on)
 #cmake_opts+=(-DUSE_SYSTEM_LIBCLANG=on)
@@ -115,5 +122,8 @@ fi
 
 (cd "$build_dir" && cmake --build . --target ycm_core --config Release) || \
   panic
+
+cp "$example_file" "$misc_dir/ycm_extra_conf.py" || \
+  panic "cannot copy file"
 
 rm -rf "$tmp_dir"
