@@ -77,7 +77,7 @@ for file in motd; do
 done
 
 # executables in $sde_top_dir/bin directory
-for file in sde_shell sde_make_setup wrapper sde sde_env sde_pkg; do
+for file in sde_shell sde_make_setup wrapper sde sde_env sde_pkg sde_ycmconf; do
 	echo "installing $file in $sde_top_dir/bin"
 	install -m a+rx $cmd_dir/$file $sde_top_dir/bin || \
 	  panic "cannot install $file"
