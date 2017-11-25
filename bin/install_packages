@@ -273,8 +273,11 @@ fi
 
 if [ -n "$ycm_dir" ]; then
 	if [ ! -d "$ycm_dir" ]; then
-		PATH="$clang_dir/bin:$PATH" \
-		  "$install_ycm" -v "$ycm_version" -d "$ycm_dir" || \
+		libclang="$clang_dir/lib/libclang.so"
+		#PATH="$clang_dir/bin:$PATH" \
+		CXX="$clang_dir/bin/clang++" \
+		  CC="$clang_dir/bin/clang" \
+		  "$install_ycm" -v "$ycm_version" -d "$ycm_dir" -l "$libclang" -V || \
 		  panic "cannot install ycm"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" ycm "$ycm_version" || \

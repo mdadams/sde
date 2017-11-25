@@ -34,13 +34,19 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 version=master
 install_dir=
 tmp_dir="/tmp/install_ycm-$user@$host-$$"
+libclang=
+verbose=0
 
-while getopts d:v: opt; do
+while getopts d:v:l:V opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
 	v)
 		version="$OPTARG";;
+	l)
+		libclang="$OPTARG";;
+	V)
+		verbose=$((verbose + 1));;
 	\?)
 		usage
 		break;;
@@ -75,6 +81,16 @@ done
 
 ycm_url="https://github.com/Valloric/YouCompleteMe.git"
 
+if [ "$verbose" -ge 1 ]; then
+	echo "############################################################"
+	echo "repository $ycm_url"
+	echo "commit/tag/branch $version"
+	if [ -n "$libclang" ]; then
+		echo "using libclang $libclang"
+	fi
+	echo "############################################################"
+fi
+
 git clone "$ycm_url" "$src_dir" || \
   panic "cannot clone repo"
 
@@ -86,7 +102,13 @@ git clone "$ycm_url" "$src_dir" || \
 
 cmake_opts=()
 cmake_opts+=(-DUSE_CLANG_COMPLETER=on)
-cmake_opts+=(-DUSE_SYSTEM_LIBCLANG=on)
+#cmake_opts+=(-DUSE_SYSTEM_LIBCLANG=on)
+if [ -n "$libclang" ]; then
+	if [ ! -f "$libclang" ]; then
+		panic "libclang does not exist $libclang"
+	fi
+	cmake_opts+=(-DEXTERNAL_LIBCLANG_PATH=$libclang)
+fi
 (cd "$build_dir" && \
   cmake "${cmake_opts[@]}" "$src_dir/third_party/ycmd/cpp") || \
   panic "cmake failed"
