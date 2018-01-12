@@ -1,0 +1,105 @@
+#! /usr/bin/env bash
+
+#set -xv
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+usage()
+{
+	echo "BAD USAGE: $@"
+	cat <<- EOF
+	usage:
+	$0 -d \$install_dir [-v \$version]
+
+	options:
+	-d \$install_dir
+	    Set the installation directory to \$install_dir.
+	-v \$version
+	    Set the version (i.e., branch/commit) to install.
+	    e.g., 9d65e74400976b3509833f49b16d401600c7317d
+	EOF
+	exit 2
+}
+
+user=$(whoami) || panic "cannot get user name"
+host=$(hostname) || panic "cannot get host name"
+cur_dir=$(pwd) || panic "cannot get current directory"
+
+version=master
+install_dir=
+tmp_dir="/tmp/install_gsl-$user@$host-$$"
+libclang=
+verbose=0
+
+while getopts d:v:l:V opt; do
+	case "$opt" in
+	d)
+		install_dir="$OPTARG";;
+	v)
+		version="$OPTARG";;
+	l)
+		libclang="$OPTARG";;
+	V)
+		verbose=$((verbose + 1));;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$install_dir" ]; then
+	usage "no installation directory specified"
+fi
+if [ -z "$version" ]; then
+	usage "no version specified"
+fi
+
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
+top_dir="$tmp_dir/gsl-$version"
+src_dir="$top_dir/source"
+build_dir="$tmp_dir/build"
+
+for dir in "$top_dir" "$build_dir" "$src_dir"; do
+	if [ ! -d "$dir" ]; then
+		mkdir -p "$dir" || panic "cannot make directory $dir"
+	fi
+done
+
+gsl_url="https://github.com/Microsoft/GSL.git"
+
+if [ "$verbose" -ge 1 ]; then
+	echo "############################################################"
+	echo "repository $gsl_url"
+	echo "commit/tag/branch $version"
+	echo "############################################################"
+fi
+
+git clone "$gsl_url" "$src_dir" || \
+  panic "cannot clone repo"
+
+(cd "$src_dir" && git checkout "$version") || \
+  panic "cannot clone repo"
+
+cmake_opts=()
+cmake_opts+=(-DGSL_TEST=false)
+cmake_opts+=(-DCMAKE_INSTALL_PREFIX="$install_dir")
+cmake -H"$src_dir" -B"$build_dir" "${cmake_opts[@]}" || \
+  panic "cmake failed"
+
+(cmake --build "$build_dir") || \
+  panic "cmake failed"
+
+(cmake --build "$build_dir" --target install) || \
+  panic "install failed"
+
+#rm -rf "$tmp_dir"

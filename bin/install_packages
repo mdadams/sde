@@ -71,6 +71,7 @@ boost_version=1.66.0
 aristotle_version=2.23.0
 ycm_version=31abb9cee59d5f74bbff14b6107e9c9316b6fc83
 vim_version=8.0
+gsl_version=9d65e74400976b3509833f49b16d401600c7317d
 
 gcc_install_options=()
 if [ "${SDE_GCC_USE_OLD_ABI:-0}" -ne 0 ]; then
@@ -91,6 +92,7 @@ install_ndiff="$cmd_dir/install_ndiff"
 install_aristotle="$cmd_dir/install_aristotle"
 install_ycm="$cmd_dir/install_ycm"
 install_vim="$cmd_dir/install_vim"
+install_gsl="$cmd_dir/install_gsl"
 
 cmake_dir="$packages_dir/cmake-$cmake_version"
 gcc_dir="$packages_dir/gcc-$gcc_version"
@@ -105,6 +107,7 @@ ndiff_dir="$packages_dir/ndiff-$ndiff_version"
 aristotle_dir="$packages_dir/aristotle-$aristotle_version"
 ycm_dir="$packages_dir/ycm-$ycm_version"
 vim_dir="$packages_dir/vim-$vim_version"
+gsl_dir="$packages_dir/gsl-$gsl_version"
 
 if [ "${SDE_VIM_INSTALL:-1}" -eq 0 ]; then
 	vim_dir=
@@ -242,6 +245,16 @@ if [ -n "$spl_dir" ]; then
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" SPL "$spl_version" || \
 	  panic "cannot configure SPL"
+fi
+
+if [ -n "$gsl_dir" ]; then
+	if [ ! -d "$gsl_dir" ]; then
+		PATH="$gcc_bin_dir:$PATH" \
+		  "$install_gsl" -v "$gsl_version" -d "$gsl_dir" || \
+		  panic "cannot install GSL"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" gsl "$gsl_version" || \
+	  panic "cannot configure GSL"
 fi
 
 if [ -n "$ndiff_dir" ]; then
