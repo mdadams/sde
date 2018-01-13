@@ -72,6 +72,7 @@ aristotle_version=2.23.0
 ycm_version=31abb9cee59d5f74bbff14b6107e9c9316b6fc83
 vim_version=8.0
 gsl_version=9d65e74400976b3509833f49b16d401600c7317d
+catch_version=v2.1.0
 
 gcc_install_options=()
 if [ "${SDE_GCC_USE_OLD_ABI:-0}" -ne 0 ]; then
@@ -93,6 +94,7 @@ install_aristotle="$cmd_dir/install_aristotle"
 install_ycm="$cmd_dir/install_ycm"
 install_vim="$cmd_dir/install_vim"
 install_gsl="$cmd_dir/install_gsl"
+install_catch="$cmd_dir/install_catch"
 
 cmake_dir="$packages_dir/cmake-$cmake_version"
 gcc_dir="$packages_dir/gcc-$gcc_version"
@@ -108,6 +110,7 @@ aristotle_dir="$packages_dir/aristotle-$aristotle_version"
 ycm_dir="$packages_dir/ycm-$ycm_version"
 vim_dir="$packages_dir/vim-$vim_version"
 gsl_dir="$packages_dir/gsl-$gsl_version"
+catch_dir="$packages_dir/catch-$catch_version"
 
 if [ "${SDE_VIM_INSTALL:-1}" -eq 0 ]; then
 	vim_dir=
@@ -255,6 +258,15 @@ if [ -n "$gsl_dir" ]; then
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" gsl "$gsl_version" || \
 	  panic "cannot configure GSL"
+fi
+
+if [ -n "$catch_dir" ]; then
+	if [ ! -d "$catch_dir" ]; then
+		"$install_catch" -v "$catch_version" -d "$catch_dir" || \
+		  panic "cannot install catch"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" catch "$catch_version" || \
+	  panic "cannot configure Catch"
 fi
 
 if [ -n "$ndiff_dir" ]; then
