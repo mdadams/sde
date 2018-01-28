@@ -19,7 +19,7 @@ warn()
 usage()
 {
 	echo "BAD USAGE: $@"
-	echo "usage: $0 -v version -p install_dir"
+	echo "usage: $0 -v version -d install_dir"
 	exit 2
 }
 
