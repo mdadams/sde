@@ -1,0 +1,107 @@
+#! /usr/bin/env bash
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+usage()
+{
+	echo "BAD USAGE: $@"
+	exit 2
+}
+
+user=$(whoami) || panic "cannot get user name"
+host=$(hostname) || panic "cannot get host name"
+tmp_dir="/tmp/download_texlive_iso-$user@$host-$$"
+#tmp_dir="/tmp/download_texlive_iso"
+
+version=
+out_file=
+
+while getopts o:v: option; do
+	case "$option" in
+	v)
+		version="$OPTARG";;
+	o)
+		out_file="$OPTARG";;
+	*)
+		panic "bad option $option"
+		;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$version" ]; then
+	panic "no version specified"
+fi
+if [ -z "$out_file" ]; then
+	panic "no output file specified"
+fi
+
+iso_file_names=(
+	texlive.iso
+	texlive$version.iso
+)
+
+mirrors=(
+	HISTORIC
+	ftp://ftp.muug.ca/mirror/ctan
+	ftp://tug.ctan.org/tex-archive/
+	ftp://ctan.math.utah.edu/tex-archive
+	ftp://ctan.mirror.rafal.ca/pub/CTAN
+	ftp://mirror.its.dal.ca/ctan
+	ftp://mirror.utexas.edu/pub/ctan
+	ftp://mirrors.rit.edu/CTAN
+)
+#	ftp://ctan.math.ca/tex-archive
+
+historic_url="ftp://tug.org/historic/systems/texlive/$version"
+
+if [ ! -d "$tmp_dir" ]; then
+	mkdir -p "$tmp_dir" || panic "cannot make directory $tmp_dir"
+fi
+
+iso_file="$tmp_dir/texlive.iso"
+
+success=0
+for mirror in "${mirrors[@]}"; do
+	if [ "$mirror" = HISTORIC ]; then
+		url="$historic_url"
+	else
+		url="$mirror/systems/texlive/Images"
+	fi
+	for iso_file_name in "${iso_file_names[@]}"; do
+		target="$url/$iso_file_name"
+		echo "Trying to download $target"
+		wget_options=()
+		#wget_options+=(--quiet)
+		#wget_options+=(--no-verbose)
+		wget_options+=(--connect-timeout=30)
+
+		#if [ -f "$tmp_dir/$iso_file_name" ]; then
+		#	success=1
+		#	break
+		#fi
+
+		(cd "$tmp_dir" && wget "${wget_options[@]}" "$target")
+		status=$?
+		if [ "$status" -eq 0 ]; then
+			success=1
+		fi
+		if [ "$success" -ne 0 ]; then
+			break
+		fi
+	done
+	if [ "$success" -ne 0 ]; then
+		break
+	fi
+done
+
+echo "$iso_file_name"
+mv -i "$tmp_dir/$iso_file_name" "$out_file" || \
+  panic "cannot move file"
+
+rmdir "$tmp_dir"
+
