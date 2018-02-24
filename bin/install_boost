@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-set -xv
+#set -xv
 
 # Reference: http://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html
 
@@ -8,6 +8,22 @@ panic()
 {
 	echo "ERROR"
 	exit 1
+}
+
+usage()
+{
+	echo "$@"
+	cat <<- EOF
+	usage:
+	$0 [options]
+
+	options:
+	-d \$install_dir
+	    Set the installation directory to \$install_dir.
+	-v \$version
+	    Set the version to install to \$version (e.g., 1.66.0).
+	EOF
+	exit 2
 }
 
 user=$(whoami) || panic "cannot get user name"
