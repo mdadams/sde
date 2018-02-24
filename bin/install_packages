@@ -64,15 +64,15 @@ gcc_version=7.3.0
 clang_version=5.0.1
 jasper_version=2.0.14
 gdb_version=8.1
-spl_version=2.0.6
+spl_version=2.0.7
 ndiff_version=2.00
 texlive_version=2017
 boost_version=1.66.0
-aristotle_version=2.27.0
-ycm_version=d0c6b6186e7a9ab7d5e770add3079200a518d908
+aristotle_version=2.28.0
+ycm_version=d27563d2f1ab6414fe795cbb4b93481879f2e71c
 vim_version=8.0
 gsl_version=64a7dae4c6fb218a23b3d48db0eec56a3c4d5234
-catch_version=v2.1.1
+catch_version=v2.1.2
 
 gcc_install_options=()
 if [ "${SDE_GCC_USE_OLD_ABI:-0}" -ne 0 ]; then
