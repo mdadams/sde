@@ -59,7 +59,7 @@ enable_texlive_install="${SDE_TEXLIVE_INSTALL:-1}"
 packages_dir="$sde_top_dir/packages"
 boot_dir="$sde_top_dir/bootstrap"
 
-cmake_version=3.10.2
+cmake_version=3.11.0
 gcc_version=7.3.0
 clang_version=6.0.0
 jasper_version=2.0.14
@@ -68,10 +68,10 @@ spl_version=2.0.7
 ndiff_version=2.00
 texlive_version=2017
 boost_version=1.66.0
-aristotle_version=2.30.0
-ycm_version=b4714c711c0767ddd009e8553419f74f6cbc0a47
+aristotle_version=2.31.0
+ycm_version=dc341aab58a251a00bfdbb86fdf90178e82ba6c6
 vim_version=8.0
-gsl_version=c9e423d7cf2afb88672e31f55e4b30c53be7aae3
+gsl_version=d846fe50a3f0bb7767c7e087a05f4be95f4da0ec
 catch_version=v2.2.1
 
 gcc_install_options=()
