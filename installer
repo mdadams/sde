@@ -60,6 +60,7 @@ cmd_dir=$(dirname $0) || panic "cannot get command directory"
 bin_dir="$cmd_dir/bin"
 
 sde_cmd="$bin_dir/sde"
+sde_relpath="$bin_dir/sde_relpath"
 sde_install_cmake="$bin_dir/sde_install_cmake"
 sde_install_gcc="$bin_dir/sde_install_gcc"
 sde_install_clang="$bin_dir/sde_install_clang"
@@ -82,13 +83,16 @@ sde_install_catch="$bin_dir/sde_install_catch"
 default_environment=
 force=0
 sde_top_dir=""
+clean=0
 
-while getopts d:fe: opt; do
+while getopts d:fe:c opt; do
 	case "$opt" in
 	d)
 		sde_top_dir="$OPTARG";;
 	e)
 		default_environment="$OPTARG";;
+	c)
+		clean=1;;
 	f)
 		force=1;;
 	\?)
@@ -134,6 +138,7 @@ umask 022
 ################################################################################
 ################################################################################
 
+generic_sdebase_dir="$packages_dir/sdebase"
 sdebase_dir="$packages_dir/sdebase-default"
 cmake_dir="$packages_dir/cmake-$cmake_version"
 gcc_dir="$packages_dir/gcc-$gcc_version"
@@ -163,6 +168,32 @@ if [ "${SDE_VIM_INSTALL:-1}" -eq 0 ]; then
 fi
 
 ################################################################################
+# Perform any cleaning.
+################################################################################
+
+if [ "$clean" -ne 0 ]; then
+
+	echo "Cleaning"
+
+	if [ -d "$sdebase_dir" ]; then
+		rm -rf "$sdebase_dir" || panic
+	fi
+
+	dirs=()
+	dirs+=(bin)
+	dirs+=(doc)
+	dirs+=(etc)
+	for dir in "${dirs[@]}"; do
+		target_dir="$sde_top_dir/$dir"
+		if [ -d "$target_dir" ]; then
+			rm -rf "$target_dir" || \
+			  panic "cannot remove directory $target_dir"
+		fi
+	done
+
+fi
+
+################################################################################
 # Install SDE Base
 ################################################################################
 
@@ -174,7 +205,7 @@ if [ ! -d "$sdebase_dir" ]; then
 	files+=($(cd "$cmd_dir" && find etc -type f))
 	for file in ${files[@]}; do
 		dir=$(dirname "$file") || panic "cannot get directory of $file"
-		echo "processing $file $dir"
+		#echo "processing $file $dir"
 		mode="r"
 		case "$file" in
 		bin/*)
@@ -189,7 +220,7 @@ if [ ! -d "$sdebase_dir" ]; then
 		if [ ! -d "$target_dir" ]; then
 			mkdir -p "$target_dir" || panic "cannot make directory $target_dir"
 		fi
-		echo "installing $cmd_dir/$file $sdebase_dir/$file"
+		#echo "installing $cmd_dir/$file $sdebase_dir/$file"
 		install -m a+"$mode" "$cmd_dir/$file" "$sdebase_dir/$file" || \
 		  panic "cannot install file $file"
 	done
@@ -225,11 +256,17 @@ files+=($(cd "$sdebase_dir" && find bin -type f))
 files+=($(cd "$sdebase_dir" && find doc -type f))
 files+=($(cd "$sdebase_dir" && find etc -type f))
 for file in "${files[@]}"; do
-	target_file="$sde_top_dir/$file"
-	if [ -L "$target_file" -o -e "$target_file" ]; then
-		rm -f "$target_file" || panic "cannot remove file $target_file"
+	source_file="$generic_sdebase_dir/$file"
+	destination_file="$sde_top_dir/$file"
+	destination_dir=$(dirname "$destination_file") || \
+	  panic "cannot get directory of $destination_file"
+	if [ -L "$destination_file" -o -e "$destination_file" ]; then
+		rm -f "$destination_file" || \
+		  panic "cannot remove file $destination_file"
 	fi
-	ln -s "$sdebase_dir/$file" "$target_file" || \
+	relpath=$("$sde_relpath" -r "$destination_dir" "$source_file") || \
+	  panic "cannot get relative path"
+	ln -s "$relpath" "$destination_file" || \
 	  panic "cannot link"
 done
 
@@ -241,6 +278,9 @@ for file in c++ g++ clang++ cc gcc clang cmake ctest cpack gdb; do
 	ln -s sde_wrapper "$target_file" || \
 	  panic "cannot link"
 done
+
+"$sde_cmd" pkg -d "$sde_top_dir" "sdebase" default || \
+  panic "cannot set package version"
 
 if [ -n "$default_environment" ]; then
 	"$sde_cmd" env -d "$sde_top_dir" "$default_environment" || \
