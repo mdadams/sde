@@ -29,7 +29,7 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 
 version=
 install_dir=
-tmp_dir="/tmp/install_libcxx-$user@$host-$$"
+tmp_dir="/tmp/sde_install_libcxx-$user@$host-$$"
 gcc_dir=""
 use_old_host_toolchain=0
 

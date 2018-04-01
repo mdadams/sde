@@ -34,7 +34,7 @@ version=
 install_dir=
 toolset=gcc
 
-tmp_dir="/tmp/install_boost-$user-$host-$$"
+tmp_dir="/tmp/sde_install_boost-$user-$host-$$"
 
 while getopts d:v: opt; do
 	case "$opt" in

@@ -31,7 +31,7 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 
 version=master
 install_dir=
-tmp_dir="/tmp/install_catch-$user@$host-$$"
+tmp_dir="/tmp/sde_install_catch-$user@$host-$$"
 libclang=
 verbose=0
 

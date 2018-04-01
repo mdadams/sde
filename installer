@@ -1,9 +1,37 @@
 #! /usr/bin/env bash
 
+################################################################################
+# Specify the versions of various software packages to be installed.
+################################################################################
+
+cmake_version=3.11.0
+gcc_version=7.3.0
+clang_version=6.0.0
+jasper_version=2.0.14
+gdb_version=8.1
+spl_version=2.0.7
+ndiff_version=2.00
+texlive_version=2017
+boost_version=1.66.0
+aristotle_version=2.32.0
+ycm_version=dc341aab58a251a00bfdbb86fdf90178e82ba6c6
+vim_version=8.0
+gsl_version=d846fe50a3f0bb7767c7e087a05f4be95f4da0ec
+catch_version=v2.2.1
+
+################################################################################
+# Utility functions.
+################################################################################
+
 panic()
 {
 	echo "FATAL ERROR: $@" 1>&2
 	exit 1
+}
+
+eprint()
+{
+	echo "$@" 1>&2
 }
 
 usage()
@@ -24,13 +52,32 @@ usage()
 	exit 2
 }
 
-eprint()
-{
-	echo "$@" 1>&2
-}
+################################################################################
+#
+################################################################################
 
 cmd_dir=$(dirname $0) || panic "cannot get command directory"
 bin_dir="$cmd_dir/bin"
+
+sde_cmd="$bin_dir/sde"
+sde_install_cmake="$bin_dir/sde_install_cmake"
+sde_install_gcc="$bin_dir/sde_install_gcc"
+sde_install_clang="$bin_dir/sde_install_clang"
+sde_install_boost="$bin_dir/sde_install_boost"
+sde_install_texlive="$bin_dir/sde_install_texlive"
+sde_install_jasper="$bin_dir/sde_install_jasper"
+sde_install_gdb="$bin_dir/sde_install_gdb"
+sde_install_spl="$bin_dir/sde_install_spl"
+sde_install_ndiff="$bin_dir/sde_install_ndiff"
+sde_install_aristotle="$bin_dir/sde_install_aristotle"
+sde_install_ycm="$bin_dir/sde_install_ycm"
+sde_install_vim="$bin_dir/sde_install_vim"
+sde_install_gsl="$bin_dir/sde_install_gsl"
+sde_install_catch="$bin_dir/sde_install_catch"
+
+################################################################################
+# Process command line
+################################################################################
 
 default_environment=
 force=0
@@ -59,6 +106,10 @@ if [ "$force" -eq 0 -a -d "$sde_top_dir" ]; then
 	panic "top directory already exists $sde_top_dir"
 fi
 
+################################################################################
+# START OF INSTALLATION
+################################################################################
+
 cat <<- EOF
 ============================================================
 Starting SDE Installation
@@ -66,21 +117,424 @@ Time: $(date +"%Y-%m-%d %H:%M:%S")
 ============================================================
 EOF
 
+boot_dir="$sde_top_dir/bootstrap"
+packages_dir="$sde_top_dir/packages"
+ycm_extras_dir="$packages_dir/ycm_extras"
+
+enable_texlive_install="${SDE_TEXLIVE_INSTALL:-1}"
+
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
 # This will help to increase the likelihood that the installed software
 # will be accessible by all users.
 umask 022
 
-"$bin_dir/install_packages" -d "$sde_top_dir" || \
-  panic "package installation failed"
+################################################################################
+################################################################################
+################################################################################
+################################################################################
 
-opts=()
-if [ -n "$default_environment" ]; then
-	opts+=(-e "$default_environment")
+sdebase_dir="$packages_dir/sdebase-default"
+cmake_dir="$packages_dir/cmake-$cmake_version"
+gcc_dir="$packages_dir/gcc-$gcc_version"
+gcc_bin_dir="$gcc_dir/bin"
+clang_dir="$packages_dir/clang-$clang_version"
+boost_dir="$packages_dir/boost-$boost_version"
+texlive_dir="$packages_dir/texlive-$texlive_version"
+jasper_dir="$packages_dir/jasper-$jasper_version"
+gdb_dir="$packages_dir/gdb-$gdb_version"
+spl_dir="$packages_dir/SPL-$spl_version"
+ndiff_dir="$packages_dir/ndiff-$ndiff_version"
+aristotle_dir="$packages_dir/aristotle-$aristotle_version"
+ycm_dir="$packages_dir/ycm-$ycm_version"
+vim_dir="$packages_dir/vim-$vim_version"
+gsl_dir="$packages_dir/gsl-$gsl_version"
+catch_dir="$packages_dir/catch-$catch_version"
+
+gcc_install_options=()
+if [ "${SDE_GCC_USE_OLD_ABI:-0}" -ne 0 ]; then
+	gcc_install_options+=(-o old_abi)
+else
+	gcc_install_options+=(-o new_abi)
 fi
-"$bin_dir/install_sde" -d "$sde_top_dir" "${opts[@]}" || \
-  panic "SDE installation failed"
+
+if [ "${SDE_VIM_INSTALL:-1}" -eq 0 ]; then
+	vim_dir=
+fi
+
+################################################################################
+# Install SDE Base
+################################################################################
+
+if [ ! -d "$sdebase_dir" ]; then
+
+	files=()
+	files+=($(cd "$cmd_dir" && find bin -type f))
+	files+=($(cd "$cmd_dir" && find doc -type f))
+	files+=($(cd "$cmd_dir" && find etc -type f))
+	for file in ${files[@]}; do
+		dir=$(dirname "$file") || panic "cannot get directory of $file"
+		echo "processing $file $dir"
+		mode="r"
+		case "$file" in
+		bin/*)
+			case "$file" in
+			bin/sde_shell_bashrc)
+				;;
+			*)
+				mode="rx";;
+			esac
+		esac
+		target_dir="$sdebase_dir/$dir"
+		if [ ! -d "$target_dir" ]; then
+			mkdir -p "$target_dir" || panic "cannot make directory $target_dir"
+		fi
+		echo "installing $cmd_dir/$file $sdebase_dir/$file"
+		install -m a+"$mode" "$cmd_dir/$file" "$sdebase_dir/$file" || \
+		  panic "cannot install file $file"
+	done
+fi
+
+################################################################################
+# Perform other SDE installation
+################################################################################
+
+for dir in bin doc etc etc/environments; do
+	if [ ! -d "$sde_top_dir/$dir" ]; then
+		mkdir -p "$sde_top_dir/$dir" || \
+		  panic "cannot make directory $dir"
+	fi
+done
+
+# executables in $sde_top_dir/bin directory
+#files=()
+#files+=(sde_shell sde_make_setup sde_wrapper sde sde_env sde_pkg)
+#files+=(sde_ycmconf)
+#for file in "${files[@]}"; do
+#	target_file="$sde_top_dir/bin/$file"
+#	if [ -L "$target_file" -o -e "$target_file" ]; then
+#		rm -f "$target_file" || panic "cannot remove file $target_file"
+#	fi
+#	ln -s "$sdebase_dir/bin/$file" "$target_file" || \
+#	  panic "cannot link"
+#done
+
+# executables in $sde_top_dir/bin directory
+files=()
+files+=($(cd "$sdebase_dir" && find bin -type f))
+files+=($(cd "$sdebase_dir" && find doc -type f))
+files+=($(cd "$sdebase_dir" && find etc -type f))
+for file in "${files[@]}"; do
+	target_file="$sde_top_dir/$file"
+	if [ -L "$target_file" -o -e "$target_file" ]; then
+		rm -f "$target_file" || panic "cannot remove file $target_file"
+	fi
+	ln -s "$sdebase_dir/$file" "$target_file" || \
+	  panic "cannot link"
+done
+
+for file in c++ g++ clang++ cc gcc clang cmake ctest cpack gdb; do
+	target_file="$sde_top_dir/bin/$file"
+	if [ -L "$target_file" -o -e "$target_file" ]; then
+		rm -f "$target_file" || panic "cannot remove file $target_file"
+	fi
+	ln -s sde_wrapper "$target_file" || \
+	  panic "cannot link"
+done
+
+if [ -n "$default_environment" ]; then
+	"$sde_cmd" env -d "$sde_top_dir" "$default_environment" || \
+	  panic "cannot set default environment"
+fi
+
+################################################################################
+# Install YCM Extras
+################################################################################
+
+for dir in "$ycm_extras_dir"; do
+	if [ ! -d "$dir" ]; then
+		mkdir -p "$dir" || \
+		  panic "cannot make directory $dir"
+	fi
+done
+
+# YCM Extras
+ycm_extra_conf_file="$ycm_extras_dir/.ycm_extra_conf.py"
+if [ -f "$ycm_extra_conf_file" ]; then
+	rm -f "$ycm_extra_conf_file" || \
+	  panic "cannot remove file $ycm_extra_conf_file"
+fi
+sed -e 's%@@SDE_TOP_DIR@@%'"$sde_top_dir"'%g' \
+  < "$cmd_dir/etc/ycm_extra_conf.py.template" \
+  > "$ycm_extra_conf_file" || panic "cannot create file"
+
+exit 0
+
+################################################################################
+# Install CMake
+################################################################################
+
+# Since some software requires CMake to build, install CMake before
+# building other software.
+
+if [ -n "$cmake_dir" ]; then
+	if [ ! -d "$cmake_dir" ]; then
+		"$sde_install_cmake" -v "$cmake_version" -d "$cmake_dir" || \
+		  panic "cannot install cmake"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" cmake "$cmake_version" || \
+	  panic "cannot configure cmake"
+
+	if [ ! -d "$boot_dir" ]; then
+		mkdir -p "$boot_dir" || panic "cannot make directory $boot_dir"
+	fi
+	target_file="$boot_dir/cmake"
+	if [ -L "$target_file" -o -e "$target_file" ]; then
+		rm -f "$target_file" || panic "cannot remove file $target_file"
+	fi
+	ln -s ../packages/cmake-$cmake_version/bin/cmake "$target_file" || \
+	  panic "cannot make symbolic link for cmake"
+fi
+
+################################################################################
+# Add boot directory to path.
+################################################################################
+
+path="$boot_dir:$PATH"
+export PATH="$path"
+
+################################################################################
+# Install GCC
+################################################################################
+
+if [ -n "$gcc_dir" ]; then
+	if [ ! -d "$gcc_dir" ]; then
+		"$sde_install_gcc" -v "$gcc_version" -d "$gcc_dir" \
+		  "${gcc_install_options[@]}" || \
+		  panic "cannot install gcc"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" gcc "$gcc_version" || \
+	  panic "cannot configure gcc"
+fi
+
+################################################################################
+# Install Clang
+################################################################################
+
+if [ -n "$clang_dir" ]; then
+	if [ ! -d "$clang_dir" ]; then
+
+		# Try to compile Clang with Clang if it is available.
+		#compiler_name="Clang"
+		#cpp_compiler_command=$(type -P clang++) || cpp_compiler_command=""
+		#c_compiler_command=$(type -P clang) || c_compiler_command=""
+
+		# Try to build CLang with previously-installed version of GCC.
+		#compiler_name="Previously-Installed GCC"
+		#cpp_compiler_command=$(type -P g++) || cpp_compiler_command=""
+		#c_compiler_command=$(type -P gcc) || c_compiler_command=""
+
+		# Always build Clang with the SDE-installed version of GCC.
+		cpp_compiler_command=""
+		c_compiler_command=""
+
+		if [ -z "$cpp_compiler_command" -o -z "$c_compiler_command" ]; then
+			# Use SDE-installed version of GCC to build Clang.
+			compiler_name="SDE-installed GCC"
+			cpp_compiler_command="$gcc_dir/bin/g++"
+			c_compiler_command="$gcc_dir/bin/gcc"
+		fi
+		echo "Building Clang with $compiler_name"
+		CXX="$cpp_compiler_command" CC="$c_compiler_command" \
+		"$sde_install_clang" -l -v "$clang_version" -d "$clang_dir" -f || \
+		  panic "cannot install clang"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" clang "$clang_version" || \
+	  panic "cannot configure clang"
+fi
+
+################################################################################
+# Install Boost
+################################################################################
+
+if [ -n "$boost_dir" ]; then
+	if [ ! -d "$boost_dir" ]; then
+		"$sde_install_boost" -v "$boost_version" -d "$boost_dir" || \
+		  panic "cannot install boost"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" boost "$boost_version" || \
+	  panic "cannot configure boost"
+fi
+
+################################################################################
+# Install GDB
+################################################################################
+
+if [ -n "$gdb_dir" ]; then
+	if [ ! -d "$gdb_dir" ]; then
+		"$sde_install_gdb" -v "$gdb_version" -d "$gdb_dir" || \
+		  panic "cannot install gdb"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" gdb "$gdb_version" || \
+	  panic "cannot configure gdb"
+fi
+
+################################################################################
+# Install TeX Live
+################################################################################
+
+if [ "$enable_texlive_install" -ne 0 ]; then
+	if [ ! -d "$texlive_dir" ]; then
+		"$sde_install_texlive" -v "$texlive_version" -d "$texlive_dir" || \
+		  panic "cannot install texlive"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" texlive "$texlive_version" || \
+	  panic "cannot configure texlive"
+fi
+texlive_bin_dir="$texlive_dir/bin"
+
+################################################################################
+# Install JasPer
+################################################################################
+
+# JasPer might need a more recent LaTeX version
+# Install JasPer after LaTeX.
+if [ -n "$jasper_dir" ]; then
+	if [ ! -d "$jasper_dir" ]; then
+		options=()
+		if [ -d "$texlive_dir" ]; then
+			options+=(-o build_doc)
+			path_string="$texlive_bin_dir:"
+		else
+			options+=(-o no_build_doc)
+			path_string=""
+		fi
+		PATH="${path_string}$PATH" \
+		  "$sde_install_jasper" -v "$jasper_version" -d "$jasper_dir" \
+		  "${options[@]}" || \
+		  panic "cannot install jasper"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" jasper "$jasper_version" || \
+	  panic "cannot configure jasper"
+fi
+
+################################################################################
+# Install SPL
+################################################################################
+
+if [ -n "$spl_dir" ]; then
+	if [ ! -d "$spl_dir" ]; then
+		options=()
+		if [ -d "$texlive_dir" ]; then
+			options+=(-o build_doc)
+			path_string="$texlive_bin_dir:"
+		else
+			options+=(-o no_build_doc)
+			path_string=""
+		fi
+		PATH="$gcc_bin_dir:${path_string}$PATH" \
+		  "$sde_install_spl" -v "$spl_version" -d "$spl_dir" "${options[@]}" || \
+		  panic "cannot install SPL"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" SPL "$spl_version" || \
+	  panic "cannot configure SPL"
+fi
+
+################################################################################
+# Install GSL
+################################################################################
+
+if [ -n "$gsl_dir" ]; then
+	if [ ! -d "$gsl_dir" ]; then
+		PATH="$gcc_bin_dir:$PATH" \
+		  "$sde_install_gsl" -v "$gsl_version" -d "$gsl_dir" || \
+		  panic "cannot install GSL"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" gsl "$gsl_version" || \
+	  panic "cannot configure GSL"
+fi
+
+################################################################################
+# Install Catch2
+################################################################################
+
+if [ -n "$catch_dir" ]; then
+	if [ ! -d "$catch_dir" ]; then
+		"$sde_install_catch" -v "$catch_version" -d "$catch_dir" || \
+		  panic "cannot install catch"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" catch "$catch_version" || \
+	  panic "cannot configure Catch"
+fi
+
+################################################################################
+# Install Ndiff
+################################################################################
+
+if [ -n "$ndiff_dir" ]; then
+	if [ ! -d "$ndiff_dir" ]; then
+		"$sde_install_ndiff" -v "$ndiff_version" -d "$ndiff_dir" || \
+		  panic "cannot install ndiff"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" ndiff "$ndiff_version" || \
+	  panic "cannot configure ndiff"
+fi
+
+################################################################################
+# Install Aristotle
+################################################################################
+
+if [ -n "$aristotle_dir" ]; then
+	if [ ! -d "$aristotle_dir" ]; then
+		"$sde_install_aristotle" -v "$aristotle_version" -d "$aristotle_dir" || \
+		  panic "cannot install aristotle"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" aristotle "$aristotle_version" || \
+	  panic "cannot configure aristotle"
+fi
+
+################################################################################
+# Install Vim
+################################################################################
+
+if [ -n "$vim_dir" ]; then
+	if [ ! -d "$vim_dir" ]; then
+		"$sde_install_vim" -v "$vim_version" -d "$vim_dir" || \
+		  panic "cannot install vim"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" vim "$vim_version" || \
+	  panic "cannot configure vim"
+fi
+
+################################################################################
+# Install YCM
+################################################################################
+
+if [ -n "$ycm_dir" ]; then
+	if [ ! -d "$ycm_dir" ]; then
+		libclang="$clang_dir/lib/libclang.so"
+		options=()
+		options+=(-l "$libclang")
+		options+=(-V)
+		#CXX="$clang_dir/bin/clang++" \
+		#  CC="$clang_dir/bin/clang" \
+		#  PATH="$clang_dir/bin:$PATH" \
+		lib_options=()
+		lib_options+=(-L$gcc_dir/lib64 -Wl,-rpath,$gcc_dir/lib64)
+		lib_options+=(-L$clang_dir/lib -Wl,-rpath,$clang_dir/lib)
+		CXX="$clang_dir/bin/clang++ ${lib_options[@]}" \
+		  CC="$clang_dir/bin/clang ${lib_options[@]}" \
+		  PATH="$clang_dir/bin:$PATH" \
+		  "$sde_install_ycm" -v "$ycm_version" -d "$ycm_dir" "${options[@]}" || \
+		  panic "cannot install ycm"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" ycm "$ycm_version" || \
+	  panic "cannot configure ycm"
+fi
+
+################################################################################
+#
+################################################################################
 
 cat <<- EOF
 ============================================================

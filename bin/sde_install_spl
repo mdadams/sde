@@ -56,7 +56,7 @@ fi
 # will be accessible by all users.
 umask 022
 
-tmp_dir="/tmp/install_spl-$user@$host-$$"
+tmp_dir="/tmp/sde_install_spl-$user@$host-$$"
 src_dir="$tmp_dir"
 build_dir="$tmp_dir/tmp_cmake"
 url="http://www.ece.uvic.ca/~mdadams/SPL/software/SPL-$version.tar.gz"
