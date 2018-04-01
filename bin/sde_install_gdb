@@ -17,7 +17,7 @@ install_dir=
 
 # Do not use user@host in the following pathname, since the GCC build
 # process cannot seem to handle "@" characters in pathnames.
-tmp_dir="/tmp/install_gdb-$user-$host-$$"
+tmp_dir="/tmp/sde_install_gdb-$user-$host-$$"
 
 while getopts d:v: opt; do
 	case "$opt" in

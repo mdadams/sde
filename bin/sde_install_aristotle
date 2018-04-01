@@ -45,7 +45,7 @@ fi
 # will be accessible by all users.
 umask 022
 
-tmp_dir="/tmp/install_aristotle-$user@$host-$$"
+tmp_dir="/tmp/sde_install_aristotle-$user@$host-$$"
 repo="https://github.com/mdadams/aristotle.git"
 
 mkdir -p "$tmp_dir" || panic "cannot make temporary directory $tmp_dir"

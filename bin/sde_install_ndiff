@@ -47,7 +47,7 @@ fi
 # will be accessible by all users.
 umask 022
 
-tmp_dir="/tmp/install_ndiff-$user@$host-$$"
+tmp_dir="/tmp/sde_install_ndiff-$user@$host-$$"
 src_dir="$tmp_dir/src"
 url="http://www.ece.uvic.ca/~mdadams/ndiff/ndiff-$version.tar.gz"
 

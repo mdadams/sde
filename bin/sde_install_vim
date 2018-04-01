@@ -21,7 +21,7 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 version=
 install_dir=
 
-tmp_dir="/tmp/install_vim-$user-$host-$$"
+tmp_dir="/tmp/sde_install_vim-$user-$host-$$"
 
 while getopts d:v: opt; do
 	case "$opt" in

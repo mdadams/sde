@@ -1,0 +1,48 @@
+#! /usr/bin/env bash
+
+# Reference: https://stackoverflow.com/questions/2564634/convert-absolute-path-into-relative-path-given-a-current-directory-using-bash
+
+panic()
+{
+	echo "FATAL ERROR: $@" 1>&2
+	exit 1
+}
+
+usage()
+{
+	cat <<- EOF
+	usage:
+	$0 [options] pathnames...
+
+	options:
+	-r \$relative_to
+	    Specify the relative-to path.
+	    This value defaults to the current directory.
+	EOF
+	exit 2
+}
+
+relative_to=
+
+while getopts r: opt; do
+	case "$opt" in
+	r)
+		relative_to="$OPTARG";;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$relative_to" ]; then
+	relative_to=$(pwd) || panic "cannot get current directory"
+fi
+
+paths=("$@")
+
+for path in "${paths[@]}"; do
+	python -c \
+	  "import os.path; print os.path.relpath('""$path""', '""$relative_to""')"
+done
+

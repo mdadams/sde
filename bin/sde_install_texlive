@@ -31,7 +31,7 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 #install_dir="$cur_dir/texlive-$version"
 version=
 install_dir=
-tmp_dir="/tmp/install_texlive-$user@$host-$$"
+tmp_dir="/tmp/sde_install_texlive-$user@$host-$$"
 
 while getopts d:v: opt; do
 	case "$opt" in

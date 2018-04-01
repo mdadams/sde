@@ -51,7 +51,7 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 #install_dir="$cur_dir/cmake-$version"
 version=
 install_dir=
-tmp_dir="/tmp/install_cmake-$user@$host-$$"
+tmp_dir="/tmp/sde_install_cmake-$user@$host-$$"
 os="$OSTYPE"
 arch="x86_64"
 
