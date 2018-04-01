@@ -59,6 +59,13 @@ if [ "$force" -eq 0 -a -d "$sde_top_dir" ]; then
 	panic "top directory already exists $sde_top_dir"
 fi
 
+cat <<- EOF
+============================================================
+Starting SDE Installation
+Time: $(date +"%Y-%m-%d %H:%M:%S")
+============================================================
+EOF
+
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
 # This will help to increase the likelihood that the installed software
@@ -74,3 +81,10 @@ if [ -n "$default_environment" ]; then
 fi
 "$bin_dir/install_sde" -d "$sde_top_dir" "${opts[@]}" || \
   panic "SDE installation failed"
+
+cat <<- EOF
+============================================================
+SDE installation complete
+Time: $(date +"%Y-%m-%d %H:%M:%S")
+============================================================
+EOF
