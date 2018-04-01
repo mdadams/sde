@@ -268,7 +268,7 @@ sed -e 's%@@SDE_TOP_DIR@@%'"$sde_top_dir"'%g' \
   < "$cmd_dir/etc/ycm_extra_conf.py.template" \
   > "$ycm_extra_conf_file" || panic "cannot create file"
 
-exit 0
+#exit 0
 
 ################################################################################
 # Install CMake
