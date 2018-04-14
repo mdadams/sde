@@ -14,10 +14,10 @@ ndiff_version=2.00
 texlive_version=2017
 boost_version=1.66.0
 aristotle_version=2.32.0
-ycm_version=dc341aab58a251a00bfdbb86fdf90178e82ba6c6
+ycm_version=45502e5108ce43b09aff75121d6fdf32c02b1c2d
 vim_version=8.0
 gsl_version=d846fe50a3f0bb7767c7e087a05f4be95f4da0ec
-catch_version=v2.2.1
+catch_version=v2.2.2
 
 ################################################################################
 # Utility functions.
