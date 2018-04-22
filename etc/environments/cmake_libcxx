@@ -46,13 +46,18 @@ sde_boost_cmake_prefix_path="$sde_boost_dir"
 sde_gsl_inc_options="-isystem $sde_gsl_dir/include"
 sde_catch_inc_options="-isystem $sde_catch_dir/include"
 
+# NOTE: Uncomment the following lines to use the SPL.
+##sde_spl_inc_options="-isystem $sde_spl_dir/include"
+##sde_spl_lib_options="-L$sde_spl_dir/lib -Wl,-rpath,$sde_spl_dir/lib"
+sde_spl_cmake_prefix_path="$sde_spl_dir"
+
 ################################################################################
 # Cmake
 ################################################################################
 
 sde_cmake_program="$sde_cmake_dir/bin/cmake"
 sde_cmake_transform=1
-sde_cmake_prefix_path="$HOME/local:$sde_boost_cmake_prefix_path"
+sde_cmake_prefix_path="$HOME/local:$sde_boost_cmake_prefix_path:$sde_spl_cmake_prefix_path"
 
 ################################################################################
 # GCC C++ Compiler
@@ -67,6 +72,8 @@ sde_gcc_cxx_options_prefix="$sde_gcc_cxx_options_prefix $sde_boost_inc_options"
 sde_gcc_cxx_options_prefix="$sde_gcc_cxx_options_prefix $sde_boost_lib_options"
 sde_gcc_cxx_options_prefix="$sde_gcc_cxx_options_prefix $sde_gsl_inc_options"
 sde_gcc_cxx_options_prefix="$sde_gcc_cxx_options_prefix $sde_catch_inc_options"
+sde_gcc_cxx_options_prefix="$sde_gcc_cxx_options_prefix $sde_spl_inc_options"
+sde_gcc_cxx_options_prefix="$sde_gcc_cxx_options_prefix $sde_spl_lib_options"
 # Note: -fext-numeric-literals is to workaround an apparent bug in GCC
 # Reference: http://stackoverflow.com/questions/25365160/boostmultiprecisionfloat128-and-c11
 #sde_gcc_cxx_options_prefix="$sde_gcc_cxx_options_prefix -fext-numeric-literals"
@@ -87,6 +94,8 @@ sde_clang_cxx_options_prefix="$sde_clang_cxx_options_prefix $sde_boost_inc_optio
 sde_clang_cxx_options_prefix="$sde_clang_cxx_options_prefix $sde_boost_lib_options"
 sde_clang_cxx_options_prefix="$sde_clang_cxx_options_prefix $sde_gsl_inc_options"
 sde_clang_cxx_options_prefix="$sde_clang_cxx_options_prefix $sde_catch_inc_options"
+sde_clang_cxx_options_prefix="$sde_clang_cxx_options_prefix $sde_spl_inc_options"
+sde_clang_cxx_options_prefix="$sde_clang_cxx_options_prefix $sde_spl_lib_options"
 sde_clang_cxx_options_suffix=""
 
 ################################################################################
