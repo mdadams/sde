@@ -167,6 +167,8 @@ usage()
 	    Set the shell to shell.
 	-v
 	    Increase the verbosity level of output.
+	-f
+	    Allow use of command from within SDE environment.
 	EOF
 	exit 2
 }
@@ -178,21 +180,30 @@ default_environment_file="$top_dir/etc/default_environment"
 verbose=0
 shell=bash
 name=
+force=0
 
-while getopts vn:s: opt; do
+while getopts vn:s:f opt; do
 	case "$opt" in
 	n)
 		name="$OPTARG";;
 	s)
 		shell="$OPTARG";;
+	f)
+		force=1;;
 	v)
 		verbose=1;;
+	*)
+		usage "invalid option $opt";;
 	esac
 done
 shift $((OPTIND - 1))
 
 if [ $# -ne 0 ]; then
 	usage "unexpected arguments $@"
+fi
+
+if [ -n "$SDE_NAME" -a "$force" -eq 0 ]; then
+	panic "invoking from within SDE environment disallowed"
 fi
 
 if [ -z "$name" ]; then

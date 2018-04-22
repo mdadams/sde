@@ -19,6 +19,8 @@ usage()
 	options:
 	-n env
 	    Set the environment to env.
+	-f
+	    Allow use of command from within SDE environment.
 	EOF
 	exit 2
 }
@@ -29,11 +31,16 @@ bashrc="$cmd_dir/sde_shell_bashrc"
 setup="$cmd_dir/sde_setup"
 make_setup="$cmd_dir/sde_make_setup"
 
+force=0
 name=
-while getopts n: opt; do
+while getopts n:f opt; do
 	case "$opt" in
 	n)
 		name="$OPTARG";;
+	f)
+		force=1;;
+	*)
+		usage "invalid option $opt";;
 	esac
 done
 shift $((OPTIND - 1))
@@ -42,9 +49,14 @@ if [ $# -ne 0 ]; then
 	usage "unexpected arguments $@"
 fi
 
+if [ -n "$SDE_NAME" -a "$force" -eq 0 ]; then
+	panic "nesting of SDE environments is disallowed"
+fi
+
 shell=`basename "$SHELL"` || panic "cannot get shell"
 
 make_setup_opts=()
+make_setup_opts+=(-f)
 if [ -n "$name" ]; then
 	make_setup_opts+=(-n "$name")
 fi
