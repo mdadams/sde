@@ -49,6 +49,10 @@ enable)
 	echo "The YCM plugin will now be automatically loaded by Vim upon startup."
 	cat <<- EOF
 	NOTE:
+	In order to use YCM, file type detection should be enabled in Vim.
+	This can be accomplished by adding the following line to your Vim
+	configuration file (i.e., ~./vimrc):
+	    :filetype on
 	In order for YCM to provide much of its functionality, it must know
 	what compiler flags are used to build your code.  This information
 	is conveyed by a configuration file named ".ycm_extra_conf.py" that you

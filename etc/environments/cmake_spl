@@ -47,9 +47,9 @@ sde_gsl_inc_options="-isystem $sde_gsl_dir/include"
 sde_catch_inc_options="-isystem $sde_catch_dir/include"
 
 # NOTE: Uncomment the following lines to use the SPL.
-##sde_spl_inc_options="-isystem $sde_spl_dir/include"
-##sde_spl_lib_options="-L$sde_spl_dir/lib -Wl,-rpath,$sde_spl_dir/lib"
-#sde_spl_cmake_prefix_path="$sde_spl_dir"
+sde_spl_inc_options="-isystem $sde_spl_dir/include"
+sde_spl_lib_options="-L$sde_spl_dir/lib -Wl,-rpath,$sde_spl_dir/lib"
+sde_spl_cmake_prefix_path="$sde_spl_dir"
 
 ################################################################################
 # Cmake
