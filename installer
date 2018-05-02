@@ -5,13 +5,13 @@
 ################################################################################
 
 cmake_version=3.11.1
-gcc_version=7.3.0
+gcc_version=8.1.0
 clang_version=6.0.0
 jasper_version=2.0.14
 gdb_version=8.1
 spl_version=2.0.7
 ndiff_version=2.00
-texlive_version=2017
+texlive_version=2018
 boost_version=1.67.0
 aristotle_version=2.36.0
 ycm_version=2857c1c109d0b9471dbee36773f5fe25889ad378

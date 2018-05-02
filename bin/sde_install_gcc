@@ -62,6 +62,9 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
+abs_install_dir=$(readlink -f "$install_dir") || \
+  panic "cannot get absolute pathname"
+
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
 # This will help to increase the likelihood that the installed software
@@ -105,7 +108,7 @@ options+=(--enable-threads=posix)
 options+=(--enable-tls)
 options+=(--disable-multilib)
 (cd "$build_dir" && 
-  ../src/configure --prefix="$install_dir" "${options[@]}") || \
+  ../src/configure --prefix="$abs_install_dir" "${options[@]}") || \
   panic "configure failed"
 
 (cd "$build_dir" && make "$make_opts") || \
