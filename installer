@@ -13,10 +13,10 @@ spl_version=2.0.7
 ndiff_version=2.00
 texlive_version=2017
 boost_version=1.67.0
-aristotle_version=2.35.0
-ycm_version=6975efddc1a90514db7c8ee882ccac91f70ff4cc
+aristotle_version=2.36.0
+ycm_version=2857c1c109d0b9471dbee36773f5fe25889ad378
 vim_version=8.0
-gsl_version=d25969dbdfc3fe144baf60165d0850861afef45c
+gsl_version=v1.0.0
 catch_version=v2.2.2
 
 ################################################################################
