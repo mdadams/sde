@@ -43,6 +43,6 @@ paths=("$@")
 
 for path in "${paths[@]}"; do
 	python -c \
-	  "import os.path; print os.path.relpath('""$path""', '""$relative_to""')"
+	  "import os.path; print(os.path.relpath('""$path""', '""$relative_to""'))"
 done
 
