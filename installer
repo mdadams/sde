@@ -4,7 +4,7 @@
 # Specify the versions of various software packages to be installed.
 ################################################################################
 
-cmake_version=3.11.1
+cmake_version=3.11.2
 gcc_version=8.1.0
 clang_version=6.0.0
 jasper_version=2.0.14
