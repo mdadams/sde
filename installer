@@ -4,8 +4,8 @@
 # Specify the versions of various software packages to be installed.
 ################################################################################
 
-cmake_version=3.11.4
-gcc_version=8.1.0
+cmake_version=3.12.0
+gcc_version=8.2.0
 clang_version=6.0.1
 jasper_version=2.0.14
 gdb_version=8.1
@@ -13,11 +13,11 @@ spl_version=2.0.7
 ndiff_version=2.00
 texlive_version=2018
 boost_version=1.67.0
-aristotle_version=2.61.0
-ycm_version=e1ead995c13fe20989ee3d69fd76b20c5fff5d5b
+aristotle_version=2.63.0
+ycm_version=15362d9cb8ec054c929e9a202252825eabe47e58
 vim_version=8.1
 gsl_version=v1.0.0
-catch_version=v2.2.3
+catch_version=v2.3.0
 
 ################################################################################
 # Utility functions.
