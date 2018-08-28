@@ -1,0 +1,62 @@
+#! /usr/bin/env bash
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+usage()
+{
+	echo "BAD USAGE: $@"
+	exit 2
+}
+
+user=$(whoami) || panic "cannot get user name"
+host=$(hostname) || panic "cannot get host name"
+cur_dir=$(pwd) || panic "cannot get current directory"
+
+version=master
+install_dir=
+
+while getopts d:v: opt; do
+	case "$opt" in
+	d)
+		install_dir="$OPTARG";;
+	v)
+		version="$OPTARG";;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$install_dir" ]; then
+	usage "no installation directory specified"
+fi
+if [ -z "$version" ]; then
+	usage "no version specified"
+fi
+
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
+tmp_dir="/tmp/sde_install_lcov-$user@$host-$$"
+repo="https://github.com/linux-test-project/lcov.git"
+
+mkdir -p "$tmp_dir" || panic "cannot make temporary directory $tmp_dir"
+
+(cd "$tmp_dir" && git clone -b "$version" "$repo" lcov) || \
+  panic "cannot clone repository"
+
+#if [ ! -d "$install_dir" ]; then
+#	mkdir -p "$install_dir" || panic "cannot make directory $install_dir"
+#fi
+
+mv "$tmp_dir/lcov" "$install_dir" || panic "cannot move"
+
+rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"

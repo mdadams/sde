@@ -12,8 +12,9 @@ sde_spl_dir="$sde_top_dir/packages/SPL"
 sde_ndiff_dir="$sde_top_dir/packages/ndiff"
 sde_aristotle_dir="$sde_top_dir/packages/aristotle"
 sde_vim_dir="$sde_top_dir/packages/vim"
+sde_lcov_dir="$sde_top_dir/packages/lcov"
 
-sde_path_prefix="$sde_top_dir/bin:$sde_vim_dir/bin:$sde_cmake_dir/bin:$sde_gcc_dir/bin:$sde_clang_dir/bin:$sde_texlive_dir/bin:$sde_jasper_dir/bin"
+sde_path_prefix="$sde_top_dir/bin:$sde_vim_dir/bin:$sde_cmake_dir/bin:$sde_gcc_dir/bin:$sde_clang_dir/bin:$sde_texlive_dir/bin:$sde_jasper_dir/bin:$sde_lcov_dir/bin"
 sde_path_suffix="$HOME/local/bin:$sde_ndiff_dir/bin:$sde_aristotle_dir/bin"
 
 sde_cmake_program="$sde_cmake_dir/bin/cmake"

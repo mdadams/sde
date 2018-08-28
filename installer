@@ -4,20 +4,21 @@
 # Specify the versions of various software packages to be installed.
 ################################################################################
 
-cmake_version=3.12.0
+cmake_version=3.12.1
 gcc_version=8.2.0
 clang_version=6.0.1
 jasper_version=2.0.14
-gdb_version=8.1
+gdb_version=8.1.1
 spl_version=2.0.7
 ndiff_version=2.00
 texlive_version=2018
-boost_version=1.67.0
+boost_version=1.68.0
 aristotle_version=2.63.0
-ycm_version=15362d9cb8ec054c929e9a202252825eabe47e58
+ycm_version=e018777b38eedaa23b96cfee40382d000e464e31
 vim_version=8.1
-gsl_version=v1.0.0
+gsl_version=v2.0.0
 catch_version=v2.3.0
+lcov_version=master
 
 ################################################################################
 # Utility functions.
@@ -75,6 +76,7 @@ sde_install_ycm="$bin_dir/sde_install_ycm"
 sde_install_vim="$bin_dir/sde_install_vim"
 sde_install_gsl="$bin_dir/sde_install_gsl"
 sde_install_catch="$bin_dir/sde_install_catch"
+sde_install_lcov="$bin_dir/sde_install_lcov"
 
 ################################################################################
 # Process command line
@@ -155,6 +157,7 @@ ycm_dir="$packages_dir/ycm-$ycm_version"
 vim_dir="$packages_dir/vim-$vim_version"
 gsl_dir="$packages_dir/gsl-$gsl_version"
 catch_dir="$packages_dir/catch-$catch_version"
+lcov_dir="$packages_dir/lcov-$lcov_version"
 
 gcc_install_options=()
 if [ "${SDE_GCC_USE_OLD_ABI:-0}" -ne 0 ]; then
@@ -417,6 +420,19 @@ if [ -n "$gdb_dir" ]; then
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" gdb "$gdb_version" || \
 	  panic "cannot configure gdb"
+fi
+
+################################################################################
+# Install Lcov
+################################################################################
+
+if [ -n "$lcov_dir" ]; then
+	if [ ! -d "$lcov_dir" ]; then
+		"$sde_install_lcov" -v "$lcov_version" -d "$lcov_dir" || \
+		  panic "cannot install lcov"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" lcov "$lcov_version" || \
+	  panic "cannot configure lcov"
 fi
 
 ################################################################################
