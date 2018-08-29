@@ -60,10 +60,22 @@ for dir in "$top_dir" "$archive_dir" "$src_dir"; do
 	fi
 done
 
-url="ftp://ftp.vim.org/pub/vim/unix/vim-$version.tar.bz2"
+urls=()
+urls+=("ftp://ftp.vim.org/pub/vim/unix/vim-$version.tar.bz2")
+urls+=("ftp://ftp.ca.vim.org/pub/vim/unix/vim-$version.tar.bz2")
 
-(cd "$archive_dir" && wget "$url" ) || \
-  panic "cannot download archive"
+for url in "${urls[@]}"; do
+	echo "downloading from $url"
+	(cd "$archive_dir" && wget "$url")
+	status=$?
+	if [ "$status" -eq 0 ]; then
+		break
+	fi
+	echo "download failed from $url"
+done
+if [ "$status" -ne 0 ]; then
+	panic "cannot download archive"
+fi
 
 archive_file="$archive_dir/$(basename "$url")"
 tar -xjf "$archive_file" -C "$src_dir" --strip-components=1 || \
