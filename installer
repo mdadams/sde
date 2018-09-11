@@ -4,20 +4,20 @@
 # Specify the versions of various software packages to be installed.
 ################################################################################
 
-cmake_version=3.12.1
+cmake_version=3.12.2
 gcc_version=8.2.0
 clang_version=6.0.1
 jasper_version=2.0.14
-gdb_version=8.1.1
+gdb_version=8.2
 spl_version=2.0.7
 ndiff_version=2.00
 texlive_version=2018
 boost_version=1.68.0
 aristotle_version=2.63.0
-ycm_version=e018777b38eedaa23b96cfee40382d000e464e31
+ycm_version=487b8ab2b4d5bcaece29a17a26818a62616e21b5
 vim_version=8.1
 gsl_version=v2.0.0
-catch_version=v2.3.0
+catch_version=v2.4.0
 lcov_version=master
 
 ################################################################################
