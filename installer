@@ -6,7 +6,7 @@
 
 cmake_version=3.12.2
 gcc_version=8.2.0
-clang_version=6.0.1
+clang_version=7.0.0
 jasper_version=2.0.14
 gdb_version=8.2
 spl_version=2.0.7
