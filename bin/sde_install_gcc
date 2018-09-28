@@ -1,5 +1,8 @@
 #! /usr/bin/env bash
 
+# Reference: https://www.gnu.org/software/gcc/svn.html
+# Reference: https://gcc.gnu.org/wiki/HomePage
+# Reference: https://d-meiser.github.io/2015/11/30/building-gcc-trunk.html
 # Reference: http://www.linuxfromscratch.org/blfs/view/cvs/general/gcc.html
 
 # Note: The GCC build process cannot seem to handle "@" characters
@@ -14,6 +17,22 @@ panic()
 usage()
 {
 	echo "bad usage: $@"
+	cat <<- EOF
+	$0 [options] -v \$version -d \$install_dir
+
+	options:
+	-d \$install_dir
+	    Set the installation directory to \$install_dir.
+	-v \$version
+	    Set the version to install to \$version.
+	-r
+	    Install from GNU GCC Subversion repository.
+
+	examples:
+	$0 -v 8.2.0 -d $HOME/local/gcc
+	$0 -r -v tags/gcc_8_2_0_release -d $HOME/local/gcc
+	$0 -r -v branches/c++-modules -d $HOME/local/gcc
+	EOF
 	exit 2
 }
 
@@ -25,6 +44,7 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 #install_dir="$cur_dir/gcc-$version"
 version=
 install_dir=
+from_repo=0
 
 # Do not use user@host in the following pathname, since the GCC build
 # process cannot seem to handle "@" characters in pathnames.
@@ -32,7 +52,7 @@ tmp_dir="/tmp/sde_install_gcc-$user-$host-$$"
 
 old_abi=0
 
-while getopts d:v:o: opt; do
+while getopts d:v:o:r opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
@@ -47,6 +67,9 @@ while getopts d:v:o: opt; do
 		*)
 			usage;;
 		esac
+		;;
+	r)
+		from_repo=1
 		;;
 	\?)
 		usage
@@ -73,10 +96,12 @@ umask 022
 
 make_opts="-j2"
 
-top_dir="$tmp_dir/gcc-$version"
+mangled_version=$(echo "$version" | tr '/' '-') || panic
+top_dir="$tmp_dir/gcc-$mangled_version"
 src_dir="$top_dir/src"
 build_dir="$top_dir/build"
 archive_dir="$top_dir/archive"
+svn_dir="$top_dir/svn"
 
 for dir in "$top_dir" "$archive_dir" "$src_dir" "$build_dir"; do
 	if [ ! -d "$dir" ]; then
@@ -84,18 +109,20 @@ for dir in "$top_dir" "$archive_dir" "$src_dir" "$build_dir"; do
 	fi
 done
 
-#url="https://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.bz2"
 url="https://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.xz"
+svn_repo="svn://gcc.gnu.org/svn/gcc/$version"
 
-(cd "$archive_dir" && wget "$url" ) || \
-  panic "cannot download archive"
+#unset INCLUDE_PATH CPLUS_INCLUDE_PATH CFLAGS CXXFLAGS
 
-#archive_file="$archive_dir/gcc-$version.tar.bz2"
-archive_file="$archive_dir/gcc-$version.tar.xz"
-#tar -xjf "$archive_file" -C "$src_dir" --strip-components=1 || \
-#  panic "cannot extract archive"
-tar -xJf "$archive_file" -C "$src_dir" --strip-components=1 || \
-  panic "cannot extract archive"
+if [ $from_repo -ne 0 ]; then
+	svn co "$svn_repo" "$src_dir" || panic "cannot checkout source"
+else
+	(cd "$archive_dir" && wget "$url" ) || \
+	  panic "cannot download archive"
+	archive_file="$archive_dir/gcc-$version.tar.xz"
+	tar -xJf "$archive_file" -C "$src_dir" --strip-components=1 || \
+	  panic "cannot extract archive"
+fi
 
 (cd "$src_dir" && ./contrib/download_prerequisites) || \
   panic "cannot download prerequisites"
