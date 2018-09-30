@@ -16,6 +16,24 @@ panic()
 usage()
 {
 	echo "BAD USAGE: $@"
+	cat <<- EOF
+	Usage:
+	$0 [options] -v \$version -d \$install_dir
+
+	Options:
+	-l
+	    Install libcxx library.
+	-r
+	    Build from Subversion repository.
+	-g \$gcc_dir
+	    Set GCC directory to \$gcc_dir.
+
+	Examples:
+	$0 -r -v trunk -d $HOME/local/clang
+	$0 -r -v branches/release_70 -d $HOME/local/clang
+	$0 -r -v tags/RELEASE_700/final -d $HOME/local/clang
+	CC=gcc CXX=g++ $0 -r -v trunk -d $HOME/local/clang
+	EOF
 	exit 2
 }
 
@@ -23,16 +41,15 @@ user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
-#version=4.0.0
-#install_dir="$cur_dir/clang-$version"
 version=
 install_dir=
 tmp_dir="/tmp/sde_install_clang-$user@$host-$$"
 gcc_dir=""
 use_old_host_toolchain=0
 install_libcxx=0
+from_repo=0
 
-while getopts lfg:d:v: opt; do
+while getopts lfg:d:v:r opt; do
 	case "$opt" in
 	l)
 		install_libcxx=1;;
@@ -44,6 +61,8 @@ while getopts lfg:d:v: opt; do
 		version="$OPTARG";;
 	g)
 		gcc_dir="$OPTARG";;
+	r)
+		from_repo=1;;
 	\?)
 		usage
 		break;;
@@ -64,7 +83,8 @@ fi
 # will be accessible by all users.
 umask 022
 
-top_dir="$tmp_dir/llvm-clang-$version"
+mangled_version=$(echo "$version" | tr '/' '-') || panic
+top_dir="$tmp_dir/llvm-clang-$mangled_version"
 archive_dir="$top_dir/archives"
 src_dir="$top_dir/src"
 build_dir="$top_dir/build"
@@ -75,67 +95,97 @@ for dir in "$top_dir" "$archive_dir" "$src_dir" "$build_dir"; do
 	fi
 done
 
-llvm_url="http://llvm.org/releases/$version/llvm-$version.src.tar.xz"
-cfe_url="http://llvm.org/releases/$version/cfe-$version.src.tar.xz"
-cr_url="http://llvm.org/releases/$version/compiler-rt-$version.src.tar.xz"
-cte_url="http://llvm.org/releases/$version/clang-tools-extra-$version.src.tar.xz"
-libcxx_url="http://releases.llvm.org/$version/libcxx-$version.src.tar.xz"
-libcxxabi_url="http://releases.llvm.org/$version/libcxxabi-$version.src.tar.xz"
+if [ "$from_repo" -ne 0 ]; then
 
-urls=()
-urls+=("$llvm_url")
-urls+=("$cfe_url")
-urls+=("$cr_url")
-urls+=("$cte_url")
-if [ "$install_libcxx" -ne 0 ]; then
-	urls+=("$libcxx_url")
-	urls+=("$libcxxabi_url")
-fi
-for url in "${urls[@]}"; do
-	(cd "$archive_dir" && wget "$url") || panic "cannot get URL $url"
-done
+	repo_base="http://llvm.org/svn/llvm-project"
 
-tar -xJf "$archive_dir/$(basename "$llvm_url")" \
-  -C "$src_dir" --strip-components=1 || panic "cannot extract llvm archive"
+	(cd "$src_dir" && \
+	  svn co -q "$repo_base/llvm/$version" .) || \
+	  panic "cannot checkout llvm"
+	(cd "$src_dir/tools" && \
+	  svn co -q "$repo_base/cfe/$version" clang) || \
+	  panic "cannot checkout cfe"
+	(cd "$src_dir/tools/clang/tools" && \
+	  svn co -q "$repo_base/clang-tools-extra/$version" extra) || \
+	  panic "cannot checkout clang-tools-extra"
+	(cd "$src_dir/projects" && \
+	  svn co -q "$repo_base/compiler-rt/$version" compiler-rt) || \
+	  panic "cannot checkout compiler-rt"
 
-extract_dir="$src_dir/tools/clang"
-if [ ! -d "$extract_dir" ]; then
-	mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
-fi
-tar -xJf "$archive_dir/$(basename "$cfe_url")" \
-  -C "$extract_dir" --strip-components=1 || panic "cannot extract cfe archive"
+	if [ "$install_libcxx" -ne 0 ]; then
+		(cd "$src_dir/projects" && \
+		  svn co -q "$repo_base/libcxx/$version" libcxx) || \
+		  panic "cannot checkout libcxx"
+		(cd "$src_dir/projects" && \
+		  svn co -q "$repo_base/libcxxabi/$version" libcxxabi) || \
+		  panic "cannot checkout libcxxabi"
+	fi
 
-extract_dir="$src_dir/tools/clang/tools/extra"
-if [ ! -d "$extract_dir" ]; then
-	mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
-fi
-tar -xJf "$archive_dir/$(basename "$cte_url")" \
-  -C "$extract_dir" --strip-components=1 || \
-  panic "cannot extract clang-tools-extra archive"
+else
 
-extract_dir="$src_dir/projects/compiler-rt"
-if [ ! -d "$extract_dir" ]; then
-	mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
-fi
-tar -xJf "$archive_dir/$(basename "$cr_url")" \
-  -C "$extract_dir" --strip-components=1 || panic "cannot extract compiler-rt archive"
+	llvm_url="http://llvm.org/releases/$version/llvm-$version.src.tar.xz"
+	cfe_url="http://llvm.org/releases/$version/cfe-$version.src.tar.xz"
+	cr_url="http://llvm.org/releases/$version/compiler-rt-$version.src.tar.xz"
+	cte_url="http://llvm.org/releases/$version/clang-tools-extra-$version.src.tar.xz"
+	libcxx_url="http://releases.llvm.org/$version/libcxx-$version.src.tar.xz"
+	libcxxabi_url="http://releases.llvm.org/$version/libcxxabi-$version.src.tar.xz"
 
-if [ "$install_libcxx" -ne 0 ]; then
-	extract_dir="$src_dir/projects/libcxx"
+	urls=()
+	urls+=("$llvm_url")
+	urls+=("$cfe_url")
+	urls+=("$cr_url")
+	urls+=("$cte_url")
+	if [ "$install_libcxx" -ne 0 ]; then
+		urls+=("$libcxx_url")
+		urls+=("$libcxxabi_url")
+	fi
+	for url in "${urls[@]}"; do
+		(cd "$archive_dir" && wget "$url") || panic "cannot get URL $url"
+	done
+
+	tar -xJf "$archive_dir/$(basename "$llvm_url")" \
+	  -C "$src_dir" --strip-components=1 || panic "cannot extract llvm archive"
+
+	extract_dir="$src_dir/tools/clang"
 	if [ ! -d "$extract_dir" ]; then
 		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
 	fi
-	tar -xJf "$archive_dir/$(basename "$libcxx_url")" \
-	  -C "$extract_dir" --strip-components=1 || panic "cannot extract libcxx archive"
-fi
+	tar -xJf "$archive_dir/$(basename "$cfe_url")" \
+	  -C "$extract_dir" --strip-components=1 || panic "cannot extract cfe archive"
 
-if [ "$install_libcxx" -ne 0 ]; then
-	extract_dir="$src_dir/projects/libcxxabi"
+	extract_dir="$src_dir/tools/clang/tools/extra"
 	if [ ! -d "$extract_dir" ]; then
 		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
 	fi
-	tar -xJf "$archive_dir/$(basename "$libcxxabi_url")" \
-	  -C "$extract_dir" --strip-components=1 || panic "cannot extract libcxx archive"
+	tar -xJf "$archive_dir/$(basename "$cte_url")" \
+	  -C "$extract_dir" --strip-components=1 || \
+	  panic "cannot extract clang-tools-extra archive"
+
+	extract_dir="$src_dir/projects/compiler-rt"
+	if [ ! -d "$extract_dir" ]; then
+		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+	fi
+	tar -xJf "$archive_dir/$(basename "$cr_url")" \
+	  -C "$extract_dir" --strip-components=1 || panic "cannot extract compiler-rt archive"
+
+	if [ "$install_libcxx" -ne 0 ]; then
+		extract_dir="$src_dir/projects/libcxx"
+		if [ ! -d "$extract_dir" ]; then
+			mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+		fi
+		tar -xJf "$archive_dir/$(basename "$libcxx_url")" \
+		  -C "$extract_dir" --strip-components=1 || panic "cannot extract libcxx archive"
+	fi
+
+	if [ "$install_libcxx" -ne 0 ]; then
+		extract_dir="$src_dir/projects/libcxxabi"
+		if [ ! -d "$extract_dir" ]; then
+			mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+		fi
+		tar -xJf "$archive_dir/$(basename "$libcxxabi_url")" \
+		  -C "$extract_dir" --strip-components=1 || panic "cannot extract libcxx archive"
+	fi
+
 fi
 
 cmake_opts=()

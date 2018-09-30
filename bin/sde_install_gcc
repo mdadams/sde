@@ -41,8 +41,6 @@ user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
-#version=7.1.0
-#install_dir="$cur_dir/gcc-$version"
 version=
 install_dir=
 from_repo=0
@@ -110,14 +108,13 @@ for dir in "$top_dir" "$archive_dir" "$src_dir" "$build_dir"; do
 	fi
 done
 
-url="https://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.xz"
-svn_repo="svn://gcc.gnu.org/svn/gcc/$version"
-
 #unset INCLUDE_PATH CPLUS_INCLUDE_PATH CFLAGS CXXFLAGS
 
 if [ $from_repo -ne 0 ]; then
+	svn_repo="svn://gcc.gnu.org/svn/gcc/$version"
 	svn co "$svn_repo" "$src_dir" || panic "cannot checkout source"
 else
+	url="https://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.xz"
 	(cd "$archive_dir" && wget "$url" ) || \
 	  panic "cannot download archive"
 	archive_file="$archive_dir/gcc-$version.tar.xz"
