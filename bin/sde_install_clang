@@ -48,11 +48,14 @@ gcc_dir=""
 use_old_host_toolchain=0
 install_libcxx=0
 from_repo=0
+install_testsuite=0
 
-while getopts lfg:d:v:r opt; do
+while getopts tlfg:d:v:r opt; do
 	case "$opt" in
 	l)
 		install_libcxx=1;;
+	t)
+		install_testsuite=1;;
 	f)
 		use_old_host_toolchain=1;;
 	d)
@@ -108,9 +111,18 @@ if [ "$from_repo" -ne 0 ]; then
 	(cd "$src_dir/tools/clang/tools" && \
 	  svn co -q "$repo_base/clang-tools-extra/$version" extra) || \
 	  panic "cannot checkout clang-tools-extra"
+	(cd "$src_dir/tools" && \
+	  svn co -q "$repo_base/lld/$version" lld) || \
+	  panic "cannot checkout lld"
+	(cd "$src_dir/tools" && \
+	  svn co -q "$repo_base/polly/$version" polly) || \
+	  panic "cannot checkout polly"
 	(cd "$src_dir/projects" && \
 	  svn co -q "$repo_base/compiler-rt/$version" compiler-rt) || \
 	  panic "cannot checkout compiler-rt"
+	(cd "$src_dir/projects" && \
+	  svn co -q "$repo_base/openmp/$version" openmp) || \
+	  panic "cannot checkout openmp"
 
 	if [ "$install_libcxx" -ne 0 ]; then
 		(cd "$src_dir/projects" && \
@@ -121,23 +133,39 @@ if [ "$from_repo" -ne 0 ]; then
 		  panic "cannot checkout libcxxabi"
 	fi
 
+	if [ "$install_testsuite" -ne 0 ]; then
+		(cd "$src_dir/projects" && \
+		  svn co -q "$repo_base/test-suite/$version" test-suite) || \
+		  panic "cannot checkout test-suite"
+	fi
+
 else
 
 	llvm_url="http://llvm.org/releases/$version/llvm-$version.src.tar.xz"
 	cfe_url="http://llvm.org/releases/$version/cfe-$version.src.tar.xz"
-	cr_url="http://llvm.org/releases/$version/compiler-rt-$version.src.tar.xz"
 	cte_url="http://llvm.org/releases/$version/clang-tools-extra-$version.src.tar.xz"
+	lld_url="http://llvm.org/releases/$version/lld-$version.src.tar.xz"
+	polly_url="http://llvm.org/releases/$version/polly-$version.src.tar.xz"
+	cr_url="http://llvm.org/releases/$version/compiler-rt-$version.src.tar.xz"
+	openmp_url="http://llvm.org/releases/$version/openmp-$version.src.tar.xz"
 	libcxx_url="http://releases.llvm.org/$version/libcxx-$version.src.tar.xz"
 	libcxxabi_url="http://releases.llvm.org/$version/libcxxabi-$version.src.tar.xz"
+	testsuite_url="http://releases.llvm.org/$version/test-suite-$version.src.tar.xz"
 
 	urls=()
 	urls+=("$llvm_url")
 	urls+=("$cfe_url")
 	urls+=("$cr_url")
 	urls+=("$cte_url")
+	urls+=("$lld_url")
+	urls+=("$polly_url")
+	urls+=("$openmp_url")
 	if [ "$install_libcxx" -ne 0 ]; then
 		urls+=("$libcxx_url")
 		urls+=("$libcxxabi_url")
+	fi
+	if [ "$install_testsuite" -ne 0 ]; then
+		urls+=("$testsuite_url")
 	fi
 	for url in "${urls[@]}"; do
 		(cd "$archive_dir" && wget "$url") || panic "cannot get URL $url"
