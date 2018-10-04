@@ -4,21 +4,36 @@
 # Specify the versions of various software packages to be installed.
 ################################################################################
 
+# https://cmake.org/download
 cmake_version=3.12.3
+# https://www.gnu.org/software/gcc
 gcc_version=8.2.0
+# http://releases.llvm.org/download.html
 clang_version=7.0.0
+# https://www.ece.uvic.ca/~frodo/jasper/#download
 jasper_version=2.0.14
+# https://www.gnu.org/software/gdb/download/
 gdb_version=8.2
+# http://www.ece.uvic.ca/~frodo/SPL/#download
 spl_version=2.0.7
+# ???
 ndiff_version=2.00
+# https://www.tug.org/texlive/acquire.html
 texlive_version=2018
+# https://www.boost.org/users/download
 boost_version=1.68.0
+# https://github.com/mdadams/aristotle
 aristotle_version=2.64.0
+# https://github.com/Valloric/YouCompleteMe
 ycm_version=e37923a752c7eee184cd6d96ac34e303fb7cfae9
+# https://www.vim.org/download.php
 vim_version=8.1
+# https://github.com/Microsoft/GSL/releases
 gsl_version=v2.0.0
+# https://github.com/catchorg/Catch2/releases
 catch_version=v2.4.1
-lcov_version=f424769b1ad9fca477118763f88a6cec98ea2c0a
+# https://github.com/linux-test-project/lcov
+lcov_version=94eac0ee870e58630d8052dca1181b0cf802525f
 
 ################################################################################
 # Utility functions.
