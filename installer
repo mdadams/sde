@@ -4,7 +4,7 @@
 # Specify the versions of various software packages to be installed.
 ################################################################################
 
-cmake_version=3.12.2
+cmake_version=3.12.3
 gcc_version=8.2.0
 clang_version=7.0.0
 jasper_version=2.0.14
@@ -13,12 +13,12 @@ spl_version=2.0.7
 ndiff_version=2.00
 texlive_version=2018
 boost_version=1.68.0
-aristotle_version=2.63.0
-ycm_version=487b8ab2b4d5bcaece29a17a26818a62616e21b5
+aristotle_version=2.64.0
+ycm_version=e37923a752c7eee184cd6d96ac34e303fb7cfae9
 vim_version=8.1
 gsl_version=v2.0.0
-catch_version=v2.4.0
-lcov_version=master
+catch_version=v2.4.1
+lcov_version=f424769b1ad9fca477118763f88a6cec98ea2c0a
 
 ################################################################################
 # Utility functions.
@@ -381,6 +381,15 @@ if [ -n "$clang_dir" ]; then
 		cpp_compiler_command=""
 		c_compiler_command=""
 
+		install_clang_options=()
+		if [ "${SDE_LLVM_INSTALL_LLDB:-0}" -ne 0 ]; then
+			install_clang_options+=(-D)
+		fi
+		if [ "${SDE_LLVM_INSTALL_TEST_SUITE:-0}" -ne 0 ]; then
+			install_clang_options+=(-t)
+		fi
+		install_clang_options+=(-l)
+
 		if [ -z "$cpp_compiler_command" -o -z "$c_compiler_command" ]; then
 			# Use SDE-installed version of GCC to build Clang.
 			compiler_name="SDE-installed GCC"
@@ -389,7 +398,8 @@ if [ -n "$clang_dir" ]; then
 		fi
 		echo "Building Clang with $compiler_name"
 		CXX="$cpp_compiler_command" CC="$c_compiler_command" \
-		"$sde_install_clang" -l -v "$clang_version" -d "$clang_dir" -f || \
+		"$sde_install_clang" "${install_clang_options[@]}" \
+		  -v "$clang_version" -d "$clang_dir" -f || \
 		  panic "cannot install clang"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" clang "$clang_version" || \

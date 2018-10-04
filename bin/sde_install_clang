@@ -49,8 +49,10 @@ use_old_host_toolchain=0
 install_libcxx=0
 from_repo=0
 install_testsuite=0
+stop_early=0
+install_lldb=0
 
-while getopts tlfg:d:v:r opt; do
+while getopts tlfg:d:v:rSD opt; do
 	case "$opt" in
 	l)
 		install_libcxx=1;;
@@ -66,6 +68,10 @@ while getopts tlfg:d:v:r opt; do
 		gcc_dir="$OPTARG";;
 	r)
 		from_repo=1;;
+	S)
+		stop_early=1;;
+	D)
+		install_lldb=1;;
 	\?)
 		usage
 		break;;
@@ -139,6 +145,12 @@ if [ "$from_repo" -ne 0 ]; then
 		  panic "cannot checkout test-suite"
 	fi
 
+	if [ "$install_lldb" -ne 0 ]; then
+		(cd "$src_dir/tools" && \
+		  svn co -q "$repo_base/lldb/$version" lldb) || \
+		  panic "cannot checkout lldb"
+	fi
+
 else
 
 	llvm_url="http://llvm.org/releases/$version/llvm-$version.src.tar.xz"
@@ -151,6 +163,7 @@ else
 	libcxx_url="http://releases.llvm.org/$version/libcxx-$version.src.tar.xz"
 	libcxxabi_url="http://releases.llvm.org/$version/libcxxabi-$version.src.tar.xz"
 	testsuite_url="http://releases.llvm.org/$version/test-suite-$version.src.tar.xz"
+	lldb_url="http://llvm.org/releases/$version/lldb-$version.src.tar.xz"
 
 	urls=()
 	urls+=("$llvm_url")
@@ -163,6 +176,9 @@ else
 	if [ "$install_libcxx" -ne 0 ]; then
 		urls+=("$libcxx_url")
 		urls+=("$libcxxabi_url")
+	fi
+	if [ "$install_lldb" -ne 0 ]; then
+		urls+=("$lldb_url")
 	fi
 	if [ "$install_testsuite" -ne 0 ]; then
 		urls+=("$testsuite_url")
@@ -189,12 +205,36 @@ else
 	  -C "$extract_dir" --strip-components=1 || \
 	  panic "cannot extract clang-tools-extra archive"
 
+	extract_dir="$src_dir/tools/lld"
+	if [ ! -d "$extract_dir" ]; then
+		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+	fi
+	tar -xJf "$archive_dir/$(basename "$lld_url")" \
+	  -C "$extract_dir" --strip-components=1 || \
+	  panic "cannot extract lld archive"
+
+	extract_dir="$src_dir/tools/polly"
+	if [ ! -d "$extract_dir" ]; then
+		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+	fi
+	tar -xJf "$archive_dir/$(basename "$polly_url")" \
+	  -C "$extract_dir" --strip-components=1 || \
+	  panic "cannot extract polly archive"
+
 	extract_dir="$src_dir/projects/compiler-rt"
 	if [ ! -d "$extract_dir" ]; then
 		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
 	fi
 	tar -xJf "$archive_dir/$(basename "$cr_url")" \
 	  -C "$extract_dir" --strip-components=1 || panic "cannot extract compiler-rt archive"
+
+	extract_dir="$src_dir/projects/openmp"
+	if [ ! -d "$extract_dir" ]; then
+		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+	fi
+	tar -xJf "$archive_dir/$(basename "$openmp_url")" \
+	  -C "$extract_dir" --strip-components=1 || \
+	  panic "cannot extract openmp archive"
 
 	if [ "$install_libcxx" -ne 0 ]; then
 		extract_dir="$src_dir/projects/libcxx"
@@ -214,6 +254,30 @@ else
 		  -C "$extract_dir" --strip-components=1 || panic "cannot extract libcxx archive"
 	fi
 
+	if [ "$install_lldb" -ne 0 ]; then
+		extract_dir="$src_dir/tools/lldb"
+		if [ ! -d "$extract_dir" ]; then
+			mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+		fi
+		tar -xJf "$archive_dir/$(basename "$lldb_url")" \
+		  -C "$extract_dir" --strip-components=1 || \
+		  panic "cannot extract lldb archive"
+	fi
+
+	if [ "$install_testsuite" -ne 0 ]; then
+		extract_dir="$src_dir/projects/test-suite"
+		if [ ! -d "$extract_dir" ]; then
+			mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+		fi
+		tar -xJf "$archive_dir/$(basename "$testsuite_url")" \
+		  -C "$extract_dir" --strip-components=1 || \
+		  panic "cannot extract test-suite archive"
+	fi
+
+fi
+
+if [ "$stop_early" -ne 0 ]; then
+	exit 0
 fi
 
 cmake_opts=()
