@@ -50,13 +50,13 @@ repo="https://github.com/linux-test-project/lcov.git"
 
 mkdir -p "$tmp_dir" || panic "cannot make temporary directory $tmp_dir"
 
-(cd "$tmp_dir" && git clone -b "$version" "$repo" lcov) || \
+(cd "$tmp_dir" && git clone "$repo" lcov) || \
   panic "cannot clone repository"
+src_dir="$tmp_dir/lcov"
 
-#if [ ! -d "$install_dir" ]; then
-#	mkdir -p "$install_dir" || panic "cannot make directory $install_dir"
-#fi
+(cd "$src_dir" && git checkout "$version") || \
+  panic "cannot checkout $version"
 
-mv "$tmp_dir/lcov" "$install_dir" || panic "cannot move"
+mv "$src_dir" "$install_dir" || panic "cannot move"
 
 rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"
