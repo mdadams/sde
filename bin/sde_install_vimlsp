@@ -1,0 +1,119 @@
+#! /usr/bin/env bash
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+usage()
+{
+	echo "BAD USAGE: $@"
+	cat <<- EOF
+	usage:
+	$0 -d \$install_dir [options]
+
+	options:
+	-d \$install_dir
+	    Set the installation directory to \$install_dir.
+	-v \$component:\$version
+	    Set the version (i.e., branch/commit) to install.
+	    e.g., vim-lsp:XXX
+	EOF
+	exit 2
+}
+
+git_download()
+{
+	local url="$1"
+	local version="$2"
+	local out_dir="$(pwd)/$(basename "$url" .git)"
+	git clone "$url" "$out_dir" || return 1
+	(cd "$out_dir" && git checkout "$version") || return 1
+}
+
+user=$(whoami) || panic "cannot get user name"
+host=$(hostname) || panic "cannot get host name"
+cur_dir=$(pwd) || panic "cannot get current directory"
+
+vimlsp_version="master"
+async_version="master"
+ac_version="master"
+aclsp_version="master"
+
+install_dir=
+tmp_dir="/tmp/sde_install_vimlsp-$user@$host-$$"
+verbose=0
+
+while getopts d:v:V opt; do
+	case "$opt" in
+	d)
+		install_dir="$OPTARG";;
+	v)
+		buffer=("$OPTARG")
+		component=$(echo "$buffer" | tr ':' ' ' | awk '{print $1;}' -)
+		version=$(echo "$buffer" | tr ':' ' ' | awk '{print $2;}' -)
+		echo "$component $version"
+		case "$component" in
+		vim-lsp)
+			vimlsp_version="$version";;
+		async.vim)
+			async_version="$version";;
+		asyncomplete.vim)
+			ac_version="$version";;
+		asyncomplete-lsp.vim)
+			aclsp_version="$version";;
+		*)
+			usage;;
+		esac
+		;;
+	V)
+		verbose=$((verbose + 1));;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$install_dir" ]; then
+	usage "no installation directory specified"
+fi
+
+if [ -z "$vimlsp_version" ]; then
+	usage "no vim-lsp version specified"
+fi
+if [ -z "$async_version" ]; then
+	usage "no async.vim version specified"
+fi
+if [ -z "$ac_version" ]; then
+	usage "no asyncomplete.vim version specified"
+fi
+if [ -z "$aclsp_version" ]; then
+	usage "no asyncomplete-lsp.vim version specified"
+fi
+
+mkdir -p "$tmp_dir" || panic
+
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
+src_dir="$install_dir/src"
+
+if [ ! -d "$src_dir" ]; then
+	mkdir -p "$src_dir" || panic
+fi
+
+vimlsp_url="https://github.com/prabirshrestha/vim-lsp.git"
+async_url="https://github.com/prabirshrestha/async.vim.git"
+ac_url="https://github.com/prabirshrestha/asyncomplete.vim.git"
+aclsp_url="https://github.com/prabirshrestha/asyncomplete-lsp.vim.git"
+
+(cd "$src_dir" && git_download "$vimlsp_url" "$vimlsp_version") || panic
+(cd "$src_dir" && git_download "$async_url" "$async_version") || panic
+(cd "$src_dir" && git_download "$ac_url" "$ac_version") || panic
+(cd "$src_dir" && git_download "$aclsp_url" "$aclsp_version") || panic
+

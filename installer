@@ -35,6 +35,15 @@ catch_version=v2.4.1
 # https://github.com/linux-test-project/lcov
 lcov_version=94eac0ee870e58630d8052dca1181b0cf802525f
 
+# https://github.com/prabirshrestha/vim-lsp.git
+vimlsp_version=82375012d0756d48f91eb628a48d6d52366c1245
+# https://github.com/prabirshrestha/async.vim.git
+vimlsp_async_version=c5b236ffbe52b47f9afcb5cd785bf21a410f35de
+# https://github.com/prabirshrestha/asyncomplete.vim.git
+vimlsp_ac_version=dd41ee5fc5398adb55a3955c40353b761ab9b16c
+# https://github.com/prabirshrestha/asyncomplete-lsp.vim.git
+vimlsp_aclsp_version=6f47fcb2f386c6234f65a9450c3a3c141759a8f3
+
 ################################################################################
 # Utility functions.
 ################################################################################
@@ -92,6 +101,7 @@ sde_install_vim="$bin_dir/sde_install_vim"
 sde_install_gsl="$bin_dir/sde_install_gsl"
 sde_install_catch="$bin_dir/sde_install_catch"
 sde_install_lcov="$bin_dir/sde_install_lcov"
+sde_install_vimlsp="$bin_dir/sde_install_vimlsp"
 
 ################################################################################
 # Process command line
@@ -173,6 +183,7 @@ vim_dir="$packages_dir/vim-$vim_version"
 gsl_dir="$packages_dir/gsl-$gsl_version"
 catch_dir="$packages_dir/catch-$catch_version"
 lcov_dir="$packages_dir/lcov-$lcov_version"
+vimlsp_dir="$packages_dir/vimlsp-$vimlsp_version"
 
 gcc_install_options=()
 if [ "${SDE_GCC_USE_OLD_ABI:-0}" -ne 0 ]; then
@@ -215,7 +226,10 @@ fi
 # Install SDE Base
 ################################################################################
 
+sdebase_installed=0
 if [ ! -d "$sdebase_dir" ]; then
+
+	sdebase_installed=1
 
 	files=()
 	files+=($(cd "$cmd_dir" && find bin -type f))
@@ -255,50 +269,41 @@ for dir in bin doc etc etc/environments; do
 	fi
 done
 
-# executables in $sde_top_dir/bin directory
-#files=()
-#files+=(sde_shell sde_make_setup sde_wrapper sde sde_env sde_pkg)
-#files+=(sde_ycmconf)
-#for file in "${files[@]}"; do
-#	target_file="$sde_top_dir/bin/$file"
-#	if [ -L "$target_file" -o -e "$target_file" ]; then
-#		rm -f "$target_file" || panic "cannot remove file $target_file"
-#	fi
-#	ln -s "$sdebase_dir/bin/$file" "$target_file" || \
-#	  panic "cannot link"
-#done
+if [ "$sdebase_installed" -ne 0 ]; then
 
-# executables in $sde_top_dir/bin directory
-files=()
-files+=($(cd "$sdebase_dir" && find bin -type f))
-files+=($(cd "$sdebase_dir" && find doc -type f))
-files+=($(cd "$sdebase_dir" && find etc -type f))
-for file in "${files[@]}"; do
-	source_file="$generic_sdebase_dir/$file"
-	destination_file="$sde_top_dir/$file"
-	destination_dir=$(dirname "$destination_file") || \
-	  panic "cannot get directory of $destination_file"
-	if [ -L "$destination_file" -o -e "$destination_file" ]; then
-		rm -f "$destination_file" || \
-		  panic "cannot remove file $destination_file"
-	fi
-	relpath=$("$sde_relpath" -r "$destination_dir" "$source_file") || \
-	  panic "cannot get relative path"
-	ln -s "$relpath" "$destination_file" || \
-	  panic "cannot link"
-done
+	# executables in $sde_top_dir/bin directory
+	files=()
+	files+=($(cd "$sdebase_dir" && find bin -type f))
+	files+=($(cd "$sdebase_dir" && find doc -type f))
+	files+=($(cd "$sdebase_dir" && find etc -type f))
+	for file in "${files[@]}"; do
+		source_file="$generic_sdebase_dir/$file"
+		destination_file="$sde_top_dir/$file"
+		destination_dir=$(dirname "$destination_file") || \
+		  panic "cannot get directory of $destination_file"
+		if [ -L "$destination_file" -o -e "$destination_file" ]; then
+			rm -f "$destination_file" || \
+			  panic "cannot remove file $destination_file"
+		fi
+		relpath=$("$sde_relpath" -r "$destination_dir" "$source_file") || \
+		  panic "cannot get relative path"
+		ln -s "$relpath" "$destination_file" || \
+		  panic "cannot link"
+	done
 
-for file in c++ g++ clang++ cc gcc clang cmake ctest cpack gdb; do
-	target_file="$sde_top_dir/bin/$file"
-	if [ -L "$target_file" -o -e "$target_file" ]; then
-		rm -f "$target_file" || panic "cannot remove file $target_file"
-	fi
-	ln -s sde_wrapper "$target_file" || \
-	  panic "cannot link"
-done
+	for file in c++ g++ clang++ cc gcc clang cmake ctest cpack gdb; do
+		target_file="$sde_top_dir/bin/$file"
+		if [ -L "$target_file" -o -e "$target_file" ]; then
+			rm -f "$target_file" || panic "cannot remove file $target_file"
+		fi
+		ln -s sde_wrapper "$target_file" || \
+		  panic "cannot link"
+	done
 
-"$sde_cmd" pkg -d "$sde_top_dir" "sdebase" default || \
-  panic "cannot set package version"
+	"$sde_cmd" pkg -d "$sde_top_dir" "sdebase" default || \
+	  panic "cannot set package version"
+
+fi
 
 if [ -n "$default_environment" ]; then
 	"$sde_cmd" env -d "$sde_top_dir" "$default_environment" || \
@@ -309,24 +314,28 @@ fi
 # Install YCM Extras
 ################################################################################
 
-for dir in "$ycm_extras_dir"; do
-	if [ ! -d "$dir" ]; then
-		mkdir -p "$dir" || \
-		  panic "cannot make directory $dir"
+if [ -n "$ycm_extras_dir" ]; then
+	if [ ! -d "$ycm_extras_dir" ]; then
+
+		for dir in "$ycm_extras_dir"; do
+			if [ ! -d "$dir" ]; then
+				mkdir -p "$dir" || \
+				  panic "cannot make directory $dir"
+			fi
+		done
+
+		# YCM Extras
+		ycm_extra_conf_file="$ycm_extras_dir/.ycm_extra_conf.py"
+		if [ -f "$ycm_extra_conf_file" ]; then
+			rm -f "$ycm_extra_conf_file" || \
+			  panic "cannot remove file $ycm_extra_conf_file"
+		fi
+		sed -e 's%@@SDE_TOP_DIR@@%'"$sde_top_dir"'%g' \
+		  < "$cmd_dir/etc/ycm_extra_conf.py.template" \
+		  > "$ycm_extra_conf_file" || panic "cannot create file"
+
 	fi
-done
-
-# YCM Extras
-ycm_extra_conf_file="$ycm_extras_dir/.ycm_extra_conf.py"
-if [ -f "$ycm_extra_conf_file" ]; then
-	rm -f "$ycm_extra_conf_file" || \
-	  panic "cannot remove file $ycm_extra_conf_file"
 fi
-sed -e 's%@@SDE_TOP_DIR@@%'"$sde_top_dir"'%g' \
-  < "$cmd_dir/etc/ycm_extra_conf.py.template" \
-  > "$ycm_extra_conf_file" || panic "cannot create file"
-
-#exit 0
 
 ################################################################################
 # Install CMake
@@ -585,6 +594,22 @@ if [ -n "$vim_dir" ]; then
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" vim "$vim_version" || \
 	  panic "cannot configure vim"
+fi
+
+################################################################################
+# Install Vim LSP
+################################################################################
+
+if [ -n "$vimlsp_dir" ]; then
+	if [ ! -d "$vimlsp_dir" ]; then
+		"$sde_install_vimlsp" -d "$vimlsp_dir" \
+		  -v "vim-lsp:$vimlsp_version" \
+		  -v "async.vim:$vimlsp_async_version" \
+		  -v "asyncomplete.vim:$vimlsp_ac_version" \
+		  -v "asyncomplete-lsp.vim:$vimlsp_aclsp_version"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" vimlsp "$vimlsp_version" || \
+	  panic "cannot configure vim-lsp"
 fi
 
 ################################################################################
