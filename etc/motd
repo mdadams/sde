@@ -9,7 +9,7 @@ If you would like to use YCM, run the following command:
 YCM is a C++ completion plugin for Vim.
 
 If you would like to use Vim LSP, run the following command:
-    sde vimlsp enable
+    sde vimlspconf enable
 Then, add the following lines to ~/.vimrc:
     try
         :so ~/.vim/misc/sde/vim-lsp.vim
