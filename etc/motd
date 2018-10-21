@@ -1,9 +1,19 @@
-For more detailed information on the SDE, please refer to the
-information in the doc directory in the top-level directory of
-the SDE directory hierarchy.
+For more detailed information on the SDE, please refer to the information in
+the doc directory in the top-level directory of the SDE directory hierarchy.
 
 Please report bugs through the issue tracker at:
     https://github.com/mdadams/sde/issues
 
 If you would like to use YCM, run the following command:
     sde ycmconf enable
+YCM is a C++ completion plugin for Vim.
+
+If you would like to use Vim LSP, run the following command:
+    sde vimlsp enable
+Then, add the following lines to ~/.vimrc:
+    try
+        :so ~/.vim/misc/sde/vim-lsp.vim
+    catch
+    endtry
+Vim LSP is a C++ completion plugin for Vim that uses the clangd implementation
+of the Language Server Protocol (LSP).

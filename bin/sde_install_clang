@@ -7,6 +7,16 @@
 # Reference: https://llvm.org/svn/llvm-project/cfe/trunk/INSTALL.txt
 # Reference: https://gist.github.com/larsch/6823355
 
+isabspath()
+{
+	case "$1" in
+	/*)
+		echo "1";;
+	*)
+		echo "0";;
+	esac
+}
+
 panic()
 {
 	echo "ERROR: $@"
@@ -84,6 +94,12 @@ if [ -z "$install_dir" ]; then
 fi
 if [ -z "$version" ]; then
 	usage "no version specified"
+fi
+
+abs_install_dir="$install_dir"
+result=$(isabspath "$abs_install_dir") || panic "absolute path test failed"
+if [ "$result" -eq 0 ]; then
+	abs_install_dir="$cur_dir/$abs_install_dir"
 fi
 
 # Set the user file-creation mask to allow read and execute permissions
@@ -283,7 +299,7 @@ fi
 cmake_opts=()
 
 cmake_opts+=(-G "Unix Makefiles")
-cmake_opts+=(-DCMAKE_INSTALL_PREFIX="$install_dir")
+cmake_opts+=(-DCMAKE_INSTALL_PREFIX="$abs_install_dir")
 cmake_opts+=(-DCMAKE_VERBOSE_MAKEFILE=true)
 cmake_opts+=(-DCMAKE_BUILD_TYPE=Release)
 cmake_opts+=(-DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++")

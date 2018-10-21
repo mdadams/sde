@@ -102,10 +102,13 @@ mkdir -p "$tmp_dir" || panic
 umask 022
 
 src_dir="$install_dir/src"
+misc_dir="$install_dir/misc"
 
-if [ ! -d "$src_dir" ]; then
-	mkdir -p "$src_dir" || panic
-fi
+for dir in "$src_dir" "$misc_dir"; do
+	if [ ! -d "$dir" ]; then
+		mkdir -p "$dir" || panic "cannot make directory $dir"
+	fi
+done
 
 vimlsp_url="https://github.com/prabirshrestha/vim-lsp.git"
 async_url="https://github.com/prabirshrestha/async.vim.git"
@@ -116,4 +119,39 @@ aclsp_url="https://github.com/prabirshrestha/asyncomplete-lsp.vim.git"
 (cd "$src_dir" && git_download "$async_url" "$async_version") || panic
 (cd "$src_dir" && git_download "$ac_url" "$ac_version") || panic
 (cd "$src_dir" && git_download "$aclsp_url" "$aclsp_version") || panic
+
+#cat > "$misc_dir/vim-lsp.vim" <<- EOF
+#if exists(':LspDefinition')
+#	:so ~/.vimrc_lsp
+#endif
+#EOF
+#[ $? -eq 0 ] || panic
+
+cat > "$misc_dir/vim-lsp.vim" <<- EOF
+if executable('clangd')
+    augroup lsp_clangd
+        autocmd!
+        autocmd User lsp_setup call lsp#register_server({
+            \ 'name': 'clangd',
+            \ 'cmd': {server_info->['clangd']},
+            \ 'whitelist': ['c', 'cpp', 'objc', 'objcpp'],
+            \ })
+        autocmd FileType c setlocal omnifunc=lsp#complete
+        autocmd FileType cpp setlocal omnifunc=lsp#complete
+        autocmd FileType objc setlocal omnifunc=lsp#complete
+        autocmd FileType objcpp setlocal omnifunc=lsp#complete
+    augroup end
+endif
+
+" enable signs
+let g:lsp_signs_enabled = 1
+
+" enable echo under cursor when in normal mode
+let g:lsp_diagnostics_echo_cursor = 1
+
+let g:lsp_signs_error = {'text': '✗'}
+let g:lsp_signs_warning = {'text': '‼'}
+let g:lsp_signs_hint = {'text': '?'}
+EOF
+[ $? -eq 0 ] || panic
 

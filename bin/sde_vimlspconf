@@ -1,0 +1,99 @@
+#! /usr/bin/env bash
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+usage()
+{
+	echo "bad usage: $@"
+	exit 2
+}
+
+sde_root_dir="${SDE_TOP_DIR}"
+
+if [ -z "$sde_root_dir" ]; then
+	usage "no SDE root directory specified"
+fi
+if [ ! -d "$sde_root_dir/packages" ]; then
+	panic "specified SDE root directory does not exist"
+fi
+
+if [ $# -ne 1 ]; then
+	usage "no command specified"
+fi
+
+command="$1"
+
+vim_dir="$HOME/.vim"
+start_plugin_dir="$vim_dir/pack/sde/start"
+misc_dir="$vim_dir/misc/sde"
+packages_dir="$sde_root_dir/packages"
+vimlsp_dir="$packages_dir/vimlsp"
+
+items=()
+items+=(asyncomplete-lsp.vim)
+items+=(asyncomplete.vim)
+items+=(async.vim)
+items+=(vim-lsp)
+
+case "$command" in
+enable)
+	for dir in "$start_plugin_dir" "$misc_dir"; do
+		if [ ! -d "$dir" ]; then
+			echo "making directory $dir"
+			mkdir -p "$dir" || \
+			  panic "cannot make directory $dir"
+		fi
+	done
+	for i in "${items[@]}"; do
+		target="$start_plugin_dir/$i"
+		if [ ! -e "$target" ]; then
+			echo "making symlink $target"
+			ln -s "$vimlsp_dir/src/$i" "$target" || \
+			  panic "cannot make link"
+		fi
+	done
+	for i in vim-lsp.vim; do
+		target="$misc_dir/$i"
+		if [ ! -e "$target" ]; then
+			echo "making symlink $target"
+			ln -s "$vimlsp_dir/misc/$i" "$target" || \
+			  panic "cannot make link"
+		fi
+	done
+	echo "vim-lsp is enabled"
+	;;
+
+disable)
+	if [ ! -d "$start_plugin_dir" ]; then
+		exit 0
+	fi
+	for i in "${items[@]}"; do
+		target="$start_plugin_dir/$i"
+		if [ -e "$target" ]; then
+			echo "removing symlink $target"
+			rm -f "$target" || panic "cannot remove link $target"
+		fi
+	done
+	for i in vim-lsp.vim; do
+		target="$misc_dir/$i"
+		if [ -e "$target" ]; then
+			echo "removing symlink $target"
+			rm -f "$target" || panic "cannot remove link $target"
+		fi
+	done
+	echo "vim-lsp is disabled"
+	;;
+
+status)
+	panic "invalid comand"
+	;;
+
+*)
+	panic "bad command $command"
+	;;
+
+esac
