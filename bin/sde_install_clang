@@ -37,6 +37,8 @@ usage()
 	    Build from Subversion repository.
 	-g \$gcc_dir
 	    Set GCC directory to \$gcc_dir.
+	-D
+	    Install lldb.
 
 	Examples:
 	$0 -r -v trunk -d $HOME/local/clang

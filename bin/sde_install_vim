@@ -2,6 +2,16 @@
 
 # Reference: https://www.xorpd.net/blog/vim_python3_install.html
 
+isabspath()
+{
+	case "$1" in
+	/*)
+		echo "1";;
+	*)
+		echo "0";;
+	esac
+}
+
 usage()
 {
 	echo "bad usage: $@"
@@ -43,6 +53,12 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
+abs_install_dir="$install_dir"
+result=$(isabspath "$abs_install_dir") || panic "absolute path test failed"
+if [ "$result" -eq 0 ]; then
+	abs_install_dir="$cur_dir/$abs_install_dir"
+fi
+
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
 # This will help to increase the likelihood that the installed software
@@ -82,7 +98,7 @@ tar -xjf "$archive_file" -C "$src_dir" --strip-components=1 || \
   panic "cannot extract archive"
 
 options=()
-options+=(--prefix="$install_dir")
+options+=(--prefix="$abs_install_dir")
 options+=(--enable-perlinterp)
 options+=(--enable-pythoninterp)
 options+=(--enable-rubyinterp)
