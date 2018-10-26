@@ -25,7 +25,7 @@ boost_version=1.68.0
 # https://github.com/mdadams/aristotle
 aristotle_version=2.64.0
 # https://github.com/Valloric/YouCompleteMe
-ycm_version=e37923a752c7eee184cd6d96ac34e303fb7cfae9
+ycm_version=f67e5ff27b048d8c55a10ba6a27c6c5b16d0f6ba
 # https://www.vim.org/download.php
 vim_version=8.1
 # https://github.com/Microsoft/GSL/releases
@@ -36,11 +36,11 @@ catch_version=v2.4.1
 lcov_version=94eac0ee870e58630d8052dca1181b0cf802525f
 
 # https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=82375012d0756d48f91eb628a48d6d52366c1245
+vimlsp_version=778630e682e4f48c35571051cb47d55a3323f2f3
 # https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=c5b236ffbe52b47f9afcb5cd785bf21a410f35de
 # https://github.com/prabirshrestha/asyncomplete.vim.git
-vimlsp_ac_version=dd41ee5fc5398adb55a3955c40353b761ab9b16c
+vimlsp_ac_version=94098ad15c8de4e89c7e344fef235a1782a8b323
 # https://github.com/prabirshrestha/asyncomplete-lsp.vim.git
 vimlsp_aclsp_version=6f47fcb2f386c6234f65a9450c3a3c141759a8f3
 
