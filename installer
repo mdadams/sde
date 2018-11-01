@@ -31,7 +31,7 @@ vim_version=8.1
 # https://github.com/Microsoft/GSL/releases
 gsl_version=v2.0.0
 # https://github.com/catchorg/Catch2/releases
-catch_version=v2.4.1
+catch_version=v2.4.2
 # https://github.com/linux-test-project/lcov
 lcov_version=94eac0ee870e58630d8052dca1181b0cf802525f
 

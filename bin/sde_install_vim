@@ -28,17 +28,20 @@ user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
+use_repo=0
 version=
 install_dir=
 
 tmp_dir="/tmp/sde_install_vim-$user-$host-$$"
 
-while getopts d:v: opt; do
+while getopts d:v:r opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
 	v)
 		version="$OPTARG";;
+	r)
+		use_repo=1;;
 	\?)
 		usage
 		break;;
@@ -76,26 +79,38 @@ for dir in "$top_dir" "$archive_dir" "$src_dir"; do
 	fi
 done
 
-urls=()
-urls+=("ftp://ftp.vim.org/pub/vim/unix/vim-$version.tar.bz2")
-urls+=("ftp://ftp.ca.vim.org/pub/vim/unix/vim-$version.tar.bz2")
+if [ "$use_repo" -ne 0 ]; then
 
-for url in "${urls[@]}"; do
-	echo "downloading from $url"
-	(cd "$archive_dir" && wget "$url")
-	status=$?
-	if [ "$status" -eq 0 ]; then
-		break
+	repo_url="https://github.com/vim/vim.git"
+
+	(git clone "$repo_url" "$src_dir") || panic "cannot clone repository"
+
+	(cd "$src_dir" && git checkout "$version") || panic "cannot checkout"
+
+else
+
+	urls=()
+	urls+=("ftp://ftp.vim.org/pub/vim/unix/vim-$version.tar.bz2")
+	urls+=("ftp://ftp.ca.vim.org/pub/vim/unix/vim-$version.tar.bz2")
+
+	for url in "${urls[@]}"; do
+		echo "downloading from $url"
+		(cd "$archive_dir" && wget "$url")
+		status=$?
+		if [ "$status" -eq 0 ]; then
+			break
+		fi
+		echo "download failed from $url"
+	done
+	if [ "$status" -ne 0 ]; then
+		panic "cannot download archive"
 	fi
-	echo "download failed from $url"
-done
-if [ "$status" -ne 0 ]; then
-	panic "cannot download archive"
-fi
 
-archive_file="$archive_dir/$(basename "$url")"
-tar -xjf "$archive_file" -C "$src_dir" --strip-components=1 || \
-  panic "cannot extract archive"
+	archive_file="$archive_dir/$(basename "$url")"
+	tar -xjf "$archive_file" -C "$src_dir" --strip-components=1 || \
+	  panic "cannot extract archive"
+
+fi
 
 options=()
 options+=(--prefix="$abs_install_dir")
@@ -109,6 +124,17 @@ options+=(--enable-gnome-check)
 options+=(--with-features=huge)
 options+=(--enable-multibyte)
 options+=(--with-x)
+
+#(cd "$src_dir/src" && make autoconf) || panic
+
+#(cd "$src_dir/src" && ./configure) || \
+#  panic "configure failed"
+
+#(cd "$src_dir/src" && make distclean) || panic
+
+#environment=()
+#environment+=(CFLAGS="-I/usr/lib64/perl5/CORE/")
+
 (cd "$src_dir" && ./configure "${options[@]}") || \
   panic "configure failed"
 
