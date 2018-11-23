@@ -23,7 +23,7 @@ texlive_version=2018
 # Boost: https://www.boost.org/users/download
 boost_version=1.68.0
 # Aristotle: https://github.com/mdadams/aristotle
-aristotle_version=2.65.0
+aristotle_version=2.66.0
 # YCM: https://github.com/Valloric/YouCompleteMe
 ycm_version=8e33c3c6448db8ef9d35b6d12ef2c96474d49d26
 # Vim: https://www.vim.org/download.php
