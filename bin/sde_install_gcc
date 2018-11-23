@@ -47,7 +47,7 @@ from_repo=0
 
 # Do not use user@host in the following pathname, since the GCC build
 # process cannot seem to handle "@" characters in pathnames.
-tmp_dir="/tmp/sde_install_gcc-$user-$host-$$"
+tmp_dir="${TMPDIR:-/tmp}/sde_install_gcc-$user-$host-$$"
 
 old_abi=0
 
