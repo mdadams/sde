@@ -1,0 +1,82 @@
+#! /usr/bin/env bash
+
+cmd_dir=`dirname $0`
+changetext_cmd=$cmd_dir/changetext
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+usage()
+{
+	echo "ERROR: $@"
+	echo "usage: $0 -D top_dir [-a] [-d]"
+	exit 2
+}
+
+top_dir=
+mode=add
+
+while getopts "D:da" opt; do
+	case $opt in
+	D)
+		top_dir="$OPTARG";;
+	a)
+		mode=add;;
+	d)
+		mode=delete;;
+	*)
+		usage "bad usage";;
+	esac
+done
+
+if [ -z "$top_dir" ]; then
+	usage "no top directory specified"
+fi
+
+if [ ! -f "$top_dir/LICENSE" ]; then
+	panic "no configure.ac file detected"
+fi
+
+if [ ! -x "$changetext_cmd" ]; then
+	panic "command not found $changetext_cmd"
+fi
+
+if [ "$mode" = add ]; then
+	license_file=$top_dir/LICENSE_SHORT
+	mode_text="adding"
+else
+	license_file=""
+	mode_text="deleting"
+fi
+
+bash_files=()
+bash_files+=($(find "$top_dir/bin" -type f -a -executable -print))
+bash_files+=("$top_dir/installer")
+
+changetext_opts=()
+if [ -n "$license_file" ]; then
+	changetext_opts+=(-f "$license_file")
+fi
+
+echo "$mode_text license"
+echo "bash files:"
+for file in "${bash_files[@]}"; do
+	echo "$file"
+done
+echo "options ${changetext_opts[@]}"
+
+for file in "${bash_files[@]}"; do
+	echo "$mode_text license in $file"
+	"$changetext_cmd" "${changetext_opts[@]}" \
+	  -s "# __START_OF_LICENSE__" \
+	  -e "# __END_OF_LICENSE__" \
+	  -p "# " \
+	  "$file"
+	if [ $? -ne 0 ]; then
+		panic "processing failed for $file"
+	fi
+done
+
