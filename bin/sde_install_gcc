@@ -27,6 +27,8 @@ usage()
 	    Set the version to install to \$version.
 	-r
 	    Install from GNU GCC Subversion repository.
+	-j \$num_jobs
+	    Allow the use of \$num_jobs simultaneous jobs.
 
 	examples:
 	$0 -v 8.2.0 -d $HOME/local/gcc
@@ -50,8 +52,9 @@ from_repo=0
 tmp_dir="${TMPDIR:-/tmp}/sde_install_gcc-$user-$host-$$"
 
 old_abi=0
+num_jobs=4
 
-while getopts d:v:o:r opt; do
+while getopts d:v:o:rj: opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
@@ -70,6 +73,8 @@ while getopts d:v:o:r opt; do
 	r)
 		from_repo=1
 		;;
+	j)
+		num_jobs="$OPTARG";;
 	\?)
 		usage
 		break;;
@@ -93,7 +98,8 @@ abs_install_dir=$(readlink -f "$install_dir") || \
 # will be accessible by all users.
 umask 022
 
-make_opts="-j2"
+make_opts=()
+make_opts+=("-j$num_jobs")
 
 mangled_version=$(echo "$version" | tr '/' '-') || panic
 top_dir="$tmp_dir/gcc-$mangled_version"
@@ -136,7 +142,7 @@ options+=(--disable-multilib)
   ../src/configure --prefix="$abs_install_dir" "${options[@]}") || \
   panic "configure failed"
 
-(cd "$build_dir" && make "$make_opts") || \
+(cd "$build_dir" && make "${make_opts[@]}") || \
   panic "make failed"
 
 (cd "$build_dir" && make install) || \

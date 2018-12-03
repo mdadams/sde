@@ -39,6 +39,8 @@ usage()
 	    Set GCC directory to \$gcc_dir.
 	-D
 	    Install lldb.
+	-j \$num_jobs
+	    Allow the use of \$num_jobs siumultaneous jobs.
 
 	Examples:
 	$0 -r -v trunk -d $HOME/local/clang
@@ -63,8 +65,9 @@ from_repo=0
 install_testsuite=0
 stop_early=0
 install_lldb=0
+num_jobs=4
 
-while getopts tlfg:d:v:rSD opt; do
+while getopts tlfg:d:v:rSDj: opt; do
 	case "$opt" in
 	l)
 		install_libcxx=1;;
@@ -84,6 +87,8 @@ while getopts tlfg:d:v:rSD opt; do
 		stop_early=1;;
 	D)
 		install_lldb=1;;
+	j)
+		num_jobs="$OPTARG";;
 	\?)
 		usage
 		break;;
@@ -321,7 +326,7 @@ echo "Running cd $build_dir && cmake ${cmake_opts[@]} $src_dir"
   panic "cmake failed"
 
 make_opts=()
-make_opts+=(-j4)
+make_opts+=(-j$num_jobs)
 
 (cd "$build_dir" && make "${make_opts[@]}") || panic "make failed"
 
