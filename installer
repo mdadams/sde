@@ -28,11 +28,11 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.13.1
+cmake_version=3.13.2
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=8.2.0
 # LLVM: http://releases.llvm.org/download.html
-clang_version=7.0.0
+clang_version=7.0.1
 # JasPer: https://www.ece.uvic.ca/~frodo/jasper/#download
 jasper_version=2.0.14
 # GDB: https://www.gnu.org/software/gdb/download/
@@ -44,11 +44,11 @@ ndiff_version=2.00
 # TeX Live: https://www.tug.org/texlive/acquire.html
 texlive_version=2018
 # Boost: https://www.boost.org/users/download
-boost_version=1.68.0
+boost_version=1.69.0
 # Aristotle: https://github.com/mdadams/aristotle
-aristotle_version=2.66.0
+aristotle_version=2.67.0
 # YCM: https://github.com/Valloric/YouCompleteMe
-ycm_version=75bf1738dcac502fa2d04e87116a3ce65249be8c
+ycm_version=0790dc99b441f3c12fb205faf56054ccf0f4c234
 # Vim: https://www.vim.org/download.php
 vim_version=8.1
 # GSL: https://github.com/Microsoft/GSL/releases
@@ -56,10 +56,10 @@ gsl_version=v2.0.0
 # Catch2: https://github.com/catchorg/Catch2/releases
 catch_version=v2.5.0
 # Lcov: https://github.com/linux-test-project/lcov
-lcov_version=e6750800fe4cb89eda1ff80b7a5fe70fe87ede36
+lcov_version=180286bec651928c41de4d6ce3a8760678b38f60
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=778630e682e4f48c35571051cb47d55a3323f2f3
+vimlsp_version=43770c341675daf5a67c4a01545326d199ebf20f
 # Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=c5b236ffbe52b47f9afcb5cd785bf21a410f35de
 # Asyncomplete: https://github.com/prabirshrestha/asyncomplete.vim.git
