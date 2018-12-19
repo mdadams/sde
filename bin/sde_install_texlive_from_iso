@@ -65,6 +65,8 @@ shift $((OPTIND - 1))
 if [ -z "$install_dir" ]; then
 	usage "no installation directory specified"
 fi
+abs_install_dir=$(readlink -f "$install_dir") || \
+  panic "cannot canonical pathname"
 
 if [ -z "$iso_file" ]; then
 	usage "no ISO image specified"
@@ -76,7 +78,7 @@ fi
 # will be accessible by all users.
 umask 022
 
-if [ -d "$install_dir" ]; then
+if [ -d "$abs_install_dir" ]; then
 	panic "installation directory already exists"
 fi
 
@@ -90,10 +92,10 @@ done
 
 cat > "$profile" <<- EOF
 selected_scheme scheme-full
-TEXDIR $install_dir
-TEXMFSYSCONFIG $install_dir/texmf-config
-TEXMFLOCAL $install_dir/texmf-local
-TEXMFSYSVAR $install_dir/texmf-var
+TEXDIR $abs_install_dir
+TEXMFSYSCONFIG $abs_install_dir/texmf-config
+TEXMFLOCAL $abs_install_dir/texmf-local
+TEXMFSYSVAR $abs_install_dir/texmf-var
 TEXMFHOME ~/texmf
 TEXMFCONFIG ~/.texlive/texmf-config
 TEXMFVAR ~/.texlive/texmf-var
@@ -114,10 +116,10 @@ tlpdbopt_install_srcfiles 1
 tlpdbopt_post_code 1
 tlpdbopt_w32_multi_user 0
 EOF
-#TEXDIR $install_dir/$version
+#TEXDIR $abs_install_dir/$version
 #TEXMFCONFIG ~/.texlive$version/texmf-config
-#TEXMFSYSCONFIG $install_dir/$version/texmf-config
-#TEXMFSYSVAR $install_dir/$version/texmf-var
+#TEXMFSYSCONFIG $abs_install_dir/$version/texmf-config
+#TEXMFSYSVAR $abs_install_dir/$version/texmf-var
 #TEXMFVAR ~/.texlive$version/texmf-var
 #tlpdbopt_sys_bin /usr/local/bin
 #tlpdbopt_sys_info /usr/local/share/info
@@ -127,7 +129,7 @@ echo "============================================================"
 cat "$profile"
 echo "============================================================"
 
-mkdir -p "$install_dir" || \
+mkdir -p "$abs_install_dir" || \
   panic "cannot make directory $install_dir"
 
 install_opts=()
@@ -160,7 +162,7 @@ fuseiso)
 
 esac
 
-texlive_bin_dir="$install_dir/bin"
+texlive_bin_dir="$abs_install_dir/bin"
 texlive_arch_dir="$texlive_bin_dir/x86_64-linux"
 if [ ! -d "$texlive_arch_dir" ]; then
 	panic "expected bin directory is missing"
