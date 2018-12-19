@@ -150,7 +150,9 @@ fuseiso)
 
 	7z x -o"${mnt_dir}" "$iso_file" || panic
 	chmod a+x "$mnt_dir/install-tl" || panic
-	(cd "$mnt_dir" && ./install-tl "${install_opts[@]}") || \
+	#(cd "$mnt_dir" && ./install-tl "${install_opts[@]}") || \
+	#  panic "installer failed"
+	"$mnt_dir"/install-tl "${install_opts[@]}" || \
 	  panic "installer failed"
 	rm -rf "$mnt_dir" || panic
 
