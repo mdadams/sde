@@ -137,12 +137,12 @@ mkdir -p "$abs_install_dir" || \
 install_opts=()
 install_opts+=(-profile "$profile")
 
-fuseiso_program=$(type -P fuseiso) || fuseiso=
-fusermount_program=$(type -P fusermount) || fusermount=
-sz_program=$(type -P 7z) || sz=
-if [ -n "$fuseiso" -a -n "$fusermount" ]; then
+fuseiso_program=$(type -P fuseiso) || fuseiso_program=
+fusermount_program=$(type -P fusermount) || fusermount_program=
+sz_program=$(type -P 7z) || sz_program=
+if [ -n "$fuseiso_program" -a -n "$fusermount_program" ]; then
 	mode=fuseiso
-elif [ -n "$sz" ]; then
+elif [ -n "$sz_program" ]; then
 	mode=7z
 else
 	mode=""
