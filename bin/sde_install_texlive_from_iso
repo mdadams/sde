@@ -1,0 +1,149 @@
+#! /usr/bin/env bash
+
+# __START_OF_LICENSE__
+# 
+# Copyright (c) 2018 Michael D. Adams
+# All rights reserved.
+# 
+# This file is part of the SDE software.
+# 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3,
+# or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this program; see the file LICENSE.  If not,
+# see <http://www.gnu.org/licenses/>.
+# 
+# __END_OF_LICENSE__
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+warn()
+{
+	echo "WARNING: $@"
+}
+
+usage()
+{
+	echo "BAD USAGE: $@"
+	echo "usage: $0 -v version -d install_dir"
+	exit 2
+}
+
+user=$(whoami) || panic "cannot get user name"
+host=$(hostname) || panic "cannot get host name"
+cur_dir=$(pwd) || panic "cannot get current directory"
+
+iso_file=
+install_dir=
+tmp_dir="/tmp/sde_install_texlive_iso-$user@$host-$$"
+
+while getopts d:i: opt; do
+	case "$opt" in
+	i)
+		iso_file="$OPTARG";;
+	d)
+		install_dir="$OPTARG";;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$install_dir" ]; then
+	usage "no installation directory specified"
+fi
+
+if [ -z "$iso_file" ]; then
+	usage "no ISO image specified"
+fi
+
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
+if [ -d "$install_dir" ]; then
+	panic "installation directory already exists"
+fi
+
+profile="$tmp_dir/profile"
+mnt_dir="$tmp_dir/mnt"
+
+for dir in "$tmp_dir" "$mnt_dir"; do
+	mkdir -p "$dir" || \
+	  panic "cannot make directory $dir"
+done
+
+cat > "$profile" <<- EOF
+selected_scheme scheme-full
+TEXDIR $install_dir
+TEXMFSYSCONFIG $install_dir/texmf-config
+TEXMFLOCAL $install_dir/texmf-local
+TEXMFSYSVAR $install_dir/texmf-var
+TEXMFHOME ~/texmf
+TEXMFCONFIG ~/.texlive/texmf-config
+TEXMFVAR ~/.texlive/texmf-var
+binary_x86_64-linux 1
+instopt_adjustpath 0
+instopt_adjustrepo 1
+instopt_letter 1
+instopt_portable 0
+instopt_write18_restricted 1
+tlpdbopt_autobackup 1
+tlpdbopt_backupdir tlpkg/backups
+tlpdbopt_create_formats 1
+tlpdbopt_desktop_integration 0
+tlpdbopt_file_assocs 0
+tlpdbopt_generate_updmap 0
+tlpdbopt_install_docfiles 1
+tlpdbopt_install_srcfiles 1
+tlpdbopt_post_code 1
+tlpdbopt_w32_multi_user 0
+EOF
+#TEXDIR $install_dir/$version
+#TEXMFCONFIG ~/.texlive$version/texmf-config
+#TEXMFSYSCONFIG $install_dir/$version/texmf-config
+#TEXMFSYSVAR $install_dir/$version/texmf-var
+#TEXMFVAR ~/.texlive$version/texmf-var
+#tlpdbopt_sys_bin /usr/local/bin
+#tlpdbopt_sys_info /usr/local/share/info
+#tlpdbopt_sys_man /usr/local/share/man
+
+echo "============================================================"
+cat "$profile"
+echo "============================================================"
+
+mkdir -p "$install_dir" || \
+  panic "cannot make directory $install_dir"
+
+fuseiso "$iso_file" "$mnt_dir" || panic
+
+install_opts=()
+install_opts+=(-profile "$profile")
+(cd "$mnt_dir" && ./install-tl "${install_opts[@]}") || \
+  panic "installer failed"
+
+fusermount -u "$mnt_dir" || panic
+
+texlive_bin_dir="$install_dir/bin"
+texlive_arch_dir="$texlive_bin_dir/x86_64-linux"
+if [ ! -d "$texlive_arch_dir" ]; then
+	panic "expected bin directory is missing"
+fi
+(cd "$texlive_bin_dir" && ln -s x86_64-linux/* .) || \
+  panic "cannot link files"
+

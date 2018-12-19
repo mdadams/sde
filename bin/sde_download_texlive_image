@@ -32,19 +32,24 @@ panic()
 usage()
 {
 	echo "BAD USAGE: $@"
+	cat <<- EOF
+	usage: $0 -v \$version -o \$out_file
+	EOF
 	exit 2
 }
 
 user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
-tmp_dir="/tmp/download_texlive_iso-$user@$host-$$"
-#tmp_dir="/tmp/download_texlive_iso"
+tmp_dir="/tmp/sde_download_texlive_image-$user@$host-$$"
+#tmp_dir="/tmp/sde_download_texlive_image"
 
 version=
 out_file=
 
-while getopts o:v: option; do
+while getopts o:v:h option; do
 	case "$option" in
+	h)
+		usage;;
 	v)
 		version="$OPTARG";;
 	o)
@@ -63,21 +68,26 @@ if [ -z "$out_file" ]; then
 	panic "no output file specified"
 fi
 
+tmp_dir="${out_file}.tmp"
+if [ -d "$tmp_dir" ]; then
+	panic "temporary directory exists"
+fi
+
 iso_file_names=(
-	texlive.iso
 	texlive$version.iso
+	texlive.iso
 )
 
 mirrors=(
 	HISTORIC
-	ftp://ftp.muug.ca/mirror/ctan
 	ftp://tug.ctan.org/tex-archive/
 	ftp://ctan.math.utah.edu/tex-archive
-	ftp://ctan.mirror.rafal.ca/pub/CTAN
 	ftp://mirror.its.dal.ca/ctan
+	ftp://ctan.mirror.rafal.ca/pub/CTAN
 	ftp://mirror.utexas.edu/pub/ctan
 	ftp://mirrors.rit.edu/CTAN
 )
+#	ftp://ftp.muug.ca/mirror/ctan
 #	ftp://ctan.math.ca/tex-archive
 
 historic_url="ftp://tug.org/historic/systems/texlive/$version"
