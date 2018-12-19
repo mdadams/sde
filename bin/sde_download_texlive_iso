@@ -38,6 +38,21 @@ usage()
 	exit 2
 }
 
+validate_url()
+{
+	local url="$1"
+	case "$url" in
+	http*)
+		wget -S --spider "$url" 2>&1 | grep -q "HTTP/1.1 200 OK"
+		;;
+	ftp*)
+		wget -S --spider "$url" 2>&1 | grep -q -i "exists"
+		;;
+	*)
+		return 2;;
+	esac
+}
+
 user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 tmp_dir="/tmp/sde_download_texlive_iso-$user@$host-$$"
@@ -45,8 +60,9 @@ tmp_dir="/tmp/sde_download_texlive_iso-$user@$host-$$"
 
 version=
 out_file=
+historic=1
 
-while getopts o:v:h option; do
+while getopts co:v:h option; do
 	case "$option" in
 	h)
 		usage;;
@@ -54,6 +70,8 @@ while getopts o:v:h option; do
 		version="$OPTARG";;
 	o)
 		out_file="$OPTARG";;
+	c)
+		historic=0;;
 	*)
 		panic "bad option $option"
 		;;
@@ -75,20 +93,38 @@ fi
 
 iso_file_names=(
 	texlive$version.iso
-	texlive.iso
 )
+#	texlive.iso
 
-mirrors=(
-	HISTORIC
-	ftp://tug.ctan.org/tex-archive/
-	ftp://ctan.math.utah.edu/tex-archive
-	ftp://mirror.its.dal.ca/ctan
-	ftp://ctan.mirror.rafal.ca/pub/CTAN
-	ftp://mirror.utexas.edu/pub/ctan
-	ftp://mirrors.rit.edu/CTAN
-)
-#	ftp://ftp.muug.ca/mirror/ctan
-#	ftp://ctan.math.ca/tex-archive
+mirrors=()
+if [ "$historic" -ne 0 ]; then
+	mirrors+=(HISTORIC)
+fi
+mirrors+=("ftp://tug.ctan.org/tex-archive")
+#mirrors+=("ftp://ftp.muug.ca/mirror/ctan")
+mirrors+=("ftp://ctan.math.ca/tex-archive")
+mirrors+=("ftp://ctan.math.utah.edu/tex-archive")
+mirrors+=("ftp://mirror.its.dal.ca/ctan")
+mirrors+=("ftp://ctan.mirror.rafal.ca/pub/CTAN")
+mirrors+=("ftp://mirror.utexas.edu/pub/ctan")
+mirrors+=("ftp://mirrors.rit.edu/CTAN")
+#mirrors+=("http://ctan.mirror.colo-serv.net")
+#mirrors+=("http://ctan.forsale.plus")
+mirrors+=("http://ctan.math.washington.edu/tex-archive")
+mirrors+=("http://ctan.math.ca/tex-archive")
+mirrors+=("http://ctan.mirror.rafal.ca")
+mirrors+=("http://mirror.its.dal.ca/ctan")
+mirrors+=("http://muug.ca/mirror/ctan")
+mirrors+=("http://ctan.math.utah.edu/ctan/tex-archive")
+#mirrors+=("http://ctan.math.illinois.edu")
+mirrors+=("http://ftp.math.purdue.edu/mirrors/ctan.org")
+#mirrors+=("http://mirrors.ibiblio.org/pub/mirrors/CTAN")
+#mirrors+=("http://mirror.hmc.edu/ctan")
+mirrors+=("http://mirror.las.iastate.edu/tex-archive")
+#mirrors+=("http://mirrors.concertpass.com/tex-archive")
+#mirrors+=("http://ctan.mirrors.hoobly.com")
+mirrors+=("http://mirrors.rit.edu/CTAN")
+mirrors+=(HISTORIC)
 
 historic_url="ftp://tug.org/historic/systems/texlive/$version"
 
@@ -107,19 +143,29 @@ for mirror in "${mirrors[@]}"; do
 	fi
 	for iso_file_name in "${iso_file_names[@]}"; do
 		target="$url/$iso_file_name"
-		echo "Trying to download $target"
+		validate_url "$target"
+		status=$?
+		if [ "$status" -ne 0 ]; then
+			echo "invalid URL $target"
+			continue
+		fi
+		cat <<- EOF
+		============================================================
+		Attempting download from:
+		$target
+		EOF
+		#echo "Trying to download $target"
 		wget_options=()
 		#wget_options+=(--quiet)
 		#wget_options+=(--no-verbose)
 		wget_options+=(--connect-timeout=30)
-
-		#if [ -f "$tmp_dir/$iso_file_name" ]; then
-		#	success=1
-		#	break
-		#fi
+		wget_options+=(--read-timeout=300)
+		##wget_options+=(--no-http-keep-alive)
+		##wget_options+=(--ignore-length)
 
 		(cd "$tmp_dir" && wget "${wget_options[@]}" "$target")
 		status=$?
+		echo "wget exit status: $status"
 		if [ "$status" -eq 0 ]; then
 			success=1
 		fi
