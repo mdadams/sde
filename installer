@@ -114,6 +114,8 @@ sde_install_gcc="$bin_dir/sde_install_gcc"
 sde_install_clang="$bin_dir/sde_install_clang"
 sde_install_boost="$bin_dir/sde_install_boost"
 sde_install_texlive="$bin_dir/sde_install_texlive"
+sde_download_texlive_iso="$bin_dir/sde_download_texlive_iso"
+sde_install_texlive_iso="$bin_dir/sde_install_texlive_iso"
 sde_install_jasper="$bin_dir/sde_install_jasper"
 sde_install_gdb="$bin_dir/sde_install_gdb"
 sde_install_spl="$bin_dir/sde_install_spl"
@@ -196,6 +198,7 @@ gcc_bin_dir="$gcc_dir/bin"
 clang_dir="$packages_dir/clang-$clang_version"
 boost_dir="$packages_dir/boost-$boost_version"
 texlive_dir="$packages_dir/texlive-$texlive_version"
+texlive_iso_dir="$packages_dir/texlive_iso-$texlive_version"
 jasper_dir="$packages_dir/jasper-$jasper_version"
 gdb_dir="$packages_dir/gdb-$gdb_version"
 spl_dir="$packages_dir/SPL-$spl_version"
@@ -497,12 +500,26 @@ fi
 ################################################################################
 
 if [ "$enable_texlive_install" -ne 0 ]; then
-	if [ ! -d "$texlive_dir" ]; then
-		"$sde_install_texlive" -v "$texlive_version" -d "$texlive_dir" || \
-		  panic "cannot install texlive"
+	if [ 1 -ne 0 ]; then
+		if [ ! -d "$texlive_iso_dir" ]; then
+			"$sde_download_texlive_iso" -v "$texlive_version" \
+			  -o "$texlive_iso_dir/texlive.iso" || \
+			  panic "cannot download texlive_iso"
+		fi
+		if [ ! -d "$texlive_dir" ]; then
+			"$sde_install_texlive_iso" -i "$texlive_iso_dir/texlive.iso" \
+			  -d "$texlive_dir" || \
+			  panic "cannot install texlive"
+		fi
+	else
+		if [ ! -d "$texlive_dir" ]; then
+			"$sde_install_texlive" -v "$texlive_version" -d "$texlive_dir" || \
+			  panic "cannot install texlive"
+		fi
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" texlive "$texlive_version" || \
 	  panic "cannot configure texlive"
+
 fi
 texlive_bin_dir="$texlive_dir/bin"
 

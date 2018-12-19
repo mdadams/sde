@@ -40,8 +40,8 @@ usage()
 
 user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
-tmp_dir="/tmp/sde_download_texlive_image-$user@$host-$$"
-#tmp_dir="/tmp/sde_download_texlive_image"
+tmp_dir="/tmp/sde_download_texlive_iso-$user@$host-$$"
+#tmp_dir="/tmp/sde_download_texlive_iso"
 
 version=
 out_file=
