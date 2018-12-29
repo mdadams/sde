@@ -82,6 +82,13 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
+case "$version" in
+v1.*)
+	lib_name=catch;;
+*)
+	lib_name=catch2;;
+esac
+
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
 # This will help to increase the likelihood that the installed software
@@ -100,7 +107,7 @@ for dir in "$top_dir"; do
 	fi
 done
 
-inc_dir="$install_dir/include/catch"
+inc_dir="$install_dir/include/$lib_name"
 
 mkdir -p "$inc_dir" || panic "cannot make directory $inc_dir"
 
