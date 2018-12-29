@@ -40,10 +40,16 @@ usage()
 	cat <<- EOF
 	usage: $0 [options]
 	options:
-	-n env
-	    Set the environment to env.
+	-n \$env
+	    Set the environment to \$env.
 	-f
 	    Allow use of command from within SDE environment.
+	-D \$debug_level
+	    Set debug level to \$debug_level.
+	-x
+	    Program to execute and its arguments follow.
+	-q
+	    Reduce verbosity of output.
 	EOF
 	exit 2
 }
@@ -54,57 +60,72 @@ bashrc="$cmd_dir/sde_shell_bashrc"
 setup="$cmd_dir/sde_setup"
 make_setup="$cmd_dir/sde_make_setup"
 
+debug_level=0
 force=0
 name=
-while getopts n:f opt; do
+verbose=1
+while getopts D:n:fqx opt; do
 	case "$opt" in
+	q)
+		verbose=$((verbose - 1));;
 	n)
 		name="$OPTARG";;
 	f)
 		force=1;;
+	D)
+		debug_level="$OPTARG";;
+	x)
+		break;;
 	*)
 		usage "invalid option $opt";;
 	esac
 done
 shift $((OPTIND - 1))
 
-if [ $# -ne 0 ]; then
-	usage "unexpected arguments $@"
+program_args=("$@")
+
+if [ "$debug_level" -ge 10 ]; then
+	set -xv
 fi
 
 if [ -n "$SDE_NAME" -a "$force" -eq 0 ]; then
 	panic "nesting of SDE environments is disallowed"
 fi
 
-shell=`basename "$SHELL"` || panic "cannot get shell"
-
 make_setup_opts=()
 make_setup_opts+=(-f)
 if [ -n "$name" ]; then
 	make_setup_opts+=(-n "$name")
 fi
-#eval $($make_setup "${make_setup_opts[@]}" -s bash) || panic "eval failed"
-buffer=$($make_setup "${make_setup_opts[@]}" -s bash) || \
+buffer=$("$make_setup" "${make_setup_opts[@]}" -s bash) || \
   panic "sde_make_setup failed"
 eval "$buffer" || panic "eval failed"
 
 motd_file="$top_dir/etc/motd"
-if [ -f "$motd_file" ]; then
-	cat "$motd_file"
+if [ "$verbose" -ge 1 -a -f "$motd_file" ]; then
+	cat "$motd_file" || panic "cannot print welcome message"
 fi
 
-case "$shell" in
-bash)
-	"$SHELL" --init-file $bashrc -i
-	;;
-csh|tcsh)
-	"$shell" -i
-	;;
-*)
-	eprint "The shell $SHELL is not supported."
-	bash=`which bash` || panic "cannot find bash shell"
-	eprint "Using shell $bash instead."
-	eprint "It is recommended that you ask the system administrator to change your login shell to bash."
-	"$bash" --init-file $bashrc -i
-	;;
-esac
+if [ "${#program_args[@]}" -eq 0 ]; then
+	shell=$(basename "$SHELL") || panic "cannot get shell"
+	case "$shell" in
+	bash)
+		program_args=("$SHELL" --init-file "$bashrc" -i)
+		;;
+	csh|tcsh)
+		program_args=("$SHELL" -i)
+		;;
+	*)
+		eprint "The shell $SHELL is not supported."
+		bash=$(which bash) || panic "cannot find bash shell"
+		eprint "Using shell $bash instead."
+		eprint "It is recommended that you ask the system administrator to change your login shell to bash."
+		program_args=("$bash" --init-file "$bashrc" -i)
+		;;
+	esac
+fi
+
+if [ "$debug_level" -ge 1 ]; then
+	eprint "Running ${program_args[@]}"
+fi
+exec "${program_args[@]}"
