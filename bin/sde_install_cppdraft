@@ -42,7 +42,7 @@ usage()
 	-d \$install_dir
 	    Set the installation directory to \$install_dir.
 	-t \$tmp_dir
-	    Set the directory for temporary files to \$tmp_dir.
+	    Set the temporary directory to \$tmp_dir.
 	-s \$standard
 	    Specify that the version of the document to be built is the one
 	    corresponding to version \$standard of the C++ standard.
@@ -52,6 +52,8 @@ usage()
 	    corresponding to the Git branch/tag \$tag (e.g., master).
 	-q
 	    Reduce the verbosity of the output.
+	-x
+	    Do not perform cleanup of temporary directory.
 	EOF
 }
 
@@ -65,7 +67,8 @@ user=$(whoami) || panic "cannot get user name"
 cppstd=
 tag=master
 tmp_dir=
-while getopts t:s:b:d: opt; do
+cleanup=1
+while getopts xt:s:b:d: opt; do
 	case "$opt" in
 	q)
 		verbose=$((verbose - 1));;
@@ -77,6 +80,8 @@ while getopts t:s:b:d: opt; do
 		cppstd="$OPTARG";;
 	b)
 		tag="$OPTARG";;
+	x)
+		cleanup=0;;
 	*)
 		usage "invalid option $opt";;
 	esac
@@ -89,6 +94,11 @@ fi
 if [ -z "$tmp_dir" ]; then
 	tmp_dir="${SDE_TMPDIR:-/tmp}/sde_install_cppdraft-$user-$$"
 fi
+
+tmp_dir=$(realpath -m "$tmp_dir") || \
+  panic "cannot get absolute path for $tmp_dir"
+install_dir=$(realpath -m "$install_dir") || \
+  panic "cannot get absolute path for $install_dir"
 
 if [ -n "$cppstd" ]; then
 	case "$cppstd" in
@@ -112,18 +122,25 @@ fi
 draft_dir="$tmp_dir/draft"
 htmlgen_dir="$tmp_dir/htmlgen"
 mnc_dir="$tmp_dir/mathjax-node-cli"
+mnc_bin_dir="$mnc_dir/bin"
 
 if [ ! -d "$install_dir" ]; then
-	mkdir -p "$install_dir" || panic "cannot make installation directory"
+	mkdir -p "$install_dir" || \
+	  panic "cannot make installation directory"
 fi
 
-mkdir -p "$tmp_dir" || panic "cannot make directory"
-
-git clone "$htmlgen_repo" "$htmlgen_dir" || \
-  panic "cannot clone htmlgen repository"
+mkdir -p "$tmp_dir" || \
+  panic "cannot make directory"
 
 git clone "$mnc_repo" "$mnc_dir" || \
   panic "cannot clone mathjax-node-cli repository"
+(cd "$mnc_dir" && npm install package.json) || \
+  panic "cannot install mathjax-node-cli package"
+
+git clone "$htmlgen_repo" "$htmlgen_dir" || \
+  panic "cannot clone htmlgen repository"
+(cd "$htmlgen_dir" && npm install mathjax-node split) || \
+  panic "cannot install"
 
 (cd "$htmlgen_dir" && cabal update) || \
   panic "cannot update package list"
@@ -141,11 +158,24 @@ git -C "$draft_dir" checkout "$tag" || \
 (cd "$draft_dir/source" && latexmk -pdf std.tex) || \
   panic "cannot latex"
 
-(cp "$draft_dir/source/std.pdf" "$install_dir/std.pdf") || \
-  panic "cannot copy PDf document"
-
 (cd "$htmlgen_dir" && \
-  dist/build/cxxdraft-htmlgen/cxxdraft-htmlgen \
+  env "PATH=$PATH:$mnc_bin_dir" dist/build/cxxdraft-htmlgen/cxxdraft-htmlgen \
   "$draft_dir" Bare) || \
   panic "cannot generate HTML document"
 
+(cp "$draft_dir/source/std.pdf" "$install_dir/std.pdf") || \
+  panic "cannot copy PDf document"
+
+(mv "$htmlgen_dir/14882" "$install_dir/html") || \
+  panic "cannot move HTML document"
+
+find "$install_dir" -type f -exec chmod a+r {} \; || \
+  panic "cannot change file permissions"
+find "$install_dir" -type d -exec chmod a+rx {} \; || \
+  panic "cannot change directory permissions"
+
+if [ "$cleanup" -ne 0 ]; then
+	rm -rf "$tmp_dir" || echo "warning: cannot remove temporary directory"
+fi
+
+exit 0
