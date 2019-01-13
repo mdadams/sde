@@ -54,6 +54,9 @@ usage()
 	    Reduce the verbosity of the output.
 	-x
 	    Do not perform cleanup of temporary directory.
+	-g \$style
+	    Set the section file style to \$style.
+	    Valid values include: Bare, WithExtension, and InSubdir.
 	EOF
 }
 
@@ -68,7 +71,8 @@ cppstd=
 tag=master
 tmp_dir=
 cleanup=1
-while getopts xt:s:b:d: opt; do
+style=Bare
+while getopts xt:s:b:d:g: opt; do
 	case "$opt" in
 	q)
 		verbose=$((verbose - 1));;
@@ -82,6 +86,8 @@ while getopts xt:s:b:d: opt; do
 		tag="$OPTARG";;
 	x)
 		cleanup=0;;
+	g)
+		style="$OPTARG";;
 	*)
 		usage "invalid option $opt";;
 	esac
@@ -160,7 +166,7 @@ git -C "$draft_dir" checkout "$tag" || \
 
 (cd "$htmlgen_dir" && \
   env "PATH=$PATH:$mnc_bin_dir" dist/build/cxxdraft-htmlgen/cxxdraft-htmlgen \
-  "$draft_dir" Bare) || \
+  "$draft_dir" "$style") || \
   panic "cannot generate HTML document"
 
 (cp "$draft_dir/source/std.pdf" "$install_dir/std.pdf") || \
