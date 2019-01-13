@@ -58,7 +58,7 @@ usage()
 draft_repo="https://github.com/cplusplus/draft.git"
 htmlgen_repo="https://github.com/Eelis/cxxdraft-htmlgen.git"
 #htmlgen_repo="https://github.com/timsong-cpp/cxxdraft-htmlgen.git"
-##mnc_repo="https://github.com/mathjax/mathjax-node-cli.git"
+mnc_repo="https://github.com/mathjax/mathjax-node-cli.git"
 
 user=$(whoami) || panic "cannot get user name"
 
