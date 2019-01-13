@@ -37,13 +37,21 @@ panic()
 	exit 1
 }
 
+disk_usage()
+{
+	local dir="$1"
+	du -sk "$dir" | awk '{print $1;}' -
+}
+
 usage()
 {
 	echo "bad usage: $@"
 	cat <<- EOF
 	$0 [options] -v \$version -d \$install_dir
 
-	options:
+	Options
+	=======
+
 	-d \$install_dir
 	    Set the installation directory to \$install_dir.
 	-v \$version
@@ -53,11 +61,21 @@ usage()
 	-j \$num_jobs
 	    Allow the use of \$num_jobs simultaneous jobs.
 
-	examples:
+	Environment Variables
+	=====================
+
+	SDE_TMPDIR
+	    Specifies the directory under which temporary files are placed
+	    (e.g., when building software prior to installation).
+
+	Examples
+	========
+
 	$0 -v 8.2.0 -d $HOME/local/gcc
 	$0 -r -v tags/gcc_8_2_0_release -d $HOME/local/gcc
 	$0 -r -v branches/c++-modules -d $HOME/local/gcc
 	$0 -r -v trunk -d $HOME/local/gcc
+	SDE_TMPDIR=/var/tmp $0 -r -v trunk -d $HOME/local/gcc
 	EOF
 	exit 2
 }
@@ -72,7 +90,7 @@ from_repo=0
 
 # Do not use user@host in the following pathname, since the GCC build
 # process cannot seem to handle "@" characters in pathnames.
-tmp_dir="${TMPDIR:-/tmp}/sde_install_gcc-$user-$host-$$"
+tmp_dir="${SDE_TMPDIR:-/tmp}/sde_install_gcc-$user-$host-$$"
 
 old_abi=0
 num_jobs=4
@@ -154,6 +172,9 @@ fi
 (cd "$src_dir" && ./contrib/download_prerequisites) || \
   panic "cannot download prerequisites"
 
+src_dir_space=$(disk_usage "$src_dir")
+echo "SOURCE DIRECTORY DISK USAGE $src_dir_space"
+
 options=()
 if [ "$old_abi" -ne 0 ]; then
 	options+=(--with-default-libstdcxx-abi=gcc4-compatible)
@@ -170,6 +191,13 @@ options+=(--disable-multilib)
 
 (cd "$build_dir" && make install) || \
   panic "make install failed"
+
+tmp_dir_space=$(disk_usage "$tmp_dir")
+src_dir_space=$(disk_usage "$src_dir")
+build_dir_space=$(disk_usage "$build_dir")
+echo "TEMPORARY DIRECTORY DISK USAGE $tmp_dir_space"
+echo "SOURCE DIRECTORY DISK USAGE $src_dir_space"
+echo "BUILD DIRECTORY DISK USAGE $build_dir_space"
 
 rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"
 

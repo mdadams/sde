@@ -80,7 +80,7 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 
 version=
 install_dir=
-tmp_dir="${TMPDIR:-/tmp}/sde_install_clang-$user@$host-$$"
+tmp_dir="${SDE_TMPDIR:-/tmp}/sde_install_clang-$user@$host-$$"
 gcc_dir=""
 use_old_host_toolchain=0
 install_libcxx=0

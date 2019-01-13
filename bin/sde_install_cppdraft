@@ -1,0 +1,151 @@
+#! /usr/bin/env bash
+
+# __START_OF_LICENSE__
+# 
+# Copyright (c) 2018 Michael D. Adams
+# All rights reserved.
+# 
+# This file is part of the SDE software.
+# 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3,
+# or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this program; see the file LICENSE.  If not,
+# see <http://www.gnu.org/licenses/>.
+# 
+# __END_OF_LICENSE__
+
+# Reference: https://github.com/Eelis/cxxdraft-htmlgen
+
+panic()
+{
+	echo "FATAL ERROR: $@" 1>&2
+	exit 1
+}
+
+usage()
+{
+	cat <<- EOF
+	usage: $0 [options]
+
+	Options
+	=======
+
+	-d \$install_dir
+	    Set the installation directory to \$install_dir.
+	-t \$tmp_dir
+	    Set the directory for temporary files to \$tmp_dir.
+	-s \$standard
+	    Specify that the version of the document to be built is the one
+	    corresponding to version \$standard of the C++ standard.
+	    Valid values for \$standard include: c++11, c++14, and c++17.
+	-b \$tag
+	    Specify that the version of the document to be built is the one
+	    corresponding to the Git branch/tag \$tag (e.g., master).
+	-q
+	    Reduce the verbosity of the output.
+	EOF
+}
+
+draft_repo="https://github.com/cplusplus/draft.git"
+htmlgen_repo="https://github.com/Eelis/cxxdraft-htmlgen.git"
+#htmlgen_repo="https://github.com/timsong-cpp/cxxdraft-htmlgen.git"
+##mnc_repo="https://github.com/mathjax/mathjax-node-cli.git"
+
+user=$(whoami) || panic "cannot get user name"
+
+cppstd=
+tag=master
+tmp_dir=
+while getopts t:s:b:d: opt; do
+	case "$opt" in
+	q)
+		verbose=$((verbose - 1));;
+	d)
+		install_dir="$OPTARG";;
+	t)
+		tmp_dir="$OPTARG";;
+	s)
+		cppstd="$OPTARG";;
+	b)
+		tag="$OPTARG";;
+	*)
+		usage "invalid option $opt";;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$install_dir" ]; then
+	panic "no installation directory specified"
+fi
+if [ -z "$tmp_dir" ]; then
+	tmp_dir="${SDE_TMPDIR:-/tmp}/sde_install_cppdraft-$user-$$"
+fi
+
+if [ -n "$cppstd" ]; then
+	case "$cppstd" in
+	c++11)
+		# N3337 (C++11 + editorial fixes)
+		tag=n3337;;
+	c++14)
+		# N4140 (C++14 + editorial fixes)
+		tag=n4140;;
+	c++17)
+		# N4659 (March 2017 post-Kona working draft/C++17 DIS)
+		tag=n4659;;
+	*)
+		usage "unknown version of standard";;
+	esac
+fi
+if [ -z "$tag" ]; then
+	panic "document version not specified"
+fi
+
+draft_dir="$tmp_dir/draft"
+htmlgen_dir="$tmp_dir/htmlgen"
+mnc_dir="$tmp_dir/mathjax-node-cli"
+
+if [ ! -d "$install_dir" ]; then
+	mkdir -p "$install_dir" || panic "cannot make installation directory"
+fi
+
+mkdir -p "$tmp_dir" || panic "cannot make directory"
+
+git clone "$htmlgen_repo" "$htmlgen_dir" || \
+  panic "cannot clone htmlgen repository"
+
+git clone "$mnc_repo" "$mnc_dir" || \
+  panic "cannot clone mathjax-node-cli repository"
+
+(cd "$htmlgen_dir" && cabal update) || \
+  panic "cannot update package list"
+(cd "$htmlgen_dir" && cabal install --only-dependencies) || \
+  panic "cannot install dependencies"
+(cd "$htmlgen_dir" && cabal build) || \
+  panic "cannot build"
+
+git clone "$draft_repo" "$draft_dir" || \
+  panic "cannot clone draft repository"
+
+git -C "$draft_dir" checkout "$tag" || \
+  panic "cannot checkout"
+
+(cd "$draft_dir/source" && latexmk -pdf std.tex) || \
+  panic "cannot latex"
+
+(cp "$draft_dir/source/std.pdf" "$install_dir/std.pdf") || \
+  panic "cannot copy PDf document"
+
+(cd "$htmlgen_dir" && \
+  dist/build/cxxdraft-htmlgen/cxxdraft-htmlgen \
+  "$draft_dir" Bare) || \
+  panic "cannot generate HTML document"
+
