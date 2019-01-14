@@ -57,6 +57,13 @@ usage()
 	-g \$style
 	    Set the section file style to \$style.
 	    Valid values include: Bare, WithExtension, and InSubdir.
+
+	Examples
+	========
+
+	$0 -s c++17 -g Bare -d cpp17
+	$0 -b master -g Bare -d cppXX
+	$0 -g WithExtension -d cppXX
 	EOF
 }
 
@@ -76,7 +83,7 @@ tmp_dir=
 cleanup=1
 style=Bare
 verbose=1
-while getopts xt:s:b:d:g: opt; do
+while getopts xt:s:b:d:g:h opt; do
 	case "$opt" in
 	q)
 		verbose=$((verbose - 1));;
@@ -92,6 +99,8 @@ while getopts xt:s:b:d:g: opt; do
 		cleanup=0;;
 	g)
 		style="$OPTARG";;
+	h)
+		usage;;
 	*)
 		usage "invalid option $opt";;
 	esac
