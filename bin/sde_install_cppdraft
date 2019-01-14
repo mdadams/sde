@@ -61,9 +61,12 @@ usage()
 }
 
 draft_repo="https://github.com/cplusplus/draft.git"
-htmlgen_repo="https://github.com/Eelis/cxxdraft-htmlgen.git"
-#htmlgen_repo="https://github.com/timsong-cpp/cxxdraft-htmlgen.git"
+main_htmlgen_repo="https://github.com/Eelis/cxxdraft-htmlgen.git"
+other_htmlgen_repo="https://github.com/timsong-cpp/cxxdraft-htmlgen.git"
 mnc_repo="https://github.com/mathjax/mathjax-node-cli.git"
+
+#htmlgen_commit="38d49a80da883995155ab98f8b8b3e7b4507df5e"
+htmlgen_commit=master
 
 user=$(whoami) || panic "cannot get user name"
 
@@ -72,6 +75,7 @@ tag=master
 tmp_dir=
 cleanup=1
 style=Bare
+verbose=1
 while getopts xt:s:b:d:g: opt; do
 	case "$opt" in
 	q)
@@ -99,6 +103,9 @@ if [ -z "$install_dir" ]; then
 fi
 if [ -z "$tmp_dir" ]; then
 	tmp_dir="${SDE_TMPDIR:-/tmp}/sde_install_cppdraft-$user-$$"
+	if [ "$verbose" -ge 1 ]; then
+		echo "temporary directory $tmp_dir"
+	fi
 fi
 
 tmp_dir=$(realpath -m "$tmp_dir") || \
@@ -125,6 +132,12 @@ if [ -z "$tag" ]; then
 	panic "document version not specified"
 fi
 
+if [ "$tag" = master ]; then
+	htmlgen_repo="$main_htmlgen_repo"
+else
+	htmlgen_repo="$other_htmlgen_repo"
+fi
+
 draft_dir="$tmp_dir/draft"
 htmlgen_dir="$tmp_dir/htmlgen"
 mnc_dir="$tmp_dir/mathjax-node-cli"
@@ -133,6 +146,10 @@ mnc_bin_dir="$mnc_dir/bin"
 if [ ! -d "$install_dir" ]; then
 	mkdir -p "$install_dir" || \
 	  panic "cannot make installation directory"
+fi
+
+if [ "$verbose" -ge 1 ]; then
+	echo "cplusplus/draft commit $tag"
 fi
 
 mkdir -p "$tmp_dir" || \
@@ -145,15 +162,23 @@ git clone "$mnc_repo" "$mnc_dir" || \
 
 git clone "$htmlgen_repo" "$htmlgen_dir" || \
   panic "cannot clone htmlgen repository"
-(cd "$htmlgen_dir" && npm install mathjax-node split) || \
-  panic "cannot install"
+(cd "$htmlgen_dir" && git checkout "$htmlgen_commit") || \
+  panic "cannot checkout htmlgen"
+(cd "$htmlgen_dir" && npm install mathjax-node split mathjax-node-cli) || \
+  panic "cannot install nodejs components"
 
+(cd "$htmlgen_dir" && cabal sandbox init) || \
+  panic "cannot create cabal sandbox"
 (cd "$htmlgen_dir" && cabal update) || \
   panic "cannot update package list"
-(cd "$htmlgen_dir" && cabal install --only-dependencies) || \
+(cd "$htmlgen_dir" && cabal install --only-dependencies --allow-newer) || \
   panic "cannot install dependencies"
+(cd "$htmlgen_dir" && cabal configure --allow-newer) || \
+  panic "cannot configure"
 (cd "$htmlgen_dir" && cabal build) || \
   panic "cannot build"
+(cd "$htmlgen_dir" && cabal install) || \
+  panic "cannot install"
 
 git clone "$draft_repo" "$draft_dir" || \
   panic "cannot clone draft repository"
@@ -170,7 +195,7 @@ git -C "$draft_dir" checkout "$tag" || \
   panic "cannot generate HTML document"
 
 (cp "$draft_dir/source/std.pdf" "$install_dir/std.pdf") || \
-  panic "cannot copy PDf document"
+  panic "cannot copy PDF document"
 
 (mv "$htmlgen_dir/14882" "$install_dir/html") || \
   panic "cannot move HTML document"
