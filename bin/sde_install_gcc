@@ -182,6 +182,9 @@ fi
 options+=(--enable-threads=posix)
 options+=(--enable-tls)
 options+=(--disable-multilib)
+if [ -n "$SDE_INSTALL_GCC_ENABLE_LANGUAGES" ]; then
+	options+=(--enable-languages="$SDE_INSTALL_GCC_ENABLE_LANGUAGES")
+fi
 (cd "$build_dir" && 
   ../src/configure --prefix="$abs_install_dir" "${options[@]}") || \
   panic "configure failed"
