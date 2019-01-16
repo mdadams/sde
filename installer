@@ -45,6 +45,8 @@ ndiff_version=2.00
 texlive_version=2018
 # Boost: https://www.boost.org/users/download
 boost_version=1.69.0
+# CGAL: https://github.com/CGAL/cgal/releases
+cgal_version=4.13
 # Aristotle: https://github.com/mdadams/aristotle
 aristotle_version=2.67.0
 # YCM: https://github.com/Valloric/YouCompleteMe
@@ -127,6 +129,7 @@ sde_install_gsl="$bin_dir/sde_install_gsl"
 sde_install_catch="$bin_dir/sde_install_catch"
 sde_install_lcov="$bin_dir/sde_install_lcov"
 sde_install_vimlsp="$bin_dir/sde_install_vimlsp"
+sde_install_cgal="$bin_dir/sde_install_cgal"
 
 ################################################################################
 # Process command line
@@ -210,6 +213,7 @@ gsl_dir="$packages_dir/gsl-$gsl_version"
 catch_dir="$packages_dir/catch-$catch_version"
 lcov_dir="$packages_dir/lcov-$lcov_version"
 vimlsp_dir="$packages_dir/vimlsp-$vimlsp_version"
+cgal_dir="$packages_dir/CGAL-$cgal_version"
 
 gcc_install_options=()
 if [ "${SDE_GCC_USE_OLD_ABI:-0}" -ne 0 ]; then
@@ -220,6 +224,9 @@ fi
 
 if [ "${SDE_VIM_INSTALL:-1}" -eq 0 ]; then
 	vim_dir=
+fi
+if [ "${SDE_CGAL_INSTALL:-0}" -eq 0 ]; then
+	cgal_dir=
 fi
 
 ################################################################################
@@ -470,6 +477,19 @@ if [ -n "$boost_dir" ]; then
 fi
 
 ################################################################################
+# Install CGAL
+################################################################################
+
+if [ -n "$cgal_dir" ]; then
+	if [ ! -d "$cgal_dir" ]; then
+		"$sde_install_cgal" -v "$cgal_version" -d "$cgal_dir" || \
+		  panic "cannot install CGAL"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" CGAL "$cgal_version" || \
+	  panic "cannot configure CGAL"
+fi
+
+################################################################################
 # Install GDB
 ################################################################################
 
@@ -519,7 +539,6 @@ if [ "$enable_texlive_install" -ne 0 ]; then
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" texlive "$texlive_version" || \
 	  panic "cannot configure texlive"
-
 fi
 texlive_bin_dir="$texlive_dir/bin"
 
