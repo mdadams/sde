@@ -82,7 +82,7 @@ bash_setup()
 #	  "$PATH" $(join_by : "${path_prefix[@]}") \
 #	  $(join_by : "${path_suffix[@]}")) || \
 #	  return 1
-	if [ "$sde_shell_invoker" -eq 0 ]; then
+	if [ "$emit_path" -ne 0 ]; then
 		local path=("${path_prefix[@]}" $PATH "${path_suffix[@]}")
 		echo 'export PATH='\"$(join_by : ${path[@]})\"';' || \
 		  return 1
@@ -216,7 +216,7 @@ clang_cxx_transform=0
 clang_c_transform=0
 cmake_transform=0
 adaptive=0
-sde_shell_invoker=0
+emit_path=0
 
 while getopts vn:s:fap:ZD: opt; do
 	case "$opt" in
@@ -235,7 +235,7 @@ while getopts vn:s:fap:ZD: opt; do
 	p)
 		package_spec="$OPTARG";;
 	Z)
-		sde_shell_invoker=1;;
+		emit_path=1;;
 	*)
 		usage "invalid option $opt";;
 	esac
@@ -250,7 +250,7 @@ if [ "$debug_level" -ge 1 ]; then
 	eecho "name $name [${#name}]"
 	eecho "package_spec $package_spec [${#package_spec}]"
 	eecho "adaptive $adaptive"
-	eecho "sde_shell_invoker $sde_shell_invoker"
+	eecho "emit_path $emit_path"
 fi
 
 if [ $# -ne 0 ]; then
@@ -355,7 +355,9 @@ path_prefix+=("$sde_top_dir/bin")
 
 for package in "${packages[@]}"; do
 	if [ ! -d "$packages_dir/$package" ]; then
-		eecho "ignoring nonexistent package $package"
+		if [ "$verbose" -ge 1 ]; then
+			eecho "ignoring nonexistent package $package"
+		fi
 		continue
 	fi
 	target="$packages_dir/$package/bin"
