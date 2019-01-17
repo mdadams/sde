@@ -97,6 +97,10 @@ if [ "$debug_level" -ge 10 ]; then
 	set -xv
 fi
 
+if [ -n "$name" -a -n "$package_spec" ]; then
+	panic "cannot specify environment name and packages"
+fi
+
 if [ -n "$SDE_NAME" -a "$force" -eq 0 ]; then
 	panic "nesting of SDE environments is disallowed"
 fi
@@ -108,7 +112,6 @@ make_setup_opts+=(-Z)
 if [ -n "$name" ]; then
 	make_setup_opts+=(-n "$name")
 fi
-
 if [ -n "$package_spec" ]; then
 	make_setup_opts+=(-p "$package_spec")
 fi

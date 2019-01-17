@@ -279,7 +279,7 @@ if [ -n "$SDE_NAME" -a "$force" -eq 0 ]; then
 	panic "invoking from within SDE environment disallowed"
 fi
 
-if [ -z "$name" -a -z "$packages_spec" -a "$adaptive" -eq 0 ]; then
+if [ -z "$name" -a -z "$package_spec" -a "$adaptive" -eq 0 ]; then
 	if [ ! -f "$default_env_file" ]; then
 		panic "no default environment available"
 	fi
@@ -301,7 +301,6 @@ sde_top_dir="$abs_cmd_dir/.."
 sde_top_dir=$(readlink -f "$sde_top_dir") || panic "readlink failed"
 
 packages_dir="$sde_top_dir/packages"
-packages_dir="$HOME/public/sde/packages"
 
 packages_valid=0
 
