@@ -111,7 +111,6 @@ bin_dir="$cmd_dir/bin"
 
 sde_cmd="$bin_dir/sde"
 sde_relpath="$bin_dir/sde_relpath"
-sde_shell="$bin_dir/sde_shell"
 sde_install_cmake="$bin_dir/sde_install_cmake"
 sde_install_gcc="$bin_dir/sde_install_gcc"
 sde_install_clang="$bin_dir/sde_install_clang"
@@ -166,6 +165,8 @@ if [ "$force" -eq 0 -a -d "$sde_top_dir" ]; then
 	panic "top directory already exists $sde_top_dir"
 fi
 
+sde_shell="$sde_top_dir/bin/sde_shell"
+
 ################################################################################
 # START OF INSTALLATION
 ################################################################################
@@ -177,7 +178,7 @@ Time: $(date +"%Y-%m-%d %H:%M:%S")
 ============================================================
 EOF
 
-boot_dir="$sde_top_dir/bootstrap"
+#boot_dir="$sde_top_dir/bootstrap"
 packages_dir="$sde_top_dir/packages"
 ycm_extras_dir="$packages_dir/ycm_extras"
 
