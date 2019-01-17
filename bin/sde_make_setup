@@ -147,13 +147,17 @@ bash_setup()
 	echo 'export SDE_CMAKE_TRANSFORM='"$cmake_transform"';' || \
 	  return 1
 	if [ ${cmake_transform:-0} -ne 0 ]; then
-		#  return 1
-		local path=$(add_to_path \
-		  "$CMAKE_PREFIX_PATH" \
-		  $(join_by : "${cmake_path_prefix[@]}") \
-		  $(join_by : "${cmake_path_suffix[@]}")) || \
+#		#  return 1
+#		local path=$(add_to_path \
+#		  "$CMAKE_PREFIX_PATH" \
+#		  $(join_by : "${cmake_path_prefix[@]}") \
+#		  $(join_by : "${cmake_path_suffix[@]}")) || \
+#		  return 1
+#		echo 'export CMAKE_PREFIX_PATH='\"$path\"';' || \
+#		  return 1
+		echo 'export SDE_CMAKE_PATH_PREFIX='\"$(join_by : ${cmake_path_prefix[@]})\"';' || \
 		  return 1
-		echo 'export CMAKE_PREFIX_PATH='\"$path\"';' || \
+		echo 'export SDE_CMAKE_PATH_SUFFIX='\"$(join_by : ${cmake_path_suffix[@]})\"';' || \
 		  return 1
 	fi
 
@@ -196,6 +200,8 @@ cmd_dir=$(dirname "$0") || panic "cannot get command directory"
 top_dir="$cmd_dir/.."
 default_env_file="$top_dir/etc/default_environment"
 env_dir="$top_dir/etc/environments"
+
+all_packages_name="__all__"
 
 debug_level="${SDE_DEBUG_LEVEL:-0}"
 verbose=0
@@ -251,6 +257,11 @@ if [ $# -ne 0 ]; then
 	usage "unexpected arguments $@"
 fi
 
+if [ "$name" = "$all_packages_name" ]; then
+	name=
+	adaptive=1
+fi
+
 if [ -z "$SDE_LEVEL" ]; then
 	sde_level=0
 	#old_path="$PATH"
@@ -294,21 +305,22 @@ packages_dir="$HOME/public/sde/packages"
 
 packages_valid=0
 
-if [ "$packages_valid" -eq 0 -a -n "$name" ]; then
-	packages=($(preprocess_env_file < "$env_dir/$name")) || panic
-	packages_valid=1
-fi
-
 if [ "$packages_valid" -eq 0 -a "$adaptive" -ne 0 ]; then
 	packages=()
 	for path in "$packages_dir"/*; do
-		name=$(basename "$path") || panic
+		package_name=$(basename "$path") || panic
 		if [ -d "$path" ]; then
-			if [[ "$name" =~ ^[^-]*$ ]]; then
-				packages+=("$name")
+			if [[ "$package_name" =~ ^[^-]*$ ]]; then
+				packages+=("$package_name")
 			fi
 		fi
 	done
+	packages_valid=1
+	name="$all_packages_name"
+fi
+
+if [ "$packages_valid" -eq 0 -a -n "$name" ]; then
+	packages=($(preprocess_env_file < "$env_dir/$name")) || panic
 	packages_valid=1
 fi
 
@@ -333,7 +345,8 @@ path_prefix=()
 path_suffix=()
 inc_path=()
 lib_path=()
-cmake_path=()
+cmake_path_prefix=()
+cmake_path_suffix=()
 
 clang_dir="$packages_dir/clang"
 gcc_dir="$packages_dir/gcc"
@@ -382,7 +395,7 @@ for package in "${packages[@]}"; do
 		fi
 		target="$packages_dir/$package"
 		if [ -d "$target/include" ]; then
-			cmake_path+=("$target")
+			cmake_path_prefix+=("$target")
 		fi
 		;;
 	esac
@@ -464,7 +477,10 @@ if [ "$verbose" -ge 1 ]; then
 		eecho "    $dir"
 	done
 	eecho "cmake directories:"
-	for dir in "${cmake_path[@]}"; do
+	for dir in "${cmake_path_prefix[@]}"; do
+		eecho "    $dir"
+	done
+	for dir in "${cmake_path_suffix[@]}"; do
 		eecho "    $dir"
 	done
 fi
