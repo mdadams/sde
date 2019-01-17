@@ -181,4 +181,4 @@ esac
 if [ "$debug_level" -ge 1 ]; then
 	eprint "Running $command ${args[@]}"
 fi
-"$command" "${args[@]}"
+exec "$command" "${args[@]}"

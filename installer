@@ -111,6 +111,7 @@ bin_dir="$cmd_dir/bin"
 
 sde_cmd="$bin_dir/sde"
 sde_relpath="$bin_dir/sde_relpath"
+sde_shell="$bin_dir/sde_shell"
 sde_install_cmake="$bin_dir/sde_install_cmake"
 sde_install_gcc="$bin_dir/sde_install_gcc"
 sde_install_clang="$bin_dir/sde_install_clang"
@@ -379,21 +380,22 @@ fi
 
 if [ -n "$cmake_dir" ]; then
 	if [ ! -d "$cmake_dir" ]; then
-		"$sde_install_cmake" -v "$cmake_version" -d "$cmake_dir" || \
+		"$sde_shell" -p null -x \
+		  "$sde_install_cmake" -v "$cmake_version" -d "$cmake_dir" || \
 		  panic "cannot install cmake"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" cmake "$cmake_version" || \
 	  panic "cannot configure cmake"
 
-	if [ ! -d "$boot_dir" ]; then
-		mkdir -p "$boot_dir" || panic "cannot make directory $boot_dir"
-	fi
-	target_file="$boot_dir/cmake"
-	if [ -L "$target_file" -o -e "$target_file" ]; then
-		rm -f "$target_file" || panic "cannot remove file $target_file"
-	fi
-	ln -s ../packages/cmake-$cmake_version/bin/cmake "$target_file" || \
-	  panic "cannot make symbolic link for cmake"
+#	if [ ! -d "$boot_dir" ]; then
+#		mkdir -p "$boot_dir" || panic "cannot make directory $boot_dir"
+#	fi
+#	target_file="$boot_dir/cmake"
+#	if [ -L "$target_file" -o -e "$target_file" ]; then
+#		rm -f "$target_file" || panic "cannot remove file $target_file"
+#	fi
+#	ln -s ../packages/cmake-$cmake_version/bin/cmake "$target_file" || \
+#	  panic "cannot make symbolic link for cmake"
 fi
 
 ################################################################################
@@ -409,7 +411,8 @@ export PATH="$path"
 
 if [ -n "$gcc_dir" ]; then
 	if [ ! -d "$gcc_dir" ]; then
-		"$sde_install_gcc" -v "$gcc_version" -d "$gcc_dir" \
+		"$sde_shell" -p null -x \
+		  "$sde_install_gcc" -v "$gcc_version" -d "$gcc_dir" \
 		  "${gcc_install_options[@]}" || \
 		  panic "cannot install gcc"
 	fi
@@ -435,8 +438,8 @@ if [ -n "$clang_dir" ]; then
 		#c_compiler_command=$(type -P gcc) || c_compiler_command=""
 
 		# Always build Clang with the SDE-installed version of GCC.
-		cpp_compiler_command=""
-		c_compiler_command=""
+#		cpp_compiler_command=""
+#		c_compiler_command=""
 
 		install_clang_options=()
 		if [ "${SDE_LLVM_INSTALL_LLDB:-0}" -ne 0 ]; then
@@ -447,15 +450,17 @@ if [ -n "$clang_dir" ]; then
 		fi
 		install_clang_options+=(-l)
 
-		if [ -z "$cpp_compiler_command" -o -z "$c_compiler_command" ]; then
-			# Use SDE-installed version of GCC to build Clang.
-			compiler_name="SDE-installed GCC"
-			cpp_compiler_command="$gcc_dir/bin/g++"
-			c_compiler_command="$gcc_dir/bin/gcc"
-		fi
+#		if [ -z "$cpp_compiler_command" -o -z "$c_compiler_command" ]; then
+#			# Use SDE-installed version of GCC to build Clang.
+#			compiler_name="SDE-installed GCC"
+#			cpp_compiler_command="$gcc_dir/bin/g++"
+#			c_compiler_command="$gcc_dir/bin/gcc"
+#		fi
+#		CXX="$cpp_compiler_command" CC="$c_compiler_command" \
 		echo "Building Clang with $compiler_name"
-		CXX="$cpp_compiler_command" CC="$c_compiler_command" \
-		"$sde_install_clang" "${install_clang_options[@]}" \
+		"$sde_shell" -p cmake:gcc-$gcc_version -x \
+		  env CXX="$gcc_dir/bin/g++" CC="$gcc_dir/bin/gcc" \
+		  "$sde_install_clang" "${install_clang_options[@]}" \
 		  -v "$clang_version" -d "$clang_dir" -f || \
 		  panic "cannot install clang"
 	fi
@@ -469,7 +474,8 @@ fi
 
 if [ -n "$boost_dir" ]; then
 	if [ ! -d "$boost_dir" ]; then
-		"$sde_install_boost" -v "$boost_version" -d "$boost_dir" || \
+		"$sde_shell" -p cmake:gcc-$gcc_version:clang-$clang_version -x \
+		  "$sde_install_boost" -v "$boost_version" -d "$boost_dir" || \
 		  panic "cannot install boost"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" boost "$boost_version" || \
@@ -482,7 +488,8 @@ fi
 
 if [ -n "$cgal_dir" ]; then
 	if [ ! -d "$cgal_dir" ]; then
-		"$sde_install_cgal" -v "$cgal_version" -d "$cgal_dir" || \
+		"$sde_shell" -x \
+		  "$sde_install_cgal" -v "$cgal_version" -d "$cgal_dir" || \
 		  panic "cannot install CGAL"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" CGAL "$cgal_version" || \
@@ -495,7 +502,8 @@ fi
 
 if [ -n "$gdb_dir" ]; then
 	if [ ! -d "$gdb_dir" ]; then
-		"$sde_install_gdb" -v "$gdb_version" -d "$gdb_dir" || \
+		"$sde_shell" -x \
+		  "$sde_install_gdb" -v "$gdb_version" -d "$gdb_dir" || \
 		  panic "cannot install gdb"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" gdb "$gdb_version" || \
@@ -508,7 +516,8 @@ fi
 
 if [ -n "$lcov_dir" ]; then
 	if [ ! -d "$lcov_dir" ]; then
-		"$sde_install_lcov" -v "$lcov_version" -d "$lcov_dir" || \
+		"$sde_shell" -x \
+		  "$sde_install_lcov" -v "$lcov_version" -d "$lcov_dir" || \
 		  panic "cannot install lcov"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" lcov "$lcov_version" || \
@@ -522,18 +531,21 @@ fi
 if [ "$enable_texlive_install" -ne 0 ]; then
 	if [ 1 -ne 0 ]; then
 		if [ ! -d "$texlive_iso_dir" ]; then
-			"$sde_download_texlive_iso" -v "$texlive_version" \
+			"$sde_shell" -x \
+			  "$sde_download_texlive_iso" -v "$texlive_version" \
 			  -o "$texlive_iso_dir/texlive.iso" || \
 			  panic "cannot download texlive_iso"
 		fi
 		if [ ! -d "$texlive_dir" ]; then
-			"$sde_install_texlive_iso" -i "$texlive_iso_dir/texlive.iso" \
+			"$sde_shell" -x \
+			  "$sde_install_texlive_iso" -i "$texlive_iso_dir/texlive.iso" \
 			  -d "$texlive_dir" || \
 			  panic "cannot install texlive"
 		fi
 	else
 		if [ ! -d "$texlive_dir" ]; then
-			"$sde_install_texlive" -v "$texlive_version" -d "$texlive_dir" || \
+			"$sde_shell" -x \
+			  "$sde_install_texlive" -v "$texlive_version" -d "$texlive_dir" || \
 			  panic "cannot install texlive"
 		fi
 	fi
@@ -558,7 +570,8 @@ if [ -n "$jasper_dir" ]; then
 			options+=(-o no_build_doc)
 			path_string=""
 		fi
-		PATH="${path_string}$PATH" \
+#		PATH="${path_string}$PATH" \
+		"$sde_shell" -x \
 		  "$sde_install_jasper" -v "$jasper_version" -d "$jasper_dir" \
 		  "${options[@]}" || \
 		  panic "cannot install jasper"
@@ -581,7 +594,8 @@ if [ -n "$spl_dir" ]; then
 			options+=(-o no_build_doc)
 			path_string=""
 		fi
-		PATH="$gcc_bin_dir:${path_string}$PATH" \
+#		PATH="$gcc_bin_dir:${path_string}$PATH" \
+		"$sde_shell" -x \
 		  "$sde_install_spl" -v "$spl_version" -d "$spl_dir" "${options[@]}" || \
 		  panic "cannot install SPL"
 	fi
@@ -595,7 +609,8 @@ fi
 
 if [ -n "$gsl_dir" ]; then
 	if [ ! -d "$gsl_dir" ]; then
-		PATH="$gcc_bin_dir:$PATH" \
+#		PATH="$gcc_bin_dir:$PATH" \
+		"$sde_shell" -x \
 		  "$sde_install_gsl" -v "$gsl_version" -d "$gsl_dir" || \
 		  panic "cannot install GSL"
 	fi
@@ -609,7 +624,8 @@ fi
 
 if [ -n "$catch_dir" ]; then
 	if [ ! -d "$catch_dir" ]; then
-		"$sde_install_catch" -v "$catch_version" -d "$catch_dir" || \
+		"$sde_shell" -x \
+		  "$sde_install_catch" -v "$catch_version" -d "$catch_dir" || \
 		  panic "cannot install catch"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" catch "$catch_version" || \
@@ -622,7 +638,8 @@ fi
 
 if [ -n "$ndiff_dir" ]; then
 	if [ ! -d "$ndiff_dir" ]; then
-		"$sde_install_ndiff" -v "$ndiff_version" -d "$ndiff_dir" || \
+		"$sde_shell" -x \
+		  "$sde_install_ndiff" -v "$ndiff_version" -d "$ndiff_dir" || \
 		  panic "cannot install ndiff"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" ndiff "$ndiff_version" || \
@@ -635,7 +652,8 @@ fi
 
 if [ -n "$aristotle_dir" ]; then
 	if [ ! -d "$aristotle_dir" ]; then
-		"$sde_install_aristotle" -v "$aristotle_version" -d "$aristotle_dir" || \
+		"$sde_shell" -x \
+		  "$sde_install_aristotle" -v "$aristotle_version" -d "$aristotle_dir" || \
 		  panic "cannot install aristotle"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" aristotle "$aristotle_version" || \
@@ -648,7 +666,8 @@ fi
 
 if [ -n "$vim_dir" ]; then
 	if [ ! -d "$vim_dir" ]; then
-		"$sde_install_vim" -v "$vim_version" -d "$vim_dir" || \
+		"$sde_shell" -x \
+		  "$sde_install_vim" -v "$vim_version" -d "$vim_dir" || \
 		  panic "cannot install vim"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" vim "$vim_version" || \
@@ -661,7 +680,8 @@ fi
 
 if [ -n "$vimlsp_dir" ]; then
 	if [ ! -d "$vimlsp_dir" ]; then
-		"$sde_install_vimlsp" -d "$vimlsp_dir" \
+		"$sde_shell" -x \
+		  "$sde_install_vimlsp" -d "$vimlsp_dir" \
 		  -v "vim-lsp:$vimlsp_version" \
 		  -v "async.vim:$vimlsp_async_version" \
 		  -v "asyncomplete.vim:$vimlsp_ac_version" \
@@ -687,11 +707,16 @@ if [ -n "$ycm_dir" ]; then
 		lib_options=()
 		lib_options+=(-L$gcc_dir/lib64 -Wl,-rpath,$gcc_dir/lib64)
 		lib_options+=(-L$clang_dir/lib -Wl,-rpath,$clang_dir/lib)
-		CXX="$clang_dir/bin/clang++ ${lib_options[@]}" \
-		  CC="$clang_dir/bin/clang ${lib_options[@]}" \
-		  PATH="$clang_dir/bin:$PATH" \
+#		CXX="$clang_dir/bin/clang++ ${lib_options[@]}" \
+#		  CC="$clang_dir/bin/clang ${lib_options[@]}" \
+#		  PATH="$clang_dir/bin:$PATH" \
+#		  "$sde_install_ycm" -v "$ycm_version" -d "$ycm_dir" "${options[@]}" || \
+#		  panic "cannot install ycm"
+		"$sde_shell" -x \
+		  env CXX="clang++" CC="clang" \
 		  "$sde_install_ycm" -v "$ycm_version" -d "$ycm_dir" "${options[@]}" || \
 		  panic "cannot install ycm"
+
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" ycm "$ycm_version" || \
 	  panic "cannot configure ycm"

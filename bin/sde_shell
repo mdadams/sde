@@ -29,7 +29,7 @@ panic()
 	exit 1
 }
 
-eprint()
+eecho()
 {
 	echo "$@" 1>&2
 }
@@ -60,14 +60,23 @@ bashrc="$cmd_dir/sde_shell_bashrc"
 setup="$cmd_dir/sde_setup"
 make_setup="$cmd_dir/sde_make_setup"
 
+printenv_program=$(type -P printenv) || printenv_program=
+grep_program=$(type -P grep) || grep_program=
+
 debug_level=0
 force=0
 name=
 verbose=1
-while getopts D:n:fqx opt; do
+package_spec=
+
+while getopts D:n:fqxvp: opt; do
 	case "$opt" in
+	v)
+		verbose=$((verbose + 1));;
 	q)
 		verbose=$((verbose - 1));;
+	p)
+		package_spec="$OPTARG";;
 	n)
 		name="$OPTARG";;
 	f)
@@ -93,13 +102,26 @@ if [ -n "$SDE_NAME" -a "$force" -eq 0 ]; then
 fi
 
 make_setup_opts=()
+
 make_setup_opts+=(-f)
+make_setup_opts+=(-Z)
 if [ -n "$name" ]; then
 	make_setup_opts+=(-n "$name")
 fi
+
+if [ -n "$package_spec" ]; then
+	make_setup_opts+=(-p "$package_spec")
+fi
+
 buffer=$("$make_setup" "${make_setup_opts[@]}" -s bash) || \
   panic "sde_make_setup failed"
 eval "$buffer" || panic "eval failed"
+
+if [ "$verbose" -ge 2 ]; then
+	"$printenv_program" | "$grep_program" '^SDE_LEVEL'
+	"$printenv_program" | "$grep_program" '^SDE_'
+	"$printenv_program" | "$grep_program" '^PATH='
+fi
 
 motd_file="$top_dir/etc/motd"
 if [ "$verbose" -ge 1 -a -f "$motd_file" ]; then
@@ -116,16 +138,17 @@ if [ "${#program_args[@]}" -eq 0 ]; then
 		program_args=("$SHELL" -i)
 		;;
 	*)
-		eprint "The shell $SHELL is not supported."
+		eecho "The shell $SHELL is not supported."
 		bash=$(which bash) || panic "cannot find bash shell"
-		eprint "Using shell $bash instead."
-		eprint "It is recommended that you ask the system administrator to change your login shell to bash."
+		eecho "Using shell $bash instead."
+		eecho "It is recommended that you ask the system administrator to change your login shell to bash."
 		program_args=("$bash" --init-file "$bashrc" -i)
 		;;
 	esac
 fi
 
 if [ "$debug_level" -ge 1 ]; then
-	eprint "Running ${program_args[@]}"
+	eecho "Running ${program_args[@]}"
 fi
+eecho "$PATH"
 exec "${program_args[@]}"
