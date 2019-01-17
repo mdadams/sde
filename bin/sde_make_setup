@@ -197,6 +197,7 @@ top_dir="$cmd_dir/.."
 default_env_file="$top_dir/etc/default_environment"
 env_dir="$top_dir/etc/environments"
 
+debug_level="${SDE_DEBUG_LEVEL:-0}"
 verbose=0
 shell=bash
 name=
@@ -211,8 +212,10 @@ cmake_transform=0
 adaptive=0
 sde_shell_invoker=0
 
-while getopts vn:s:fap:Z opt; do
+while getopts vn:s:fap:ZD: opt; do
 	case "$opt" in
+	D)
+		debug_level="$OPTARG";;
 	a)
 		adaptive=1;;
 	n)
@@ -232,6 +235,17 @@ while getopts vn:s:fap:Z opt; do
 	esac
 done
 shift $((OPTIND - 1))
+
+if [ "$debug_level" -ge 10 ]; then
+	set -xv
+fi
+
+if [ "$debug_level" -ge 1 ]; then
+	eecho "name $name [${#name}]"
+	eecho "package_spec $package_spec [${#package_spec}]"
+	eecho "adaptive $adaptive"
+	eecho "sde_shell_invoker $sde_shell_invoker"
+fi
 
 if [ $# -ne 0 ]; then
 	usage "unexpected arguments $@"
