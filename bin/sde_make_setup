@@ -354,6 +354,10 @@ gcc_dir="$packages_dir/gcc"
 path_prefix+=("$sde_top_dir/bin")
 
 for package in "${packages[@]}"; do
+	if [ ! -d "$packages_dir/$package" ]; then
+		eecho "ignoring nonexistent package $package"
+		continue
+	fi
 	target="$packages_dir/$package/bin"
 	if [ -d "$target" ]; then
 		path_prefix+=("$target")
