@@ -69,8 +69,9 @@ force=0
 name=
 verbose=1
 package_spec=
+print_motd=1
 
-while getopts D:n:fqxvp: opt; do
+while getopts D:n:fqxvp:s opt; do
 	case "$opt" in
 	v)
 		verbose=$((verbose + 1));;
@@ -86,6 +87,8 @@ while getopts D:n:fqxvp: opt; do
 		debug_level="$OPTARG";;
 	x)
 		break;;
+	s)
+		print_motd=0;;
 	*)
 		usage "invalid option $opt";;
 	esac
@@ -166,7 +169,7 @@ if [ "$debug_level" -ge 2 ]; then
 	"$printenv_program" | "$grep_program" '^PATH='
 fi
 
-if [ "$verbose" -ge 1 -a -f "$motd_file" ]; then
+if [ "$print_motd" -ne 0 -a -f "$motd_file" ]; then
 	cat "$motd_file" || panic "cannot print welcome message"
 fi
 
