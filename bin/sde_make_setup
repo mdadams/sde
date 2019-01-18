@@ -46,6 +46,23 @@ preprocess_env_file()
 	sed -e 's/#.*$//' -e '/^$/d'
 }
 
+# This function only looks in select directories for a compiler in order to
+# avoid potentially finding ccache.
+find_compiler()
+{
+	local dir
+	local name="$1"
+	local path=(/usr/local/bin /usr/local/sbin /usr/bin /usr/sbin /bin)
+	for dir in "${path[@]}"; do
+		local target="$dir/$name"
+		if [ -x "$target" ]; then
+			echo "$target"
+			return 0
+		fi
+	done
+	return 1
+}
+
 add_to_path()
 {
 	if [ $# -ne 3 ]; then
@@ -452,8 +469,8 @@ if [ "$has_gcc_package" -ne 0 ]; then
 	gcc_c_transform=1
 	gcc_cxx_transform=1
 else
-	gcc_cxx_program=$(type -p g++) || gcc_cxx_program=false
-	gcc_c_program=$(type -p gcc) || gcc_c_program=false
+	gcc_cxx_program=$(find_compiler g++) || gcc_cxx_program=false
+	gcc_c_program=$(find_compiler gcc) || gcc_c_program=false
 fi
 if [ "$has_clang_package" -ne 0 ]; then
 	clang_cxx_program="$packages_dir/clang/bin/clang++"
@@ -463,8 +480,8 @@ if [ "$has_clang_package" -ne 0 ]; then
 	clang_cxx_transform=1
 	clang_c_transform=1
 else
-	clang_cxx_program=$(type -p clang++) || clang_cxx_program=false
-	clang_c_program=$(type -p clang) || clang_c_program=false
+	clang_cxx_program=$(find_compiler clang++) || clang_cxx_program=false
+	clang_c_program=$(find_compiler clang) || clang_c_program=false
 fi
 if [ "$has_cmake_package" -ne 0 ]; then
 	cmake_program="$packages_dir/cmake/bin/cmake"
