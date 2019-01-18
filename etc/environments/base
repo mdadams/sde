@@ -5,6 +5,7 @@ clang
 boost
 catch
 gsl
+CGAL
 
 gdb
 lcov
