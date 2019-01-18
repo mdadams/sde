@@ -713,8 +713,8 @@ if [ -n "$ycm_dir" ]; then
 #		  PATH="$clang_dir/bin:$PATH" \
 #		  "$sde_install_ycm" -v "$ycm_version" -d "$ycm_dir" "${options[@]}" || \
 #		  panic "cannot install ycm"
-		"$sde_shell" -x \
-		  env CXX="clang++" CC="clang" \
+		"$sde_shell" -p cmake:clang-$clang_version -x \
+		  env CXX="$clang_dir/bin/clang++" CC="$clang_dir/bin/clang" \
 		  "$sde_install_ycm" -v "$ycm_version" -d "$ycm_dir" "${options[@]}" || \
 		  panic "cannot install ycm"
 

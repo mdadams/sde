@@ -176,6 +176,11 @@ bash_setup()
 	  return 1
 	echo 'export LD_LIBRARY_PATH='\"$path\"';' || \
 	  return 1
+
+	if [ -n "$boost_root" ]; then
+		echo 'export BOOST_ROOT='\"$boost_root\"';' || \
+		  return 1
+	fi
 }
 
 usage()
@@ -217,6 +222,7 @@ clang_c_transform=0
 cmake_transform=0
 adaptive=0
 emit_path=0
+boost_root=
 
 while getopts vn:s:fap:ZD: opt; do
 	case "$opt" in
@@ -375,6 +381,8 @@ for package in "${packages[@]}"; do
 		has_gdb_package=1;;
 	libcxx|libcxx-*)
 		use_libcxx=1;;
+	boost|boost-*)
+		boost_root="$packages_dir/$package";;
 	esac
 	case "$package" in
 	gcc|gcc-*|clang|clang-*)
