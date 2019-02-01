@@ -39,7 +39,7 @@ user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
-version=
+version=master
 install_dir=
 
 while getopts d:v: opt; do
@@ -73,7 +73,7 @@ repo="https://github.com/mdadams/aristotle.git"
 
 mkdir -p "$tmp_dir" || panic "cannot make temporary directory $tmp_dir"
 
-(cd "$tmp_dir" && git clone -b "version-$version" "$repo" aristotle) || \
+(cd "$tmp_dir" && git clone -b "$version" "$repo" aristotle) || \
   panic "cannot clone repository"
 
 "$tmp_dir/aristotle/installer" -d "$install_dir" || panic "install failed"
