@@ -354,12 +354,19 @@ if [ "$packages_valid" -eq 0 -a -n "$package_spec" ]; then
 		packages_valid=1
 fi
 
+if [ "$debug_level" -ge 1 ]; then
+	eecho "packages:"
+	for package in "${packages[@]}"; do
+		eecho "    $package"
+	done
+fi
+
 sde_name="$name"
 
-has_cmake_package=0
-has_gcc_package=0
-has_clang_package=0
-has_gdb_package=0
+cmake_package=
+gcc_package=
+clang_package=
+gdb_package=
 use_libcxx=0
 has_normal_package=0
 
@@ -370,43 +377,45 @@ lib_path=()
 cmake_path_prefix=()
 cmake_path_suffix=()
 
-clang_dir="$packages_dir/clang"
-gcc_dir="$packages_dir/gcc"
-
 # This directory must be first in the search path.
 path_prefix+=("$sde_top_dir/bin")
 
 for package in "${packages[@]}"; do
+
 	if [ ! -d "$packages_dir/$package" ]; then
-		if [ "$verbose" -ge 1 ]; then
-			eecho "ignoring nonexistent package $package"
+		if [ "$debug_level" -ge 1 -o "$verbose" -ge 1 ]; then
+			eecho "warning: ignoring nonexistent package $package"
 		fi
 		continue
 	fi
-	target="$packages_dir/$package/bin"
-	if [ -d "$target" ]; then
-		path_prefix+=("$target")
-	fi
+
 	case "$package" in
 	gcc|gcc-*)
-		has_gcc_package=1;;
+		gcc_package="$package";;
 	clang|clang-*)
-		has_clang_package=1;;
+		clang_package="$package";;
 	cmake|cmake-*)
-		has_cmake_package=1;;
+		cmake_package="$package";;
 	gdb|gdb-*)
-		has_gdb_package=1;;
+		gdb_package="$package";;
 	libcxx|libcxx-*)
 		use_libcxx=1;;
 	boost|boost-*)
 		boost_root="$packages_dir/$package";;
 	esac
+
 	case "$package" in
 	gcc|gcc-*|clang|clang-*)
 		;;
 	*)
 		has_normal_package=1;;
 	esac
+
+	target="$packages_dir/$package/bin"
+	if [ -d "$target" ]; then
+		path_prefix+=("$target")
+	fi
+
 	case "$package" in
 	gcc|gcc-*|clang|clang-*|gdb|gdb-*|sdebase|sdebase-*)
 		;;
@@ -429,67 +438,91 @@ for package in "${packages[@]}"; do
 		fi
 		;;
 	esac
+
 done
+
+if [ "$debug_level" -ge 1 ]; then
+	eecho "CMake package: $cmake_package"
+	eecho "GCC package: $gcc_package"
+	eecho "Clang package: $clang_package"
+fi
+
+if [ -n "$gcc_package" ]; then
+	gcc_dir="$packages_dir/$gcc_package"
+else
+	# Note: This may not be correct.
+	gcc_dir="/usr"
+fi
+if [ -n "$clang_package" ]; then
+	clang_dir="$packages_dir/$clang_package"
+else
+	# Note: This may not be correct.
+	clang_dir="/usr"
+fi
 
 if [ "$has_normal_package" -ne 0 ]; then
 	cmake_transform=1
 fi
 
 if [ "$use_libcxx" -ne 0 ]; then
-	clang_cxx_options_prefix+=(-stdlib=libc++ -isystem \
-	  "$clang_dir"/include/c++/v1)
-	clang_cxx_options_suffix+=(-L"$gcc_dir"/lib64 -Wl,-rpath,"$gcc_dir"/lib64)
-	clang_cxx_options_suffix+=(-L"$clang_dir"/lib -Wl,-rpath,"$clang_dir"/lib)
+		clang_cxx_options_prefix+=(-stdlib=libc++ -isystem \
+		  "$clang_dir"/include/c++/v1)
+		clang_cxx_options_suffix+=( \
+		  -L"$gcc_dir"/lib64 -Wl,-rpath,"$gcc_dir"/lib64)
+		clang_cxx_options_suffix+=( \
+		  -L"$clang_dir"/lib -Wl,-rpath,"$clang_dir"/lib)
 else
-	clang_cxx_options_prefix+=(--gcc-toolchain="$gcc_dir")
-	clang_cxx_options_suffix+=(-L"$gcc_dir"/lib64 -Wl,-rpath,"$gcc_dir"/lib64)
-	clang_cxx_options_suffix+=(-L"$clang_dir"/lib -Wl,-rpath,"$clang_dir"/lib)
+		clang_cxx_options_prefix+=(--gcc-toolchain="$gcc_dir")
+		clang_cxx_options_suffix+=( \
+		  -L"$gcc_dir"/lib64 -Wl,-rpath,"$gcc_dir"/lib64)
+		clang_cxx_options_suffix+=( \
+		  -L"$clang_dir"/lib -Wl,-rpath,"$clang_dir"/lib)
 fi
 
 for dir in "${inc_path[@]}"; do
 	gcc_cxx_options_prefix+=(-isystem "$dir")
-	clang_cxx_options_prefix+=(-isystem "$dir")
 	gcc_c_options_prefix+=(-isystem "$dir")
+	clang_cxx_options_prefix+=(-isystem "$dir")
 	clang_c_options_prefix+=(-isystem "$dir")
 done
 for dir in "${lib_path[@]}"; do
 	gcc_cxx_options_suffix+=(-L "$dir" -Wl,-rpath,"$dir")
-	clang_cxx_options_suffix+=(-L "$dir" -Wl,-rpath,"$dir")
 	gcc_c_options_suffix+=(-L "$dir" -Wl,-rpath,"$dir")
+	clang_cxx_options_suffix+=(-L "$dir" -Wl,-rpath,"$dir")
 	clang_c_options_suffix+=(-L "$dir" -Wl,-rpath,"$dir")
 	ld_library_path_prefix+=("$dir")
 done
 
-if [ "$has_gcc_package" -ne 0 ]; then
-	gcc_cxx_program="$packages_dir/gcc/bin/g++"
-	gcc_c_program="$packages_dir/gcc/bin/gcc"
-	ld_library_path_prefix+=("$packages_dir"/gcc/lib)
-	gcc_cxx_options_suffix+=(-Wl,-rpath,"$packages_dir/gcc/lib64")
-	gcc_c_options_suffix+=(-Wl,-rpath,"$packages_dir/gcc/lib64")
+if [ -n "$gcc_package" ]; then
+	gcc_cxx_program="$packages_dir/$gcc_package/bin/g++"
+	gcc_c_program="$packages_dir/$gcc_package/bin/gcc"
+	ld_library_path_prefix+=("$packages_dir"/$gcc_package/lib)
+	gcc_cxx_options_suffix+=(-Wl,-rpath,"$packages_dir/$gcc_package/lib64")
+	gcc_c_options_suffix+=(-Wl,-rpath,"$packages_dir/$gcc_package/lib64")
 	gcc_c_transform=1
 	gcc_cxx_transform=1
 else
 	gcc_cxx_program=$(find_compiler g++) || gcc_cxx_program=false
 	gcc_c_program=$(find_compiler gcc) || gcc_c_program=false
 fi
-if [ "$has_clang_package" -ne 0 ]; then
-	clang_cxx_program="$packages_dir/clang/bin/clang++"
-	clang_c_program="$packages_dir/clang/bin/clang"
-	clang_cxx_options_suffix+=(-Wl,-rpath,"$packages_dir/clang/lib64")
-	clang_c_options_suffix+=(-Wl,-rpath,"$packages_dir/clang/lib64")
+if [ -n "$clang_package" ]; then
+	clang_cxx_program="$packages_dir/$clang_package/bin/clang++"
+	clang_c_program="$packages_dir/$clang_package/bin/clang"
+	clang_cxx_options_suffix+=(-Wl,-rpath,"$packages_dir/$clang_package/lib64")
+	clang_c_options_suffix+=(-Wl,-rpath,"$packages_dir/$clang_package/lib64")
 	clang_cxx_transform=1
 	clang_c_transform=1
 else
 	clang_cxx_program=$(find_compiler clang++) || clang_cxx_program=false
 	clang_c_program=$(find_compiler clang) || clang_c_program=false
 fi
-if [ "$has_cmake_package" -ne 0 ]; then
-	cmake_program="$packages_dir/cmake/bin/cmake"
+if [ -n "$cmake_package" ]; then
+	cmake_program="$packages_dir/$cmake_package/bin/cmake"
 else
 	cmake_program=$(type -p cmake) || cmake_program=false
 fi
-if [ "$has_gdb_package" -ne 0 ]; then
-	gdb_program="$packages_dir/gdb/bin/gdb"
+if [ -n "$gdb_package" ]; then
+	gdb_program="$packages_dir/$gdb_package/bin/gdb"
 else
 	gdb_program=$(type -p gdb) || gdb_program=false
 fi
