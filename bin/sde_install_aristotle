@@ -41,13 +41,19 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 
 version=master
 install_dir=
+sandbox_mode=
+bwrap_options=
 
-while getopts d:v: opt; do
+while getopts d:v:b:m: opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
 	v)
 		version="$OPTARG";;
+	m)
+		sandbox_mode="$OPTARG";;
+	b)
+		bwrap_options="$OPTARG";;
 	\?)
 		usage
 		break;;
@@ -76,6 +82,14 @@ mkdir -p "$tmp_dir" || panic "cannot make temporary directory $tmp_dir"
 (cd "$tmp_dir" && git clone -b "$version" "$repo" aristotle) || \
   panic "cannot clone repository"
 
-"$tmp_dir/aristotle/installer" -d "$install_dir" || panic "install failed"
+options=()
+if [ -n "$sandbox_mode" ]; then
+	options+=(-m "$sandbox_mode")
+fi
+if [ -n "$bwrap_options" ]; then
+	options+=(-b "$bwrap_options")
+fi
+"$tmp_dir/aristotle/installer" -d "$install_dir" "${options[@]}" || \
+  panic "install failed"
 
 rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"
