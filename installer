@@ -28,7 +28,7 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.13.3
+cmake_version=3.13.4
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=8.2.0
@@ -58,7 +58,7 @@ boost_version=1.69.0
 cgal_version=4.13
 
 # Aristotle: https://github.com/mdadams/aristotle
-aristotle_version=v3.0.0
+aristotle_version=v3.0.1
 
 # YCM: https://github.com/Valloric/YouCompleteMe
 ycm_version=c25e449f4e72667aca3d18d8bfccd7b289b2e9a1
@@ -76,7 +76,7 @@ catch_version=v2.6.0
 lcov_version=04335632c371b5066e722298c9f8c6f11b210201
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=e090d84150f65a05914865a1f0dc55518ad70b10
+vimlsp_version=2224e50ba4f2cfa76675d47f8f50132bb03a26a3
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=4bde72e27eff8f2bb9821b092eb6e9df51219082
@@ -672,7 +672,10 @@ fi
 if [ -n "$aristotle_dir" ]; then
 	if [ ! -d "$aristotle_dir" ]; then
 		"$sde_shell" -s -x \
-		  "$sde_install_aristotle" -v "$aristotle_version" -d "$aristotle_dir" || \
+		  "$sde_install_aristotle" \
+		  -v "$aristotle_version" -d "$aristotle_dir" \
+		  -b "--ro-bind $sde_top_dir $sde_top_dir" \
+		  || \
 		  panic "cannot install aristotle"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" aristotle "$aristotle_version" || \

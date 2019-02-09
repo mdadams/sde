@@ -32,7 +32,33 @@ panic()
 usage()
 {
 	echo "BAD USAGE: $@"
+	cat <<- EOF
+	usage: $0 -d \$install_dir -v \$version
+
+	Options
+	=======
+
+	-d \$install_dir
+	    Set the installation directory to \$install_dir.
+	-v \$version
+	    Set the version of CGAL to install to \$version.
+	EOF
 	exit 2
+}
+
+validate_url()
+{
+	local url="$1"
+	case "$url" in
+	http*)
+		wget -S --spider "$url" 2>&1 | grep -q "HTTP/1.1 200 OK"
+		;;
+	ftp*)
+		wget -S --spider "$url" 2>&1 | grep -q -i "exists"
+		;;
+	*)
+		return 2;;
+	esac
 }
 
 user=$(whoami) || panic "cannot get user name"
@@ -42,13 +68,13 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 version=
 install_dir=
 
-while getopts d:v: opt; do
+while getopts d:v:h opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
 	v)
 		version="$OPTARG";;
-	\?)
+	h|\?)
 		usage
 		break;;
 	esac
@@ -72,7 +98,23 @@ tmp_dir="/tmp/sde_install_cgal-$user@$host-$$"
 src_dir="$tmp_dir/src"
 build_dir="$tmp_dir/build"
 
-archive_url="https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-$version/CGAL-$version.tar.xz"
+archive_urls=()
+archive_urls+=("https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-$version/CGAL-$version.tar.xz")
+archive_urls+=("https://github.com/CGAL/cgal/archive/releases/CGAL-$version.tar.gz")
+
+archive_url=
+for url in "${archive_urls[@]}"; do
+	echo "Checking for archive $url"
+	validate_url "$url"
+	status=$?
+	if [ "$status" -eq 0 ]; then
+		archive_url="$url"
+		break
+	fi
+done
+if [ -z "$archive_url" ]; then
+	panic "cannot find archive file"
+fi
 
 for dir in "$tmp_dir" "$src_dir" "$build_dir"; do
 	mkdir -p "$dir" || \
@@ -85,7 +127,17 @@ done
 archive=$(basename "$archive_url") || \
   panic "cannot get basename of URL"
 
-(cd "$src_dir" && tar -xJf "../$archive" --strip-components=1) || \
+tar_options=()
+case "$archive" in
+*.tar.gz)
+	tar_options+=(-z);;
+*.xz)
+	tar_options+=(-J);;
+*)
+	panic "unknown archive type";;
+esac
+(cd "$src_dir" && \
+  tar -x "${tar_options[@]}" -f "../$archive" --strip-components=1) || \
   panic "cannot extract archive"
 
 cmake_opts=()
