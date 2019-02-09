@@ -154,7 +154,7 @@ cmake)
 	if [ ${SDE_CMAKE_TRANSFORM:-0} -ne 0 ]; then
 		args=()
 		args+=("$@")
-		export CMAKE_PREFIX_PATH="$SDE_CMAKE_PREFIX_PATH"
+		export CMAKE_PREFIX_PATH="$SDE_CMAKE_PATH_PREFIX"
 	else
 		args+=("$@")
 	fi
