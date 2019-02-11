@@ -64,6 +64,9 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
+abs_install_dir=$(readlink -f "$install_dir") || \
+  panic "cannot get absolute pathname"
+
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
 # This will help to increase the likelihood that the installed software
@@ -91,13 +94,13 @@ archive=$(basename "$url") || \
   panic "cannot extract archive"
 
 (cd "$src_dir" &&
-  ./configure --prefix="$install_dir") || \
+  ./configure --prefix="$abs_install_dir") || \
   panic "configure failed"
 
 (cd "$src_dir" && make "$make_opts") || panic "make failed"
 
 for dir in bin man man/man1; do
-	target_dir="$install_dir/$dir"
+	target_dir="$abs_install_dir/$dir"
 	if [ ! -d "$target_dir" ]; then
 		mkdir -p "$target_dir" || panic
 	fi
@@ -105,6 +108,6 @@ done
 
 (cd "$src_dir" && make install) || panic "make install failed"
 
-ln -s ndiff $install_dir/bin/numeric_diff || panic "cannot make link"
+ln -s ndiff $abs_install_dir/bin/numeric_diff || panic "cannot make link"
 
 rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"
