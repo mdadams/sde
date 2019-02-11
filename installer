@@ -28,7 +28,8 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.13.4
+#cmake_version=3.13.4
+cmake_version=3.14.0-rc1
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=8.2.0
