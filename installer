@@ -62,7 +62,7 @@ cgal_version=4.13
 aristotle_version=v3.0.1
 
 # YCM: https://github.com/Valloric/YouCompleteMe
-ycm_version=c25e449f4e72667aca3d18d8bfccd7b289b2e9a1
+ycm_version=cbaf8134e9925aac28a87cc6e5f7399cbd22df1b
 
 # Vim: https://www.vim.org/download.php
 vim_version=8.1
@@ -77,7 +77,7 @@ catch_version=v2.6.0
 lcov_version=04335632c371b5066e722298c9f8c6f11b210201
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=2224e50ba4f2cfa76675d47f8f50132bb03a26a3
+vimlsp_version=e36843112a7c0030e7903f18b0752c2df7130d0a
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=4bde72e27eff8f2bb9821b092eb6e9df51219082
