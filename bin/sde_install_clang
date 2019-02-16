@@ -54,14 +54,16 @@ usage()
 	$0 [options] -v \$version -d \$install_dir
 
 	Options:
-	-l
-	    Install libcxx library.
 	-r
 	    Build from Subversion repository.
 	-g \$gcc_dir
 	    Set GCC directory to \$gcc_dir.
 	-D
 	    Install lldb.
+	-t
+	    Install the test suite.
+	-l
+	    Install libcxx.
 	-j \$num_jobs
 	    Allow the use of \$num_jobs siumultaneous jobs.
 

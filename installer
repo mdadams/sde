@@ -29,7 +29,7 @@
 
 # CMake: https://cmake.org/download
 #cmake_version=3.13.4
-cmake_version=3.14.0-rc1
+cmake_version=3.14.0-rc2
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=8.2.0
@@ -59,7 +59,7 @@ boost_version=1.69.0
 cgal_version=4.13
 
 # Aristotle: https://github.com/mdadams/aristotle
-aristotle_version=v3.0.3
+aristotle_version=v3.0.5
 
 # YCM: https://github.com/Valloric/YouCompleteMe
 ycm_version=cbaf8134e9925aac28a87cc6e5f7399cbd22df1b
@@ -87,6 +87,12 @@ vimlsp_ac_version=2ffa939cb7cd424b595b5ea25470a621767436b3
 
 # Vim Asyncomplete LSP: https://github.com/prabirshrestha/asyncomplete-lsp.vim.git
 vimlsp_aclsp_version=b9630e25f842686f952748071b914e748be1cd78
+
+# Hub: https://github.com/github/hub
+hub_version=
+
+# GHI: https://github.com/stephencelis/ghi
+ghi_version=1.2.0
 
 ################################################################################
 # Utility functions.
@@ -149,6 +155,8 @@ sde_install_catch="$bin_dir/sde_install_catch"
 sde_install_lcov="$bin_dir/sde_install_lcov"
 sde_install_vimlsp="$bin_dir/sde_install_vimlsp"
 sde_install_cgal="$bin_dir/sde_install_cgal"
+sde_install_hub="$bin_dir/sde_install_hub"
+sde_install_ghi="$bin_dir/sde_install_ghi"
 
 ################################################################################
 # Process command line
@@ -235,6 +243,8 @@ catch_dir="$packages_dir/catch-$catch_version"
 lcov_dir="$packages_dir/lcov-$lcov_version"
 vimlsp_dir="$packages_dir/vimlsp-$vimlsp_version"
 cgal_dir="$packages_dir/CGAL-$cgal_version"
+hub_dir="$packages_dir/hub-$hub_version"
+ghi_dir="$packages_dir/ghi-$ghi_version"
 
 gcc_install_options=()
 if [ "${SDE_GCC_USE_OLD_ABI:-0}" -ne 0 ]; then
@@ -422,8 +432,22 @@ fi
 # Add boot directory to path.
 ################################################################################
 
-path="$boot_dir:$PATH"
-export PATH="$path"
+#path="$boot_dir:$PATH"
+#export PATH="$path"
+
+################################################################################
+# Install GHI
+################################################################################
+
+if [ -n "$ghi_dir" ]; then
+	if [ ! -d "$ghi_dir" ]; then
+		"$sde_shell" -s -p null -x \
+		  "$sde_install_ghi" -v "$ghi_version" -d "$ghi_dir" || \
+		  panic "cannot install ghi"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" ghi "$ghi_version" || \
+	  panic "cannot configure ghi"
+fi
 
 ################################################################################
 # Install GCC

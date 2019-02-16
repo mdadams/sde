@@ -29,15 +29,6 @@ panic()
 	exit 1
 }
 
-usage()
-{
-	echo "BAD USAGE: $@"
-	cat <<- EOF
-	usage: $0 -v \$version -o \$out_file
-	EOF
-	exit 2
-}
-
 validate_url()
 {
 	local url="$1"
@@ -51,6 +42,21 @@ validate_url()
 	*)
 		return 2;;
 	esac
+}
+
+usage()
+{
+	echo "BAD USAGE: $@"
+	cat <<- EOF
+	usage: $0 -v \$version -o \$out_file
+
+	Options:
+	-v \$version
+	    Set the version of the software to obtain to \$version.
+	-o \$out_file
+	    Set the name of the ISO output file to \$out_file.
+	EOF
+	exit 2
 }
 
 user=$(whoami) || panic "cannot get user name"

@@ -46,6 +46,8 @@ usage()
 	-v \$version
 	    Set the version (i.e., branch/commit) to install.
 	    e.g., 31abb9cee59d5f74bbff14b6107e9c9316b6fc83
+	-l \$libclang
+	    Use the external version of libclang given by \$libclang.
 	EOF
 	exit 2
 }

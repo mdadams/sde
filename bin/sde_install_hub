@@ -2,7 +2,7 @@
 
 # __START_OF_LICENSE__
 # 
-# Copyright (c) 2017, 2018 Michael D. Adams
+# Copyright (c) 2019 Michael D. Adams
 # All rights reserved.
 # 
 # This file is part of the SDE software.
@@ -33,23 +33,27 @@ usage()
 {
 	echo "BAD USAGE: $@"
 	cat <<- EOF
-	usage: $0 -v \$version -d \$install_dir
+	Usage:
+	$0 [options] -v \$version -d \$install_dir
 
 	Options:
 	-v \$version
 	    Set the version of the software for installation to \$version.
 	-d \$install_dir
 	    Set the installation directory to \$install_dir.
+
+	Examples:
+	$0 -v 2.9.0 -d /usr/local/hub-2.9.0
 	EOF
 	exit 2
 }
 
-user=$(whoami) || panic "cannot get user name"
-host=$(hostname) || panic "cannot get host name"
-cur_dir=$(pwd) || panic "cannot get current directory"
+################################################################################
+################################################################################
 
-version=master
+tmp_dir=
 install_dir=
+version=
 
 while getopts d:v: opt; do
 	case "$opt" in
@@ -71,24 +75,60 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
+user=$(whoami) || panic "cannot get user name"
+host=$(hostname) || panic "cannot get host name"
+
+if [ -z "$tmp_dir" ]; then
+	tmp_dir="${SDE_TMPDIR:-/tmp}/sde_install_hub-$user@$host-$$"
+fi
+
+if [ "$version" != master ]; then
+	commit="v$version"
+else
+	commit="$version"
+fi
+
+install_dir=$(realpath "$install_dir") || panic
+
+repo_url="https://github.com/github/hub.git"
+
+################################################################################
+################################################################################
+
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
 # This will help to increase the likelihood that the installed software
 # will be accessible by all users.
 umask 022
 
-tmp_dir="/tmp/sde_install_lcov-$user@$host-$$"
-repo="https://github.com/linux-test-project/lcov.git"
+mkdir -p "$tmp_dir" || \
+  panic "cannot make temporary directory"
 
-mkdir -p "$tmp_dir" || panic "cannot make temporary directory $tmp_dir"
+go_dir="$tmp_dir/go"
+git_dir="$go_dir/src/github.com/github/hub"
 
-(cd "$tmp_dir" && git clone "$repo" lcov) || \
-  panic "cannot clone repository"
-src_dir="$tmp_dir/lcov"
+for dir in "$go_dir" "$git_dir"; do
+	if [ ! -d "$dir" ]; then
+		mkdir -p "$dir" || panic "cannot make directory $dir"
+	fi
+done
 
-(cd "$src_dir" && git checkout "$version") || \
-  panic "cannot checkout $version"
+git clone \
+  --config transfer.fsckobjects=false \
+  --config receive.fsckobjects=false \
+  --config fetch.fsckobjects=false \
+  "$repo_url" \
+  "$git_dir" \
+  || panic "cannot clone repository"
 
-mv "$src_dir" "$install_dir" || panic "cannot move"
+(cd "$git_dir" && git checkout "$commit") || \
+  panic "cannot checkout"
 
-rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"
+(cd "$git_dir" && \
+  GOPATH="$go_dir" \
+  make install prefix="$install_dir") || \
+  panic "cannot make install"
+
+rm -rf "$tmp_dir" || echo "warning: unable to remove temporary directory"
+
+exit 0

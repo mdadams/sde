@@ -2,7 +2,7 @@
 
 # __START_OF_LICENSE__
 # 
-# Copyright (c) 2017, 2018 Michael D. Adams
+# Copyright (c) 2019 Michael D. Adams
 # All rights reserved.
 # 
 # This file is part of the SDE software.
@@ -33,7 +33,8 @@ usage()
 {
 	echo "BAD USAGE: $@"
 	cat <<- EOF
-	usage: $0 -v \$version -d \$install_dir
+	Usage:
+	$0 [options] -v \$version -d \$install_dir
 
 	Options:
 	-v \$version
@@ -44,12 +45,12 @@ usage()
 	exit 2
 }
 
-user=$(whoami) || panic "cannot get user name"
-host=$(hostname) || panic "cannot get host name"
-cur_dir=$(pwd) || panic "cannot get current directory"
+################################################################################
+################################################################################
 
-version=master
+tmp_dir=
 install_dir=
+version=
 
 while getopts d:v: opt; do
 	case "$opt" in
@@ -71,24 +72,50 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
+user=$(whoami) || panic "cannot get user name"
+host=$(hostname) || panic "cannot get host name"
+
+if [ -z "$tmp_dir" ]; then
+	tmp_dir="${SDE_TMPDIR:-/tmp}/sde_install_ghi-$user@$host-$$"
+fi
+
+commit="$version"
+
+install_dir=$(realpath "$install_dir") || panic
+
+repo_url="https://github.com/stephencelis/ghi.git"
+
+################################################################################
+################################################################################
+
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
 # This will help to increase the likelihood that the installed software
 # will be accessible by all users.
 umask 022
 
-tmp_dir="/tmp/sde_install_lcov-$user@$host-$$"
-repo="https://github.com/linux-test-project/lcov.git"
+mkdir -p "$tmp_dir" || \
+  panic "cannot make temporary directory"
 
-mkdir -p "$tmp_dir" || panic "cannot make temporary directory $tmp_dir"
+for dir in "$install_dir" "$install_dir/bin"; do
+	if [ ! -d "$dir" ]; then
+		mkdir -p "$dir" || panic "cannot make directory $dir"
+	fi
+done
 
-(cd "$tmp_dir" && git clone "$repo" lcov) || \
+git_dir="$tmp_dir/git"
+
+git clone "$repo_url" "$git_dir" || \
   panic "cannot clone repository"
-src_dir="$tmp_dir/lcov"
 
-(cd "$src_dir" && git checkout "$version") || \
-  panic "cannot checkout $version"
+(cd "$git_dir" && git checkout "$commit") || \
+  panic "cannot checkout"
 
-mv "$src_dir" "$install_dir" || panic "cannot move"
+cp "$git_dir/ghi" "$install_dir/bin/ghi" || \
+  panic "cannot copy file"
+chmod a+rx "$install_dir/bin/ghi" || \
+  panic "cannot change permissions"
 
-rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"
+rm -rf "$tmp_dir" || echo "warning: unable to remove temporary directory"
+
+exit 0

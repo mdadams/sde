@@ -38,6 +38,17 @@ isabspath()
 usage()
 {
 	echo "bad usage: $@"
+	cat <<- EOF
+	usage: $0 -v \$version -d \$install_dir
+
+	Options:
+	-v \$version
+	    Set the version of the software for installation to \$version.
+	-d \$install_dir
+	    Set the installation directory to \$install_dir.
+	-r
+	    Install from Git repository.
+	EOF
 	exit 2
 }
 

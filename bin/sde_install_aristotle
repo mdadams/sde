@@ -32,6 +32,19 @@ panic()
 usage()
 {
 	echo "BAD USAGE: $@"
+	cat <<- EOF
+	usage: $0 -v \$version -d \$install_dir
+
+	Options:
+	-v \$version
+	    Set the version of the software for installation to \$version.
+	-d \$install_dir
+	    Set the installation directory to \$install_dir.
+	-n \$sandbox_mode
+	    Set the sandbox mode to \$sandbox_mode.
+	-b \$sandbox_options
+	    Set the sandbox options to \$sandbox_options.
+	EOF
 	exit 2
 }
 

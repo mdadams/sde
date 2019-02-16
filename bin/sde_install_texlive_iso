@@ -39,6 +39,12 @@ usage()
 	echo "BAD USAGE: $@"
 	cat <<- EOF
 	usage: $0 -i \$iso_file -d \$install_dir
+
+	Options:
+	-i \$iso_file
+	    Specify the file containing the ISO installation image.
+	-d \$install_dir
+	    Set the installation directory to \$install_dir.
 	EOF
 	exit 2
 }
