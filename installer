@@ -59,7 +59,7 @@ boost_version=1.69.0
 cgal_version=4.13
 
 # Aristotle: https://github.com/mdadams/aristotle
-aristotle_version=v3.0.6
+aristotle_version=v3.0.7
 
 # YCM: https://github.com/Valloric/YouCompleteMe
 ycm_version=cbaf8134e9925aac28a87cc6e5f7399cbd22df1b
