@@ -10,10 +10,17 @@ CGAL
 gdb
 lcov
 texlive
+ghi
 
 jasper
 ndiff
 aristotle
 aristotle_local
+aristotle_local_0
+
+vimlsp
+ycm
+ycm_extras
 
 #libcxx
+#gccgo

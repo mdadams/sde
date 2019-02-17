@@ -95,6 +95,9 @@ bash_setup()
 	echo 'export SDE_NAME='"$sde_name"';' || return 1
 	echo 'export SDE_TOP_DIR='"$sde_top_dir"';' || return 1
 
+	echo 'export SDE_PACKAGES='\"$(join_by : ${enabled_packages[@]})\"';' || \
+	  return 1
+
 #	local path=$(add_to_path \
 #	  "$PATH" $(join_by : "${path_prefix[@]}") \
 #	  $(join_by : "${path_suffix[@]}")) || \
@@ -131,6 +134,30 @@ bash_setup()
 		echo 'export SDE_GCC_C_OPTIONS_PREFIX='\""${gcc_c_options_prefix[*]}"\"';' || \
 		  return 1
 		echo 'export SDE_GCC_C_OPTIONS_SUFFIX='\""${gcc_c_options_suffix[*]}"\"';' || \
+		  return 1
+	fi
+
+	# GCC Go compiler
+	echo 'export SDE_GCC_GCCGO_PROGRAM='"$gcc_gccgo_program"';' || \
+	  return 1
+	echo 'export SDE_GCC_GCCGO_TRANSFORM='\""$gcc_gccgo_transform"\"';' || \
+	  return 1
+	if [ ${gcc_gccgo_transform:-0} -ne 0 ]; then
+		echo 'export SDE_GCC_GCCGO_OPTIONS_PREFIX='\""${gcc_gccgo_options_prefix[*]}"\"';' || \
+		  return 1
+		echo 'export SDE_GCC_GCCGO_OPTIONS_SUFFIX='\""${gcc_gccgo_options_suffix[*]}"\"';' || \
+		  return 1
+	fi
+
+	# GCC Go program
+	echo 'export SDE_GCC_GO_PROGRAM='"$gcc_go_program"';' || \
+	  return 1
+	echo 'export SDE_GCC_GO_TRANSFORM='\""$gcc_go_transform"\"';' || \
+	  return 1
+	if [ ${gcc_go_transform:-0} -ne 0 ]; then
+		echo 'export SDE_GCC_GO_OPTIONS_PREFIX='\""${gcc_go_options_prefix[*]}"\"';' || \
+		  return 1
+		echo 'export SDE_GCC_GO_OPTIONS_SUFFIX='\""${gcc_go_options_suffix[*]}"\"';' || \
 		  return 1
 	fi
 
@@ -188,8 +215,8 @@ bash_setup()
 	  return 1
 
 	local path=$(add_to_path \
-	  "$LD_LIBRARY_PATH" "$(join_by : "${ld_library_path_prefix[@]}")" \
-	  "$(join_by : "${ld_library_path_suffix[@]}")") || \
+	  "$LD_LIBRARY_PATH" "$(join_by : "${ld_path_prefix[@]}")" \
+	  "$(join_by : "${ld_path_suffix[@]}")") || \
 	  return 1
 	echo 'export LD_LIBRARY_PATH='\""$path"\"';' || \
 	  return 1
@@ -323,6 +350,8 @@ abs_cmd_dir=$(readlink -f "$cmd_dir") || \
 sde_top_dir="$abs_cmd_dir/.."
 sde_top_dir=$(readlink -f "$sde_top_dir") || panic "readlink failed"
 
+enabled_packages=()
+
 packages_dir="$sde_top_dir/packages"
 
 packages_valid=0
@@ -366,6 +395,7 @@ sde_name="$name"
 cmake_package=
 gcc_package=
 clang_package=
+gccgo_package=
 gdb_package=
 use_libcxx=0
 has_normal_package=0
@@ -376,6 +406,13 @@ inc_path=()
 lib_path=()
 cmake_path_prefix=()
 cmake_path_suffix=()
+ld_path_prefix=()
+ld_path_suffix=()
+
+gcc_gccgo_options_prefix=()
+gcc_gccgo_options_suffix=()
+gcc_go_options_prefix=()
+gcc_go_options_suffix=()
 
 # This directory must be first in the search path.
 path_prefix+=("$sde_top_dir/bin")
@@ -388,6 +425,8 @@ for package in "${packages[@]}"; do
 		fi
 		continue
 	fi
+
+	enabled_packages+=("$package")
 
 	case "$package" in
 	gcc|gcc-*)
@@ -402,10 +441,12 @@ for package in "${packages[@]}"; do
 		use_libcxx=1;;
 	boost|boost-*)
 		boost_root="$packages_dir/$package";;
+	gccgo|gccgo-*)
+		gccgo_package="$package";;
 	esac
 
 	case "$package" in
-	gcc|gcc-*|clang|clang-*)
+	gcc|gcc-*|clang|clang-*|gccgo|gccgo-*)
 		;;
 	*)
 		has_normal_package=1;;
@@ -417,7 +458,7 @@ for package in "${packages[@]}"; do
 	fi
 
 	case "$package" in
-	gcc|gcc-*|clang|clang-*|gdb|gdb-*|sdebase|sdebase-*)
+	gcc|gcc-*|clang|clang-*|gccgo|gccgo-*|gdb|gdb-*|sdebase|sdebase-*)
 		;;
 	*)
 		target="$packages_dir/$package/include"
@@ -459,6 +500,12 @@ else
 	# Note: This may not be correct.
 	clang_dir="/usr"
 fi
+if [ -n "$gccgo_package" ]; then
+	gccgo_dir="$packages_dir/$gccgo_package"
+else
+	# Note: This may not be correct.
+	gccgo_dir="/usr"
+fi
 
 if [ "$has_normal_package" -ne 0 ]; then
 	cmake_transform=1
@@ -471,12 +518,16 @@ if [ "$use_libcxx" -ne 0 ]; then
 		  -L"$gcc_dir"/lib64 -Wl,-rpath,"$gcc_dir"/lib64)
 		clang_cxx_options_suffix+=( \
 		  -L"$clang_dir"/lib -Wl,-rpath,"$clang_dir"/lib)
+		ld_path_prefix+=("$gcc_dir"/lib64)
+		ld_path_prefix+=("$clang_dir"/lib)
 else
 		clang_cxx_options_prefix+=(--gcc-toolchain="$gcc_dir")
 		clang_cxx_options_suffix+=( \
 		  -L"$gcc_dir"/lib64 -Wl,-rpath,"$gcc_dir"/lib64)
 		clang_cxx_options_suffix+=( \
 		  -L"$clang_dir"/lib -Wl,-rpath,"$clang_dir"/lib)
+		ld_path_prefix+=("$gcc_dir"/lib64)
+		ld_path_prefix+=("$clang_dir"/lib)
 fi
 
 for dir in "${inc_path[@]}"; do
@@ -490,15 +541,16 @@ for dir in "${lib_path[@]}"; do
 	gcc_c_options_suffix+=(-L "$dir" -Wl,-rpath,"$dir")
 	clang_cxx_options_suffix+=(-L "$dir" -Wl,-rpath,"$dir")
 	clang_c_options_suffix+=(-L "$dir" -Wl,-rpath,"$dir")
-	ld_library_path_prefix+=("$dir")
+	ld_path_prefix+=("$dir")
 done
 
 if [ -n "$gcc_package" ]; then
 	gcc_cxx_program="$packages_dir/$gcc_package/bin/g++"
 	gcc_c_program="$packages_dir/$gcc_package/bin/gcc"
-	ld_library_path_prefix+=("$packages_dir"/$gcc_package/lib)
 	gcc_cxx_options_suffix+=(-Wl,-rpath,"$packages_dir/$gcc_package/lib64")
 	gcc_c_options_suffix+=(-Wl,-rpath,"$packages_dir/$gcc_package/lib64")
+	ld_path_prefix+=("$packages_dir/$gcc_package/lib")
+	ld_path_prefix+=("$packages_dir/$gcc_package/lib64")
 	gcc_c_transform=1
 	gcc_cxx_transform=1
 else
@@ -510,11 +562,26 @@ if [ -n "$clang_package" ]; then
 	clang_c_program="$packages_dir/$clang_package/bin/clang"
 	clang_cxx_options_suffix+=(-Wl,-rpath,"$packages_dir/$clang_package/lib64")
 	clang_c_options_suffix+=(-Wl,-rpath,"$packages_dir/$clang_package/lib64")
+	ld_path_prefix+=("$packages_dir/$clang_package/lib")
+	ld_path_prefix+=("$packages_dir/$clang_package/lib64")
 	clang_cxx_transform=1
 	clang_c_transform=1
 else
 	clang_cxx_program=$(find_compiler clang++) || clang_cxx_program=false
 	clang_c_program=$(find_compiler clang) || clang_c_program=false
+fi
+if [ -n "$gccgo_package" ]; then
+	gcc_gccgo_program="$packages_dir/$gccgo_package/bin/gccgo"
+	gcc_gccgo_options_suffix+=(-Wl,-rpath,"$gccgo_dir/lib64")
+	gcc_gccgo_options_suffix+=(-Wl,-rpath,"$gccgo_dir/lib")
+	ld_path_prefix+=("$gccgo_dir/lib")
+	ld_path_prefix+=("$gccgo_dir/lib64")
+	gcc_gccgo_transform=1
+	gcc_go_program="$packages_dir/$gccgo_package/bin/go"
+	gcc_go_transform=1
+else
+	gcc_gccgo_program=$(find_compiler gccgo) || gcc_gccgo_program=false
+	gcc_go_program=$(find_compiler go) || gcc_go_program=false
 fi
 if [ -n "$cmake_package" ]; then
 	cmake_program="$packages_dir/$cmake_package/bin/cmake"
