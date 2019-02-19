@@ -59,10 +59,10 @@ boost_version=1.69.0
 cgal_version=4.13
 
 # Aristotle: https://github.com/mdadams/aristotle
-aristotle_version=v3.0.7
+aristotle_version=v3.0.9
 
 # YCM: https://github.com/Valloric/YouCompleteMe
-ycm_version=cbaf8134e9925aac28a87cc6e5f7399cbd22df1b
+ycm_version=032281307dddeabdb0173b5fcd54b283e950d4ce
 
 # Vim: https://www.vim.org/download.php
 vim_version=8.1
@@ -74,16 +74,16 @@ gsl_version=v2.0.0
 catch_version=v2.6.1
 
 # Lcov: https://github.com/linux-test-project/lcov
-lcov_version=04335632c371b5066e722298c9f8c6f11b210201
+lcov_version=42b55f5a497d2286566d0dd411e3e52fd4d50469
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=d961852dcdc094217eeda9b8b37409ea82258abc
+vimlsp_version=0ef9fb7f1e26ffbff0e0c90da181a7a57984aa35
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=f3014550d7a799097e56b094104dd2cd66cf2612
 
 # Vim Asyncomplete: https://github.com/prabirshrestha/asyncomplete.vim.git
-vimlsp_ac_version=2ffa939cb7cd424b595b5ea25470a621767436b3
+vimlsp_ac_version=08437a0f7c741ce6e870a70df30cb0bee6135c81
 
 # Vim Asyncomplete LSP: https://github.com/prabirshrestha/asyncomplete-lsp.vim.git
 vimlsp_aclsp_version=b9630e25f842686f952748071b914e748be1cd78
