@@ -32,6 +32,19 @@ panic()
 usage()
 {
 	echo "BAD USAGE: $@"
+	cat <<- EOF
+	usage: $0 -v \$version -d \$install_dir
+
+	Options:
+	-v \$version
+	    Set the version of the software for installation to \$version.
+	-d \$install_dir
+	    Set the installation directory to \$install_dir.
+	-n \$sandbox_mode
+	    Set the sandbox mode to \$sandbox_mode.
+	-b \$sandbox_options
+	    Set the sandbox options to \$sandbox_options.
+	EOF
 	exit 2
 }
 
@@ -39,15 +52,21 @@ user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
-version=
+version=master
 install_dir=
+sandbox_mode=
+bwrap_options=
 
-while getopts d:v: opt; do
+while getopts d:v:b:m: opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
 	v)
 		version="$OPTARG";;
+	m)
+		sandbox_mode="$OPTARG";;
+	b)
+		bwrap_options="$OPTARG";;
 	\?)
 		usage
 		break;;
@@ -73,9 +92,17 @@ repo="https://github.com/mdadams/aristotle.git"
 
 mkdir -p "$tmp_dir" || panic "cannot make temporary directory $tmp_dir"
 
-(cd "$tmp_dir" && git clone -b "version-$version" "$repo" aristotle) || \
+(cd "$tmp_dir" && git clone -b "$version" "$repo" aristotle) || \
   panic "cannot clone repository"
 
-"$tmp_dir/aristotle/installer" -d "$install_dir" || panic "install failed"
+options=()
+if [ -n "$sandbox_mode" ]; then
+	options+=(-m "$sandbox_mode")
+fi
+if [ -n "$bwrap_options" ]; then
+	options+=(-b "$bwrap_options")
+fi
+"$tmp_dir/aristotle/installer" -d "$install_dir" "${options[@]}" || \
+  panic "install failed"
 
 rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"

@@ -29,7 +29,7 @@ panic()
 	exit 1
 }
 
-eprint()
+eecho()
 {
 	echo "$@" 1>&2
 }
@@ -59,15 +59,26 @@ top_dir="$cmd_dir/.."
 bashrc="$cmd_dir/sde_shell_bashrc"
 setup="$cmd_dir/sde_setup"
 make_setup="$cmd_dir/sde_make_setup"
+motd_file="$top_dir/etc/motd"
+
+printenv_program=$(type -P printenv) || printenv_program=
+grep_program=$(type -P grep) || grep_program=
 
 debug_level=0
 force=0
 name=
 verbose=1
-while getopts D:n:fqx opt; do
+package_spec=
+print_motd=1
+
+while getopts D:n:fqxvp:s opt; do
 	case "$opt" in
+	v)
+		verbose=$((verbose + 1));;
 	q)
 		verbose=$((verbose - 1));;
+	p)
+		package_spec="$OPTARG";;
 	n)
 		name="$OPTARG";;
 	f)
@@ -76,56 +87,97 @@ while getopts D:n:fqx opt; do
 		debug_level="$OPTARG";;
 	x)
 		break;;
+	s)
+		print_motd=0;;
 	*)
 		usage "invalid option $opt";;
 	esac
 done
 shift $((OPTIND - 1))
 
-program_args=("$@")
-
 if [ "$debug_level" -ge 10 ]; then
 	set -xv
+fi
+
+program_args=("$@")
+
+if [ -n "$name" -a -n "$package_spec" ]; then
+	panic "cannot specify environment name and packages"
 fi
 
 if [ -n "$SDE_NAME" -a "$force" -eq 0 ]; then
 	panic "nesting of SDE environments is disallowed"
 fi
 
-make_setup_opts=()
-make_setup_opts+=(-f)
-if [ -n "$name" ]; then
-	make_setup_opts+=(-n "$name")
-fi
-buffer=$("$make_setup" "${make_setup_opts[@]}" -s bash) || \
-  panic "sde_make_setup failed"
-eval "$buffer" || panic "eval failed"
-
-motd_file="$top_dir/etc/motd"
-if [ "$verbose" -ge 1 -a -f "$motd_file" ]; then
-	cat "$motd_file" || panic "cannot print welcome message"
-fi
-
-if [ "${#program_args[@]}" -eq 0 ]; then
+if [ "${#program_args[@]}" -ne 0 ]; then
+	basename=$(basename "${program_args[0]}") || \
+	  panic "cannot get base name"
+	case "$basename" in
+	bash|sh|csh|tcsh|ksh)
+		panic "cannot run shell in arbitrary manner " \
+		  "(as this could corrupt environment)"
+		;;
+	esac
+	# Generate the command to set the PATH environment variable,
+	# since this variable will not be set otherwise.
+	emit_path=1
+else
 	shell=$(basename "$SHELL") || panic "cannot get shell"
 	case "$shell" in
 	bash)
-		program_args=("$SHELL" --init-file "$bashrc" -i)
+		program_args=("$SHELL" --noprofile --init-file "$bashrc" -i)
+		# Do not generate the command to set the PATH environment variable,
+		# as this variable will be set in the custom bashrc.
+		emit_path=0
 		;;
-	csh|tcsh)
-		program_args=("$SHELL" -i)
-		;;
+	#csh|tcsh)
+	#	program_args=("$SHELL" -i)
+	#	;;
 	*)
-		eprint "The shell $SHELL is not supported."
-		bash=$(which bash) || panic "cannot find bash shell"
-		eprint "Using shell $bash instead."
-		eprint "It is recommended that you ask the system administrator to change your login shell to bash."
-		program_args=("$bash" --init-file "$bashrc" -i)
+		eecho "The shell $SHELL is not supported."
+		bash_program=$(which bash) || panic "cannot find bash shell"
+		eecho "Using shell $bash_program instead."
+		eecho "It is recommended that you change your login shell to bash."
+		program_args=("$bash_program" --noprofile --init-file "$bashrc" -i)
+		# Do not generate the command to set the PATH environment variable,
+		# as this variable will be set in the custom bashrc.
+		emit_path=0
 		;;
 	esac
 fi
 
-if [ "$debug_level" -ge 1 ]; then
-	eprint "Running ${program_args[@]}"
+make_setup_opts=()
+
+make_setup_opts+=(-f)
+if [ "$emit_path" -ne 0 ]; then
+	make_setup_opts+=(-Z)
 fi
+if [ -n "$name" ]; then
+	make_setup_opts+=(-n "$name")
+fi
+if [ -n "$package_spec" ]; then
+	make_setup_opts+=(-p "$package_spec")
+fi
+
+buffer=$("$make_setup" "${make_setup_opts[@]}" -s bash) || \
+  panic "sde_make_setup failed"
+eval "$buffer" || panic "eval failed"
+
+if [ "$debug_level" -ge 2 ]; then
+	"$printenv_program" | "$grep_program" '^SDE_LEVEL'
+	"$printenv_program" | "$grep_program" '^SDE_'
+	"$printenv_program" | "$grep_program" '^PATH='
+fi
+
+if [ "$print_motd" -ne 0 -a -f "$motd_file" ]; then
+	cat "$motd_file" || panic "cannot print welcome message"
+fi
+
+if [ "$debug_level" -ge 1 ]; then
+	eecho "PATH is set to $PATH"
+fi
+if [ "$debug_level" -ge 1 ]; then
+	eecho "Running ${program_args[@]}"
+fi
+
 exec "${program_args[@]}"

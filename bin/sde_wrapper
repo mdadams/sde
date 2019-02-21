@@ -87,18 +87,6 @@ cc|gcc)
 
 	;;
 
-gdb)
-	if [ -z "$SDE_GDB_PROGRAM" ]; then
-		panic "SDE_GDB_PROGRAM not set"
-	fi
-	if [ ! -x "$SDE_GDB_PROGRAM" ]; then
-		panic "no execute permission on file $SDE_GDB_PROGRAM"
-	fi
-	command="$SDE_GDB_PROGRAM"
-	args=()
-	args+=("$@")
-	;;
-
 clang++)
 	if [ -z "$SDE_CLANG_CXX_PROGRAM" ]; then
 		panic "SDE_CLANG_CXX_PROGRAM not set"
@@ -143,6 +131,51 @@ clang)
 	fi
 	;;
 
+gccgo)
+	if [ -z "$SDE_GCC_GCCGO_PROGRAM" ]; then
+		panic "SDE_GCC_GCCGO_PROGRAM not set"
+	fi
+	if [ ! -x "$SDE_GCC_GCCGO_PROGRAM" ]; then
+		panic "no execute permission on file $SDE_GCC_GCCGO_PROGRAM"
+	fi
+	command="$SDE_GCC_GCCGO_PROGRAM"
+	if [ ${SDE_GCC_GCCGO_TRANSFORM:-0} -ne 0 ]; then
+		args=()
+		if [ -n "$SDE_GCC_GCCGO_OPTIONS_PREFIX" ]; then
+			args+=($SDE_GCC_GCCGO_OPTIONS_PREFIX)
+		fi
+		args+=("$@")
+		if [ -n "$SDE_GCC_GCCGO_OPTIONS_SUFFIX" ]; then
+			args+=($SDE_GCC_GCCGO_OPTIONS_SUFFIX)
+		fi
+	else
+		args+=("$@")
+	fi
+	;;
+
+go)
+	if [ -z "$SDE_GCC_GO_PROGRAM" ]; then
+		panic "SDE_GCC_GO_PROGRAM not set"
+	fi
+	if [ ! -x "$SDE_GCC_GO_PROGRAM" ]; then
+		panic "no execute permission on file $SDE_GCC_GO_PROGRAM"
+	fi
+	command="$SDE_GCC_GO_PROGRAM"
+	if [ ${SDE_GCC_GO_TRANSFORM:-0} -ne 0 ]; then
+		export LD_RUN_PATH="$LD_LIBRARY_PATH"
+		args=()
+		if [ -n "$SDE_GCC_GO_OPTIONS_PREFIX" ]; then
+			args+=($SDE_GCC_GO_OPTIONS_PREFIX)
+		fi
+		args+=("$@")
+		if [ -n "$SDE_GCC_GO_OPTIONS_SUFFIX" ]; then
+			args+=($SDE_GCC_GO_OPTIONS_SUFFIX)
+		fi
+	else
+		args+=("$@")
+	fi
+	;;
+
 cmake)
 	if [ -z "$SDE_CMAKE_PROGRAM" ]; then
 		panic "SDE_CMAKE_PROGRAM not set"
@@ -154,7 +187,7 @@ cmake)
 	if [ ${SDE_CMAKE_TRANSFORM:-0} -ne 0 ]; then
 		args=()
 		args+=("$@")
-		export CMAKE_PREFIX_PATH="$SDE_CMAKE_PREFIX_PATH"
+		export CMAKE_PREFIX_PATH="$SDE_CMAKE_PATH_PREFIX"
 	else
 		args+=("$@")
 	fi
@@ -176,9 +209,21 @@ cpack|ctest)
 	#export CMAKE_PREFIX_PATH="$SDE_CMAKE_PREFIX_PATH"
 	;;
 
+gdb)
+	if [ -z "$SDE_GDB_PROGRAM" ]; then
+		panic "SDE_GDB_PROGRAM not set"
+	fi
+	if [ ! -x "$SDE_GDB_PROGRAM" ]; then
+		panic "no execute permission on file $SDE_GDB_PROGRAM"
+	fi
+	command="$SDE_GDB_PROGRAM"
+	args=()
+	args+=("$@")
+	;;
+
 esac
 
 if [ "$debug_level" -ge 1 ]; then
 	eprint "Running $command ${args[@]}"
 fi
-"$command" "${args[@]}"
+exec "$command" "${args[@]}"

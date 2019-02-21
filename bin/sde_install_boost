@@ -79,6 +79,9 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
+abs_install_dir=$(readlink -f "$install_dir") || \
+  panic "cannot get absolute pathname"
+
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
 # This will help to increase the likelihood that the installed software
@@ -122,7 +125,7 @@ tar -xzf "$archive_file" -C "$src_dir" --strip-components=1 || \
 #  toolset="$toolset" stage) || \
 #  panic "cannot build"
 
-(cd "$src_dir" && ./bootstrap.sh --prefix="$install_dir") || \
+(cd "$src_dir" && ./bootstrap.sh --prefix="$abs_install_dir") || \
   panic "cannot bootstrap"
 
 (cd "$src_dir" && ./b2 install) || \

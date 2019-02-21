@@ -69,9 +69,6 @@ user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
-#version=3.6.3
-#version=3.8.1
-#install_dir="$cur_dir/cmake-$version"
 version=
 install_dir=
 tmp_dir="/tmp/sde_install_cmake-$user@$host-$$"
@@ -127,7 +124,7 @@ esac
 
 cmake_arch="$arch"
 
-short_version=$(echo "$version" | sed -e 's/\.[0-9]*$//') || \
+short_version=$(echo "$version" | sed -e 's/\.[0-9]*\(\|-rc[0-9]*\)$//') || \
   panic "cannot extract short version"
 url="https://cmake.org/files/v$short_version/cmake-$version-$cmake_os-$cmake_arch.tar.gz"
 archive=$(basename $url) || panic "cannot extract archive name"

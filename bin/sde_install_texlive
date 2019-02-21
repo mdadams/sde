@@ -42,7 +42,15 @@ warn()
 usage()
 {
 	echo "BAD USAGE: $@"
-	echo "usage: $0 -v version -d install_dir"
+	cat <<- EOF
+	usage: $0 -v \$version -d \$install_dir
+
+	Options:
+	-v \$version
+	    Set the version of the software for installation to \$version.
+	-d \$install_dir
+	    Set the installation directory to \$install_dir.
+	EOF
 	exit 2
 }
 
@@ -50,8 +58,6 @@ user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
-#version=2017
-#install_dir="$cur_dir/texlive-$version"
 version=
 install_dir=
 tmp_dir="/tmp/sde_install_texlive-$user@$host-$$"

@@ -55,17 +55,14 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 version=master
 install_dir=
 tmp_dir="/tmp/sde_install_gsl-$user@$host-$$"
-libclang=
 verbose=0
 
-while getopts d:v:l:V opt; do
+while getopts d:v:V opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
 	v)
 		version="$OPTARG";;
-	l)
-		libclang="$OPTARG";;
 	V)
 		verbose=$((verbose + 1));;
 	\?)

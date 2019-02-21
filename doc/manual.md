@@ -12,17 +12,21 @@ The SDE includes the following packages:
     * Aristotle
     * Boost
     * Catch2
+    * CGAL
     * Clang
     * CMake
     * GCC
+    * Gcovr
     * GDB
     * GSL
     * JasPer
+    * Lcov
     * libcxx
     * Ndiff
     * SPL
     * TeX Live
     * Vim
+    * Vim LSP
     * YouCompleteMe (YCM)
 
 In addition, the SDE contains some scripts for managing the SDE itself.

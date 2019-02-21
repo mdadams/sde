@@ -33,7 +33,7 @@
 
 panic()
 {
-	echo "ERROR"
+	echo "ERROR: $@"
 	exit 1
 }
 
@@ -41,6 +41,21 @@ disk_usage()
 {
 	local dir="$1"
 	du -sk "$dir" | awk '{print $1;}' -
+}
+
+validate_url()
+{
+	local url="$1"
+	case "$url" in
+	http*)
+		wget -S --spider "$url" 2>&1 | grep -q "HTTP/1.1 200 OK"
+		;;
+	ftp*)
+		wget -S --spider "$url" 2>&1 | grep -q -i "exists"
+		;;
+	*)
+		return 2;;
+	esac
 }
 
 usage()
@@ -68,6 +83,9 @@ usage()
 	    Specifies the directory under which temporary files are placed
 	    (e.g., when building software prior to installation).
 
+	SDE_INSTALL_GCC_ENABLE_LANGUAGES
+	    A comma-separated list of language to be built.
+
 	Examples
 	========
 
@@ -76,6 +94,7 @@ usage()
 	$0 -r -v branches/c++-modules -d $HOME/local/gcc
 	$0 -r -v trunk -d $HOME/local/gcc
 	SDE_TMPDIR=/var/tmp $0 -r -v trunk -d $HOME/local/gcc
+	SDE_INSTALL_GCC_ENABLE_LANGUAGES=go $0 -v 8.2.0 -d $HOME/local/gccgo
 	EOF
 	exit 2
 }
@@ -142,7 +161,8 @@ umask 022
 make_opts=()
 make_opts+=("-j$num_jobs")
 
-mangled_version=$(echo "$version" | tr '/' '-') || panic
+mangled_version=$(echo "$version" | tr '/' '-') || \
+  panic "cannot get mangled name"
 top_dir="$tmp_dir/gcc-$mangled_version"
 src_dir="$top_dir/src"
 build_dir="$top_dir/build"
@@ -161,11 +181,39 @@ if [ $from_repo -ne 0 ]; then
 	svn_repo="svn://gcc.gnu.org/svn/gcc/$version"
 	svn co "$svn_repo" "$src_dir" || panic "cannot checkout source"
 else
-	url="https://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.xz"
-	(cd "$archive_dir" && wget "$url" ) || \
+	urls=()
+	urls+=("https://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.xz")
+	urls+=("https://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.bz2")
+	urls+=("https://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.gz")
+	url=
+	for i in "${urls[@]}"; do
+		validate_url "$i"
+		status=$?
+		if [ "$status" -eq 0 ]; then
+			url="$i"
+			break
+		fi
+	done
+	if [ -z "$url" ]; then
+		panic "cannot find archive for download"
+	fi
+	archive_base=$(basename "$url") || panic "cannot get basename"
+	archive_file="$archive_dir/$archive_base"
+	(cd "$archive_dir" && wget -O "$archive_file" "$url" ) || \
 	  panic "cannot download archive"
-	archive_file="$archive_dir/gcc-$version.tar.xz"
-	tar -xJf "$archive_file" -C "$src_dir" --strip-components=1 || \
+	tar_options=()
+	case "$archive_file" in
+	*.gz)
+		tar_options+=(-z);;
+	*.bz2)
+		tar_options+=(-j);;
+	*.xz)
+		tar_options+=(-J);;
+	*)
+		panic "unexpected file type";;
+	esac
+	tar -x "${tar_options[@]}" -f "$archive_file" -C "$src_dir" \
+	  --strip-components=1 || \
 	  panic "cannot extract archive"
 fi
 

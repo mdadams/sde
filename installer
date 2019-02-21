@@ -28,46 +28,71 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.13.2
+#cmake_version=3.13.4
+cmake_version=3.14.0-rc2
+
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=8.2.0
+
 # LLVM: http://releases.llvm.org/download.html
 clang_version=7.0.1
+
 # JasPer: https://www.ece.uvic.ca/~frodo/jasper/#download
 jasper_version=2.0.14
+
 # GDB: https://www.gnu.org/software/gdb/download/
 gdb_version=8.2.1
+
 # SPL: http://www.ece.uvic.ca/~frodo/SPL/#download
-spl_version=2.0.7
+spl_version=2.0.8
+
 # Ndiff: ???
 ndiff_version=2.00
+
 # TeX Live: https://www.tug.org/texlive/acquire.html
 texlive_version=2018
+
 # Boost: https://www.boost.org/users/download
 boost_version=1.69.0
+
 # CGAL: https://github.com/CGAL/cgal/releases
 cgal_version=4.13
+
 # Aristotle: https://github.com/mdadams/aristotle
-aristotle_version=2.67.0
+aristotle_version=v3.0.12
+
 # YCM: https://github.com/Valloric/YouCompleteMe
-ycm_version=c209cdbbfcc90c9ab8fa078beb2fe668743b4d0e
+ycm_version=032281307dddeabdb0173b5fcd54b283e950d4ce
+
 # Vim: https://www.vim.org/download.php
 vim_version=8.1
+
 # GSL: https://github.com/Microsoft/GSL/releases
 gsl_version=v2.0.0
+
 # Catch2: https://github.com/catchorg/Catch2/releases
-catch_version=v2.5.0
+catch_version=v2.6.1
+
 # Lcov: https://github.com/linux-test-project/lcov
-lcov_version=28675dc7564aaa1ad231a7ac23106512a3956d68
+lcov_version=42b55f5a497d2286566d0dd411e3e52fd4d50469
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=d6891ade6fb1f0d1780adc3ac1a8e99362075de4
-# Async: https://github.com/prabirshrestha/async.vim.git
-vimlsp_async_version=8eae0c4d5df9cadfdce2029823c599098b16fac3
-# Asyncomplete: https://github.com/prabirshrestha/asyncomplete.vim.git
-vimlsp_ac_version=b5dbe40222172b0901c06f1f90c597ef782b1b82
-# Asyncomplete LSP: https://github.com/prabirshrestha/asyncomplete-lsp.vim.git
-vimlsp_aclsp_version=6f47fcb2f386c6234f65a9450c3a3c141759a8f3
+vimlsp_version=28ba60120556c4be71368d1fafe10c216a1c59cf
+
+# Vim Async: https://github.com/prabirshrestha/async.vim.git
+vimlsp_async_version=f3014550d7a799097e56b094104dd2cd66cf2612
+
+# Vim Asyncomplete: https://github.com/prabirshrestha/asyncomplete.vim.git
+vimlsp_ac_version=08437a0f7c741ce6e870a70df30cb0bee6135c81
+
+# Vim Asyncomplete LSP: https://github.com/prabirshrestha/asyncomplete-lsp.vim.git
+vimlsp_aclsp_version=b9630e25f842686f952748071b914e748be1cd78
+
+# Hub: https://github.com/github/hub
+hub_version=
+
+# GHI: https://github.com/stephencelis/ghi
+ghi_version=1.2.0
 
 ################################################################################
 # Utility functions.
@@ -130,6 +155,8 @@ sde_install_catch="$bin_dir/sde_install_catch"
 sde_install_lcov="$bin_dir/sde_install_lcov"
 sde_install_vimlsp="$bin_dir/sde_install_vimlsp"
 sde_install_cgal="$bin_dir/sde_install_cgal"
+sde_install_hub="$bin_dir/sde_install_hub"
+sde_install_ghi="$bin_dir/sde_install_ghi"
 
 ################################################################################
 # Process command line
@@ -165,6 +192,8 @@ if [ "$force" -eq 0 -a -d "$sde_top_dir" ]; then
 	panic "top directory already exists $sde_top_dir"
 fi
 
+sde_shell="$sde_top_dir/bin/sde_shell"
+
 ################################################################################
 # START OF INSTALLATION
 ################################################################################
@@ -176,7 +205,7 @@ Time: $(date +"%Y-%m-%d %H:%M:%S")
 ============================================================
 EOF
 
-boot_dir="$sde_top_dir/bootstrap"
+#boot_dir="$sde_top_dir/bootstrap"
 packages_dir="$sde_top_dir/packages"
 ycm_extras_dir="$packages_dir/ycm_extras"
 
@@ -214,6 +243,8 @@ catch_dir="$packages_dir/catch-$catch_version"
 lcov_dir="$packages_dir/lcov-$lcov_version"
 vimlsp_dir="$packages_dir/vimlsp-$vimlsp_version"
 cgal_dir="$packages_dir/CGAL-$cgal_version"
+hub_dir="$packages_dir/hub-$hub_version"
+ghi_dir="$packages_dir/ghi-$ghi_version"
 
 gcc_install_options=()
 if [ "${SDE_GCC_USE_OLD_ABI:-0}" -ne 0 ]; then
@@ -324,7 +355,7 @@ if [ "$sdebase_installed" -ne 0 ]; then
 		  panic "cannot link"
 	done
 
-	for file in c++ g++ clang++ cc gcc clang cmake ctest cpack gdb; do
+	for file in c++ g++ clang++ cc gcc clang gccgo go cmake ctest cpack gdb; do
 		target_file="$sde_top_dir/bin/$file"
 		if [ -L "$target_file" -o -e "$target_file" ]; then
 			rm -f "$target_file" || panic "cannot remove file $target_file"
@@ -379,29 +410,44 @@ fi
 
 if [ -n "$cmake_dir" ]; then
 	if [ ! -d "$cmake_dir" ]; then
-		"$sde_install_cmake" -v "$cmake_version" -d "$cmake_dir" || \
+		"$sde_shell" -s -p null -x \
+		  "$sde_install_cmake" -v "$cmake_version" -d "$cmake_dir" || \
 		  panic "cannot install cmake"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" cmake "$cmake_version" || \
 	  panic "cannot configure cmake"
 
-	if [ ! -d "$boot_dir" ]; then
-		mkdir -p "$boot_dir" || panic "cannot make directory $boot_dir"
-	fi
-	target_file="$boot_dir/cmake"
-	if [ -L "$target_file" -o -e "$target_file" ]; then
-		rm -f "$target_file" || panic "cannot remove file $target_file"
-	fi
-	ln -s ../packages/cmake-$cmake_version/bin/cmake "$target_file" || \
-	  panic "cannot make symbolic link for cmake"
+#	if [ ! -d "$boot_dir" ]; then
+#		mkdir -p "$boot_dir" || panic "cannot make directory $boot_dir"
+#	fi
+#	target_file="$boot_dir/cmake"
+#	if [ -L "$target_file" -o -e "$target_file" ]; then
+#		rm -f "$target_file" || panic "cannot remove file $target_file"
+#	fi
+#	ln -s ../packages/cmake-$cmake_version/bin/cmake "$target_file" || \
+#	  panic "cannot make symbolic link for cmake"
 fi
 
 ################################################################################
 # Add boot directory to path.
 ################################################################################
 
-path="$boot_dir:$PATH"
-export PATH="$path"
+#path="$boot_dir:$PATH"
+#export PATH="$path"
+
+################################################################################
+# Install GHI
+################################################################################
+
+if [ -n "$ghi_dir" ]; then
+	if [ ! -d "$ghi_dir" ]; then
+		"$sde_shell" -s -p null -x \
+		  "$sde_install_ghi" -v "$ghi_version" -d "$ghi_dir" || \
+		  panic "cannot install ghi"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" ghi "$ghi_version" || \
+	  panic "cannot configure ghi"
+fi
 
 ################################################################################
 # Install GCC
@@ -409,7 +455,8 @@ export PATH="$path"
 
 if [ -n "$gcc_dir" ]; then
 	if [ ! -d "$gcc_dir" ]; then
-		"$sde_install_gcc" -v "$gcc_version" -d "$gcc_dir" \
+		"$sde_shell" -s -p null -x \
+		  "$sde_install_gcc" -v "$gcc_version" -d "$gcc_dir" \
 		  "${gcc_install_options[@]}" || \
 		  panic "cannot install gcc"
 	fi
@@ -435,8 +482,8 @@ if [ -n "$clang_dir" ]; then
 		#c_compiler_command=$(type -P gcc) || c_compiler_command=""
 
 		# Always build Clang with the SDE-installed version of GCC.
-		cpp_compiler_command=""
-		c_compiler_command=""
+#		cpp_compiler_command=""
+#		c_compiler_command=""
 
 		install_clang_options=()
 		if [ "${SDE_LLVM_INSTALL_LLDB:-0}" -ne 0 ]; then
@@ -447,15 +494,17 @@ if [ -n "$clang_dir" ]; then
 		fi
 		install_clang_options+=(-l)
 
-		if [ -z "$cpp_compiler_command" -o -z "$c_compiler_command" ]; then
-			# Use SDE-installed version of GCC to build Clang.
-			compiler_name="SDE-installed GCC"
-			cpp_compiler_command="$gcc_dir/bin/g++"
-			c_compiler_command="$gcc_dir/bin/gcc"
-		fi
+#		if [ -z "$cpp_compiler_command" -o -z "$c_compiler_command" ]; then
+#			# Use SDE-installed version of GCC to build Clang.
+#			compiler_name="SDE-installed GCC"
+#			cpp_compiler_command="$gcc_dir/bin/g++"
+#			c_compiler_command="$gcc_dir/bin/gcc"
+#		fi
+#		CXX="$cpp_compiler_command" CC="$c_compiler_command" \
 		echo "Building Clang with $compiler_name"
-		CXX="$cpp_compiler_command" CC="$c_compiler_command" \
-		"$sde_install_clang" "${install_clang_options[@]}" \
+		"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
+		  env CXX="$gcc_dir/bin/g++" CC="$gcc_dir/bin/gcc" \
+		  "$sde_install_clang" "${install_clang_options[@]}" \
 		  -v "$clang_version" -d "$clang_dir" -f || \
 		  panic "cannot install clang"
 	fi
@@ -469,7 +518,8 @@ fi
 
 if [ -n "$boost_dir" ]; then
 	if [ ! -d "$boost_dir" ]; then
-		"$sde_install_boost" -v "$boost_version" -d "$boost_dir" || \
+		"$sde_shell" -s -p cmake:gcc-$gcc_version:clang-$clang_version -x \
+		  "$sde_install_boost" -v "$boost_version" -d "$boost_dir" || \
 		  panic "cannot install boost"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" boost "$boost_version" || \
@@ -482,7 +532,8 @@ fi
 
 if [ -n "$cgal_dir" ]; then
 	if [ ! -d "$cgal_dir" ]; then
-		"$sde_install_cgal" -v "$cgal_version" -d "$cgal_dir" || \
+		"$sde_shell" -s -x \
+		  "$sde_install_cgal" -v "$cgal_version" -d "$cgal_dir" || \
 		  panic "cannot install CGAL"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" CGAL "$cgal_version" || \
@@ -495,7 +546,8 @@ fi
 
 if [ -n "$gdb_dir" ]; then
 	if [ ! -d "$gdb_dir" ]; then
-		"$sde_install_gdb" -v "$gdb_version" -d "$gdb_dir" || \
+		"$sde_shell" -s -x \
+		  "$sde_install_gdb" -v "$gdb_version" -d "$gdb_dir" || \
 		  panic "cannot install gdb"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" gdb "$gdb_version" || \
@@ -508,7 +560,8 @@ fi
 
 if [ -n "$lcov_dir" ]; then
 	if [ ! -d "$lcov_dir" ]; then
-		"$sde_install_lcov" -v "$lcov_version" -d "$lcov_dir" || \
+		"$sde_shell" -s -x \
+		  "$sde_install_lcov" -v "$lcov_version" -d "$lcov_dir" || \
 		  panic "cannot install lcov"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" lcov "$lcov_version" || \
@@ -522,18 +575,21 @@ fi
 if [ "$enable_texlive_install" -ne 0 ]; then
 	if [ 1 -ne 0 ]; then
 		if [ ! -d "$texlive_iso_dir" ]; then
-			"$sde_download_texlive_iso" -v "$texlive_version" \
+			"$sde_shell" -s -x \
+			  "$sde_download_texlive_iso" -v "$texlive_version" \
 			  -o "$texlive_iso_dir/texlive.iso" || \
 			  panic "cannot download texlive_iso"
 		fi
 		if [ ! -d "$texlive_dir" ]; then
-			"$sde_install_texlive_iso" -i "$texlive_iso_dir/texlive.iso" \
+			"$sde_shell" -s -x \
+			  "$sde_install_texlive_iso" -i "$texlive_iso_dir/texlive.iso" \
 			  -d "$texlive_dir" || \
 			  panic "cannot install texlive"
 		fi
 	else
 		if [ ! -d "$texlive_dir" ]; then
-			"$sde_install_texlive" -v "$texlive_version" -d "$texlive_dir" || \
+			"$sde_shell" -s -x \
+			  "$sde_install_texlive" -v "$texlive_version" -d "$texlive_dir" || \
 			  panic "cannot install texlive"
 		fi
 	fi
@@ -558,7 +614,8 @@ if [ -n "$jasper_dir" ]; then
 			options+=(-o no_build_doc)
 			path_string=""
 		fi
-		PATH="${path_string}$PATH" \
+#		PATH="${path_string}$PATH" \
+		"$sde_shell" -s -x \
 		  "$sde_install_jasper" -v "$jasper_version" -d "$jasper_dir" \
 		  "${options[@]}" || \
 		  panic "cannot install jasper"
@@ -581,7 +638,8 @@ if [ -n "$spl_dir" ]; then
 			options+=(-o no_build_doc)
 			path_string=""
 		fi
-		PATH="$gcc_bin_dir:${path_string}$PATH" \
+#		PATH="$gcc_bin_dir:${path_string}$PATH" \
+		"$sde_shell" -s -x \
 		  "$sde_install_spl" -v "$spl_version" -d "$spl_dir" "${options[@]}" || \
 		  panic "cannot install SPL"
 	fi
@@ -595,7 +653,8 @@ fi
 
 if [ -n "$gsl_dir" ]; then
 	if [ ! -d "$gsl_dir" ]; then
-		PATH="$gcc_bin_dir:$PATH" \
+#		PATH="$gcc_bin_dir:$PATH" \
+		"$sde_shell" -s -x \
 		  "$sde_install_gsl" -v "$gsl_version" -d "$gsl_dir" || \
 		  panic "cannot install GSL"
 	fi
@@ -609,7 +668,8 @@ fi
 
 if [ -n "$catch_dir" ]; then
 	if [ ! -d "$catch_dir" ]; then
-		"$sde_install_catch" -v "$catch_version" -d "$catch_dir" || \
+		"$sde_shell" -s -x \
+		  "$sde_install_catch" -v "$catch_version" -d "$catch_dir" || \
 		  panic "cannot install catch"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" catch "$catch_version" || \
@@ -622,7 +682,8 @@ fi
 
 if [ -n "$ndiff_dir" ]; then
 	if [ ! -d "$ndiff_dir" ]; then
-		"$sde_install_ndiff" -v "$ndiff_version" -d "$ndiff_dir" || \
+		"$sde_shell" -s -x \
+		  "$sde_install_ndiff" -v "$ndiff_version" -d "$ndiff_dir" || \
 		  panic "cannot install ndiff"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" ndiff "$ndiff_version" || \
@@ -635,7 +696,11 @@ fi
 
 if [ -n "$aristotle_dir" ]; then
 	if [ ! -d "$aristotle_dir" ]; then
-		"$sde_install_aristotle" -v "$aristotle_version" -d "$aristotle_dir" || \
+		"$sde_shell" -s -x \
+		  "$sde_install_aristotle" \
+		  -v "$aristotle_version" -d "$aristotle_dir" \
+		  -b "-A $sde_top_dir" \
+		  || \
 		  panic "cannot install aristotle"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" aristotle "$aristotle_version" || \
@@ -648,7 +713,8 @@ fi
 
 if [ -n "$vim_dir" ]; then
 	if [ ! -d "$vim_dir" ]; then
-		"$sde_install_vim" -v "$vim_version" -d "$vim_dir" || \
+		"$sde_shell" -s -x \
+		  "$sde_install_vim" -v "$vim_version" -d "$vim_dir" || \
 		  panic "cannot install vim"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" vim "$vim_version" || \
@@ -661,7 +727,8 @@ fi
 
 if [ -n "$vimlsp_dir" ]; then
 	if [ ! -d "$vimlsp_dir" ]; then
-		"$sde_install_vimlsp" -d "$vimlsp_dir" \
+		"$sde_shell" -s -x \
+		  "$sde_install_vimlsp" -d "$vimlsp_dir" \
 		  -v "vim-lsp:$vimlsp_version" \
 		  -v "async.vim:$vimlsp_async_version" \
 		  -v "asyncomplete.vim:$vimlsp_ac_version" \
@@ -687,11 +754,16 @@ if [ -n "$ycm_dir" ]; then
 		lib_options=()
 		lib_options+=(-L$gcc_dir/lib64 -Wl,-rpath,$gcc_dir/lib64)
 		lib_options+=(-L$clang_dir/lib -Wl,-rpath,$clang_dir/lib)
-		CXX="$clang_dir/bin/clang++ ${lib_options[@]}" \
-		  CC="$clang_dir/bin/clang ${lib_options[@]}" \
-		  PATH="$clang_dir/bin:$PATH" \
+#		CXX="$clang_dir/bin/clang++ ${lib_options[@]}" \
+#		  CC="$clang_dir/bin/clang ${lib_options[@]}" \
+#		  PATH="$clang_dir/bin:$PATH" \
+#		  "$sde_install_ycm" -v "$ycm_version" -d "$ycm_dir" "${options[@]}" || \
+#		  panic "cannot install ycm"
+		"$sde_shell" -s -p cmake:clang-$clang_version -x \
+		  env CXX="$clang_dir/bin/clang++" CC="$clang_dir/bin/clang" \
 		  "$sde_install_ycm" -v "$ycm_version" -d "$ycm_dir" "${options[@]}" || \
 		  panic "cannot install ycm"
+
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" ycm "$ycm_version" || \
 	  panic "cannot configure ycm"

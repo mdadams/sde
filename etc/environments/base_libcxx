@@ -22,5 +22,5 @@ vimlsp
 ycm
 ycm_extras
 
-#libcxx
+libcxx
 #gccgo
