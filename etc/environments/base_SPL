@@ -6,7 +6,7 @@ boost
 catch
 gsl
 CGAL
-#SPL
+SPL
 
 gdb
 lcov

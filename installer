@@ -32,7 +32,7 @@
 cmake_version=3.14.0-rc2
 
 # GCC: https://www.gnu.org/software/gcc
-gcc_version=8.2.0
+gcc_version=8.3.0
 
 # LLVM: http://releases.llvm.org/download.html
 clang_version=7.0.1
@@ -77,7 +77,7 @@ catch_version=v2.6.1
 lcov_version=42b55f5a497d2286566d0dd411e3e52fd4d50469
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=28ba60120556c4be71368d1fafe10c216a1c59cf
+vimlsp_version=b71d35cc0a31500d97fdd4eb97cfc1dbe3ec72fd
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=f3014550d7a799097e56b094104dd2cd66cf2612
