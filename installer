@@ -778,7 +778,7 @@ fi
 
 if [ -n "$hub_dir" ]; then
 	if [ ! -d "$hub_dir" ]; then
-		gccgo_verison="7.4.0"
+		gccgo_version="7.4.0"
 		gccgo_dir="$packages_dir/gccgo-$gccgo_version"
 		if [ ! -d "$gccgo_dir" ]; then
 			SDE_INSTALL_GCC_ENABLE_LANGUAGES=go \
