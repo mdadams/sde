@@ -75,6 +75,10 @@ usage()
 	    Install from GNU GCC Subversion repository.
 	-j \$num_jobs
 	    Allow the use of \$num_jobs simultaneous jobs.
+	-x
+	    Download only but do not build and install.
+	-p \$patch_file
+	    Apply the patch file \$patch_file before building.
 
 	Environment Variables
 	=====================
@@ -113,8 +117,10 @@ tmp_dir="${SDE_TMPDIR:-/tmp}/sde_install_gcc-$user-$host-$$"
 
 old_abi=0
 num_jobs=4
+download_only=0
+patch_files=()
 
-while getopts d:v:o:rj: opt; do
+while getopts d:v:o:rj:xp: opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
@@ -135,6 +141,10 @@ while getopts d:v:o:rj: opt; do
 		;;
 	j)
 		num_jobs="$OPTARG";;
+	x)
+		download_only=1;;
+	p)
+		patch_files+=("$OPTARG");;
 	\?)
 		usage
 		break;;
@@ -222,6 +232,18 @@ fi
 
 src_dir_space=$(disk_usage "$src_dir")
 echo "SOURCE DIRECTORY DISK USAGE $src_dir_space"
+
+for patch_file in "${patch_files[@]}"; do
+	abs_patch_file=$(realpath "$patch_file") || \
+	  panic "cannot get real path"
+	(cd "$src_dir" && patch -p1 < "$abs_patch_file") || \
+	  panic "patch failed for $patch_file"
+done
+
+if [ "$download_only" -ne 0 ]; then
+	# Note: Do not cleanup.
+	exit 0
+fi
 
 options=()
 if [ "$old_abi" -ne 0 ]; then

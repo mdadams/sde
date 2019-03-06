@@ -29,7 +29,7 @@
 
 # CMake: https://cmake.org/download
 #cmake_version=3.13.4
-cmake_version=3.14.0-rc2
+cmake_version=3.14.0-rc3
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=8.3.0
@@ -59,10 +59,10 @@ boost_version=1.69.0
 cgal_version=4.13
 
 # Aristotle: https://github.com/mdadams/aristotle
-aristotle_version=v3.0.12
+aristotle_version=v3.0.13
 
 # YCM: https://github.com/Valloric/YouCompleteMe
-ycm_version=032281307dddeabdb0173b5fcd54b283e950d4ce
+ycm_version=a4e2f6149a35e04fa5df79948ef9cbcc24b7abcb
 
 # Vim: https://www.vim.org/download.php
 vim_version=8.1
@@ -74,10 +74,10 @@ gsl_version=v2.0.0
 catch_version=v2.6.1
 
 # Lcov: https://github.com/linux-test-project/lcov
-lcov_version=42b55f5a497d2286566d0dd411e3e52fd4d50469
+lcov_version=94dc428f0cf0a613f46b483806c5d737e9b1e2cf
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=b71d35cc0a31500d97fdd4eb97cfc1dbe3ec72fd
+vimlsp_version=0310241af11adc6c3a7ba93955bc27b15744c957
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=f3014550d7a799097e56b094104dd2cd66cf2612
@@ -89,7 +89,7 @@ vimlsp_ac_version=08437a0f7c741ce6e870a70df30cb0bee6135c81
 vimlsp_aclsp_version=b9630e25f842686f952748071b914e748be1cd78
 
 # Hub: https://github.com/github/hub
-hub_version=
+hub_version=2.10.0
 
 # GHI: https://github.com/stephencelis/ghi
 ghi_version=1.2.0
@@ -258,6 +258,9 @@ if [ "${SDE_VIM_INSTALL:-1}" -eq 0 ]; then
 fi
 if [ "${SDE_CGAL_INSTALL:-0}" -eq 0 ]; then
 	cgal_dir=
+fi
+if [ "${SDE_HUB_INSTALL:-0}" -eq 0 ]; then
+	hub_dir=
 fi
 
 ################################################################################
@@ -767,6 +770,29 @@ if [ -n "$ycm_dir" ]; then
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" ycm "$ycm_version" || \
 	  panic "cannot configure ycm"
+fi
+
+################################################################################
+#
+################################################################################
+
+if [ -n "$hub_dir" ]; then
+	if [ ! -d "$hub_dir" ]; then
+		gccgo_verison="7.4.0"
+		gccgo_dir="$packages_dir/gccgo-$gccgo_version"
+		if [ ! -d "$gccgo_dir" ]; then
+			SDE_INSTALL_GCC_ENABLE_LANGUAGES=go \
+			  "$sde_shell" -s -p null -x \
+			  "$sde_install_gcc" -v "$gccgo_version" -d "$gccgo_dir" \
+			  "${gcc_install_options[@]}" || \
+			  panic "cannot install gccgo"
+		fi
+		"$sde_shell" -s -p "cmake:gccgo-$gccgo_version" -x \
+		  "$sde_install_hub" -v "$hub_version" -d "$hub_dir" || \
+		  panic "cannot install hub"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" hub "$hub_version" || \
+	  panic "cannot configure hub"
 fi
 
 ################################################################################
