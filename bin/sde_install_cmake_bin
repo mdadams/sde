@@ -2,7 +2,7 @@
 
 # __START_OF_LICENSE__
 # 
-# Copyright (c) 2019 Michael D. Adams
+# Copyright (c) 2017, 2018 Michael D. Adams
 # All rights reserved.
 # 
 # This file is part of the SDE software.
@@ -22,6 +22,8 @@
 # see <http://www.gnu.org/licenses/>.
 # 
 # __END_OF_LICENSE__
+
+# Reference: https://cmake.org/download/
 
 panic()
 {
@@ -53,14 +55,13 @@ usage()
 	-d \$install_dir
 	    Set the installation directory to \$install_dir.
 	    This option must be spcified.
-	-r
-	    Install from Git repository.
-
-	Example:
-	$0 -v 3.14.0-rc4 -d /usr/local/cmake-3.14.0-rc4
-	$0 -v 3.14.1 -d /usr/local/cmake-3.14.1
+	-O \$os
+	    Set the operating system type to \$os (e.g., linux-gnu).
+	    This option defaults to the currently running operating system.
+	-A \$arch
+	    Set the architecture type to \$arch (e.g., x86_64).
+	    This option defaults to the architecture of the current platform.
 	EOF
-
 	exit 2
 }
 
@@ -68,19 +69,22 @@ user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
-repository=0
 version=
 install_dir=
 tmp_dir="/tmp/sde_install_cmake-$user@$host-$$"
+os="$OSTYPE"
+arch="x86_64"
 
-while getopts d:v:hr opt; do
+while getopts d:v:O:A:h opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
 	v)
 		version="$OPTARG";;
-	r)
-		repository=1;;
+	O)
+		os="$OPTARG";;
+	A)
+		arch="$OPTARG";;
 	h)
 		usage;;
 	\?)
@@ -95,9 +99,12 @@ fi
 if [ -z "$version" ]; then
 	usage "no version specified"
 fi
-
-src_dir="$tmp_dir/cmake"
-build_dir="$tmp_dir/build"
+if [ -z "$os" ]; then
+	usage "no operating system specified"
+fi
+if [ -z "$os" ]; then
+	usage "no architecture specified"
+fi
 
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
@@ -105,38 +112,64 @@ build_dir="$tmp_dir/build"
 # will be accessible by all users.
 umask 022
 
+case "$os" in
+linux*)
+	cmake_os=Linux;;
+darwin*)
+	cmake_os=Darwin;;
+*)
+	panic "unknown operating system $os"
+	;;
+esac
+
+cmake_arch="$arch"
+
+short_version=$(echo "$version" | sed -e 's/\.[0-9]*\(\|-rc[0-9]*\)$//') || \
+  panic "cannot extract short version"
+url="https://cmake.org/files/v$short_version/cmake-$version-$cmake_os-$cmake_arch.tar.gz"
+archive=$(basename $url) || panic "cannot extract archive name"
+
+if [ -d "$install_dir" ]; then
+	panic "installation directory already exists"
+fi
+
 mkdir -p "$tmp_dir" || \
   panic "cannot make temporary directory $tmp_dir"
 
-if [ "$repository" -ne 0 ]; then
-	repo_url="https://gitlab.kitware.com/cmake/cmake.git"
-	commit="v$version"
-	git clone "$repo_url" "$src_dir" || \
-	  panic "cannot clone repository"
-	(cd "$src_dir" && git checkout "$commit") || \
-	  panic "cannot checkout"
-else
-	archive_url="https://github.com/Kitware/CMake/releases/download/v$version/cmake-$version.tar.gz"
-	archive_base=$(basename "$archive_url") || panic "cannot get basename"
-	archive_file="$tmp_dir/$archive_base"
-	wget -O "$archive_file" "$archive_url" || panic "cannot download archive"
-	mkdir -p "$src_dir" || panic "cannot make directory"
-	tar -x -z --strip-components=1 -C "$src_dir" -f "$archive_file" || \
-	  panic "cannot extract archive"
+(cd "$tmp_dir" && wget "$url") || \
+  panic "cannot download archive"
+
+mkdir -p "$install_dir" || \
+  panic "cannot make directory $install_dir"
+
+tar -x -z --strip-components=1 -C "$install_dir" -f "$tmp_dir/$archive" || \
+  panic "cannot extract archive"
+
+case "$os" in
+linux*)
+	cmake_bin_dir="bin";;
+darwin*)
+	cmake_bin_dir="CMake.app/Contents/bin";;
+*)
+	panic "unknown operating system $os";;
+esac
+
+if [ "$cmake_bin_dir" != "bin" ]; then
+	mkdir -p "$install_dir/bin" || panic "cannot make directory"
 fi
 
-mkdir -p "$build_dir" || \
-  panic "cannot make build directory"
+for file in ccmake cmake cmake-gui cpack ctest; do
+	target_file="$install_dir/$cmake_bin_dir/$file"
+	chmod a+rx "$target_file" || \
+	  panic "cannot set permission for $target_file"
+	if [ "$cmake_bin_dir" != "bin" ]; then
+		# NOTE: It would be better to use a relative path for the
+		# symbolic link created here.
+		ln -s "$target_file" "$install_dir/bin" || panic "cannot link file"
+	fi
+done
 
-(cd "$build_dir" && \
-  ../cmake/bootstrap --parallel=4 --prefix="$install_dir") || \
-  panic "cannot bootstrap"
-
-(cd "$build_dir" && make -j4 install) || \
-  panic "cannot build/install"
-
-if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
-	rm -rf "$tmp_dir"
-fi
+rm -f "$tmp_dir/$archive"
+rmdir "$tmp_dir" || warn "cannot remove temporary directory $tmp_dir"
 
 exit 0
