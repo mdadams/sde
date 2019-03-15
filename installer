@@ -58,7 +58,7 @@ boost_version=1.69.0
 cgal_version=4.13
 
 # Aristotle: https://github.com/mdadams/aristotle
-aristotle_version=v3.0.13
+aristotle_version=v3.0.14
 
 # YCM: https://github.com/Valloric/YouCompleteMe
 ycm_version=299f8e48e7d34e780d24b4956cd61e4d42a139eb
@@ -251,6 +251,15 @@ if [ "${SDE_GCC_USE_OLD_ABI:-0}" -ne 0 ]; then
 else
 	gcc_install_options+=(-o new_abi)
 fi
+
+install_clang_options=()
+if [ "${SDE_LLVM_INSTALL_LLDB:-0}" -ne 0 ]; then
+	install_clang_options+=(-D)
+fi
+if [ "${SDE_LLVM_INSTALL_TEST_SUITE:-0}" -ne 0 ]; then
+	install_clang_options+=(-t)
+fi
+install_clang_options+=(-l)
 
 if [ "${SDE_VIM_INSTALL:-1}" -eq 0 ]; then
 	vim_dir=
@@ -467,6 +476,24 @@ if [ -n "$gcc_dir" ]; then
 fi
 
 ################################################################################
+# Install GCC Trunk
+################################################################################
+
+if [ "${SDE_GCC_TRUNK_INSTALL:-0}" -ne 0 ]; then
+	gcc_trunk_dir="$packages_dir/gcc-trunk"
+	if [ -n "$gcc_trunk_dir" ]; then
+		if [ ! -d "$gcc_trunk_dir" ]; then
+			"$sde_shell" -s -p null -x \
+			  "$sde_install_gcc" -r -v trunk -d "$gcc_trunk_dir" \
+			  "${gcc_install_options[@]}" || \
+			  panic "cannot install gcc"
+		fi
+		#"$sde_cmd" pkg -d "$sde_top_dir" gcc "$gcc_version" || \
+		#  panic "cannot configure gcc"
+	fi
+fi
+
+################################################################################
 # Install Clang
 ################################################################################
 
@@ -487,15 +514,6 @@ if [ -n "$clang_dir" ]; then
 #		cpp_compiler_command=""
 #		c_compiler_command=""
 
-		install_clang_options=()
-		if [ "${SDE_LLVM_INSTALL_LLDB:-0}" -ne 0 ]; then
-			install_clang_options+=(-D)
-		fi
-		if [ "${SDE_LLVM_INSTALL_TEST_SUITE:-0}" -ne 0 ]; then
-			install_clang_options+=(-t)
-		fi
-		install_clang_options+=(-l)
-
 #		if [ -z "$cpp_compiler_command" -o -z "$c_compiler_command" ]; then
 #			# Use SDE-installed version of GCC to build Clang.
 #			compiler_name="SDE-installed GCC"
@@ -503,7 +521,7 @@ if [ -n "$clang_dir" ]; then
 #			c_compiler_command="$gcc_dir/bin/gcc"
 #		fi
 #		CXX="$cpp_compiler_command" CC="$c_compiler_command" \
-		echo "Building Clang with $compiler_name"
+		#echo "Building Clang with $compiler_name"
 		"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
 		  env CXX="$gcc_dir/bin/g++" CC="$gcc_dir/bin/gcc" \
 		  "$sde_install_clang" "${install_clang_options[@]}" \
@@ -512,6 +530,24 @@ if [ -n "$clang_dir" ]; then
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" clang "$clang_version" || \
 	  panic "cannot configure clang"
+fi
+
+################################################################################
+# Install Clang Trunk
+################################################################################
+
+if [ "${SDE_CLANG_TRUNK_INSTALL:-0}" -ne 0 ]; then
+	if [ -n "$clang_trunk_dir" ]; then
+		if [ ! -d "$clang_trunk_dir" ]; then
+			"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
+			  env CXX="$gcc_dir/bin/g++" CC="$gcc_dir/bin/gcc" \
+			  "$sde_install_clang" "${install_clang_options[@]}" \
+			  -r -v trunk -d "$clang_trunk_dir" -f || \
+			  panic "cannot install clang"
+		fi
+		#"$sde_cmd" pkg -d "$sde_top_dir" clang "$clang_version" || \
+		#  panic "cannot configure clang"
+	fi
 fi
 
 ################################################################################
