@@ -265,7 +265,7 @@ fi
   panic "make failed"
 
 if [ "${SDE_INSTALL_GCC_STRIPPED:-0}" -ne 0 ]; then
-	install_target="install-stripped"
+	install_target="install-strip"
 else
 	install_target="install"
 fi
