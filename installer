@@ -34,7 +34,7 @@ cmake_version=3.14.0
 gcc_version=8.3.0
 
 # LLVM: http://releases.llvm.org/download.html
-clang_version=7.0.1
+clang_version=8.0.0
 
 # JasPer: https://www.ece.uvic.ca/~frodo/jasper/#download
 jasper_version=2.0.14
@@ -61,7 +61,7 @@ cgal_version=4.13
 aristotle_version=v3.0.14
 
 # YCM: https://github.com/Valloric/YouCompleteMe
-ycm_version=299f8e48e7d34e780d24b4956cd61e4d42a139eb
+ycm_version=25ebc0b9abb1b135c809ee850085a0305cbc5533
 
 # Vim: https://www.vim.org/download.php
 vim_version=8.1
@@ -70,13 +70,13 @@ vim_version=8.1
 gsl_version=v2.0.0
 
 # Catch2: https://github.com/catchorg/Catch2/releases
-catch_version=v2.6.1
+catch_version=v2.7.0
 
 # Lcov: https://github.com/linux-test-project/lcov
-lcov_version=94dc428f0cf0a613f46b483806c5d737e9b1e2cf
+lcov_version=v1.14
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=e3f69339efbf9582be1859766e2b2ed353bedfbc
+vimlsp_version=3e28b8fb1ed670a19f1cb178f5363739c8732a39
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=f3014550d7a799097e56b094104dd2cd66cf2612
