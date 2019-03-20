@@ -86,9 +86,11 @@ usage()
 	SDE_TMPDIR
 	    Specifies the directory under which temporary files are placed
 	    (e.g., when building software prior to installation).
-
 	SDE_INSTALL_GCC_ENABLE_LANGUAGES
 	    A comma-separated list of language to be built.
+	SDE_INSTALL_GCC_STRIPPED
+	    Install stripped executables.
+	    Valid values: 0, 1
 
 	Examples
 	========
@@ -262,7 +264,12 @@ fi
 (cd "$build_dir" && make "${make_opts[@]}") || \
   panic "make failed"
 
-(cd "$build_dir" && make install) || \
+if [ "${SDE_INSTALL_GCC_STRIPPED:-0}" -ne 0 ]; then
+	install_target="install-stripped"
+else
+	install_target="install"
+fi
+(cd "$build_dir" && make "$install_target") || \
   panic "make install failed"
 
 tmp_dir_space=$(disk_usage "$tmp_dir")

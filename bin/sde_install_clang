@@ -67,6 +67,11 @@ usage()
 	-j \$num_jobs
 	    Allow the use of \$num_jobs siumultaneous jobs.
 
+	Environment variables:
+	SDE_INSTALL_CLANG_STRIPPED
+	    Install stripped executables.
+        Valid values: 0, 1
+
 	Examples:
 	$0 -r -v trunk -d $HOME/local/clang
 	$0 -r -v branches/release_70 -d $HOME/local/clang
@@ -355,6 +360,11 @@ make_opts+=(-j$num_jobs)
 
 (cd "$build_dir" && make "${make_opts[@]}") || panic "make failed"
 
-(cd "$build_dir" && make install) || panic "make install failed"
+if [ "${SDE_INSTALL_CLANG_STRIPPED:-0}" -ne 0 ]; then
+	install_target="install/strip"
+else
+	install_target="install"
+fi
+(cd "$build_dir" && make "$install_target") || panic "make install failed"
 
 rm -rf "$tmp_dir"
