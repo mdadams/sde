@@ -28,7 +28,7 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.14.0
+cmake_version=3.14.1
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=8.3.0
@@ -55,7 +55,7 @@ texlive_version=2018
 boost_version=1.69.0
 
 # CGAL: https://github.com/CGAL/cgal/releases
-cgal_version=4.13
+cgal_version=4.14
 
 # Aristotle: https://github.com/mdadams/aristotle
 aristotle_version=v3.0.14
@@ -76,19 +76,19 @@ catch_version=v2.7.0
 lcov_version=v1.14
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=3e28b8fb1ed670a19f1cb178f5363739c8732a39
+vimlsp_version=ee1dd1638a69930fb49be7f7e4e17c9bdb16de63
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=f3014550d7a799097e56b094104dd2cd66cf2612
 
 # Vim Asyncomplete: https://github.com/prabirshrestha/asyncomplete.vim.git
-vimlsp_ac_version=08437a0f7c741ce6e870a70df30cb0bee6135c81
+vimlsp_ac_version=f4a5b881c86e8a6a7701db023c0631417851815d
 
 # Vim Asyncomplete LSP: https://github.com/prabirshrestha/asyncomplete-lsp.vim.git
-vimlsp_aclsp_version=b9630e25f842686f952748071b914e748be1cd78
+vimlsp_aclsp_version=9e45b9f8f4310924cc4bdc989b0e4d2e10cedf85
 
 # Hub: https://github.com/github/hub
-hub_version=2.10.0
+hub_version=2.11.1
 
 # GHI: https://github.com/stephencelis/ghi
 ghi_version=1.2.0
