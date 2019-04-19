@@ -52,13 +52,16 @@ ndiff_version=2.00
 texlive_version=2018
 
 # Boost: https://www.boost.org/users/download
-boost_version=1.70.0
+# Note: Do not upgrade Boost until CMake catches up; otherwise build problems
+# will likely result.
+#boost_version=1.70.0
+boost_version=1.69.0
 
 # CGAL: https://github.com/CGAL/cgal/releases
 cgal_version=4.14
 
 # Aristotle: https://github.com/mdadams/aristotle
-aristotle_version=v3.0.16
+aristotle_version=v3.0.17
 
 # YCM: https://github.com/Valloric/YouCompleteMe
 ycm_version=9dee2b4e3f5de5f8b9fdc4790eac35eb2c40257a
