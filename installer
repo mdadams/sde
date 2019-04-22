@@ -28,7 +28,7 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.14.2
+cmake_version=3.14.3
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=8.3.0
@@ -61,7 +61,7 @@ boost_version=1.69.0
 cgal_version=4.14
 
 # Aristotle: https://github.com/mdadams/aristotle
-aristotle_version=v3.0.17
+aristotle_version=v3.0.18
 
 # YCM: https://github.com/Valloric/YouCompleteMe
 ycm_version=9dee2b4e3f5de5f8b9fdc4790eac35eb2c40257a
@@ -79,7 +79,7 @@ catch_version=v2.7.1
 lcov_version=v1.14
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=357a074c851ec04d9d21640a77bd9aaa25f1140a
+vimlsp_version=fe5057641cadba27caa26df74efa896e4255308e
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=f3014550d7a799097e56b094104dd2cd66cf2612
