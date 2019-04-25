@@ -61,10 +61,10 @@ boost_version=1.69.0
 cgal_version=4.14
 
 # Aristotle: https://github.com/mdadams/aristotle
-aristotle_version=v3.0.18
+aristotle_version=v3.0.19
 
 # YCM: https://github.com/Valloric/YouCompleteMe
-ycm_version=9dee2b4e3f5de5f8b9fdc4790eac35eb2c40257a
+ycm_version=2ae00449e5d7505102bb63d4bc28abb5e0744829
 
 # Vim: https://www.vim.org/download.php
 vim_version=8.1
@@ -73,7 +73,7 @@ vim_version=8.1
 gsl_version=v2.0.0
 
 # Catch2: https://github.com/catchorg/Catch2/releases
-catch_version=v2.7.1
+catch_version=v2.7.2
 
 # Lcov: https://github.com/linux-test-project/lcov
 lcov_version=v1.14
