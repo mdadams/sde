@@ -29,6 +29,14 @@ panic()
 	exit 1
 }
 
+cleanup()
+{
+	if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
+		rm -rf "$tmp_dir" || \
+		  echo "warning: cannot remove temporary directory $tmp_dir"
+	fi
+}
+
 usage()
 {
 	echo "BAD USAGE: $@"
@@ -52,10 +60,10 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 
 version=master
 install_dir=
-tmp_dir="/tmp/sde_install_catch-$user@$host-$$"
 verbose=0
+install_type=cmake
 
-while getopts d:v:V opt; do
+while getopts d:v:Vz opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
@@ -63,6 +71,8 @@ while getopts d:v:V opt; do
 		version="$OPTARG";;
 	V)
 		verbose=$((verbose + 1));;
+	z)
+		install_type="dumb";;
 	\?)
 		usage
 		break;;
@@ -76,6 +86,8 @@ fi
 if [ -z "$version" ]; then
 	usage "no version specified"
 fi
+
+tmp_dir_template="${TMPDIR:-/tmp}/sde_install_catch-XXXXXXXX"
 
 case "$version" in
 v1.*)
@@ -92,67 +104,76 @@ umask 022
 
 ################################################################################
 
-catch_url="https://github.com/catchorg/Catch2/releases/download/$version/catch.hpp"
+tmp_dir=$(mktemp -d "$tmp_dir_template") || \
+  panic "cannot create temporary directory"
+trap cleanup EXIT
 
-top_dir="$tmp_dir/catch-$version"
+case "$install_type" in
 
-for dir in "$top_dir"; do
-	if [ ! -d "$dir" ]; then
-		mkdir -p "$dir" || panic "cannot make directory $dir"
+dumb)
+
+	catch_url="https://github.com/catchorg/Catch2/releases/download/$version/catch.hpp"
+
+	top_dir="$tmp_dir/catch-$version"
+
+	for dir in "$top_dir"; do
+		if [ ! -d "$dir" ]; then
+			mkdir -p "$dir" || panic "cannot make directory $dir"
+		fi
+	done
+
+	inc_dir="$install_dir/include/$lib_name"
+
+	mkdir -p "$inc_dir" || panic "cannot make directory $inc_dir"
+
+	(cd "$top_dir" && wget "$catch_url") || panic
+	file="$top_dir/$(basename "$catch_url")"
+	if [ ! -f "$file" ]; then
+		panic
 	fi
-done
+	mv "$file" "$inc_dir" || panic
 
-inc_dir="$install_dir/include/$lib_name"
+	;;
 
-mkdir -p "$inc_dir" || panic "cannot make directory $inc_dir"
+cmake)
 
-(cd "$top_dir" && wget "$catch_url") || panic
-file="$top_dir/$(basename "$catch_url")"
-if [ ! -f "$file" ]; then
-	panic
-fi
-mv "$file" "$inc_dir" || panic
+	top_dir="$tmp_dir/catch-$version"
+	src_dir="$top_dir/source"
+	build_dir="$tmp_dir/build"
 
-exit
+	for dir in "$top_dir" "$build_dir" "$src_dir"; do
+		if [ ! -d "$dir" ]; then
+			mkdir -p "$dir" || panic "cannot make directory $dir"
+		fi
+	done
 
-################################################################################
-# not currently used
-################################################################################
+	catch_url="https://github.com/catchorg/Catch2.git"
 
-top_dir="$tmp_dir/catch-$version"
-src_dir="$top_dir/source"
-build_dir="$tmp_dir/build"
-
-for dir in "$top_dir" "$build_dir" "$src_dir"; do
-	if [ ! -d "$dir" ]; then
-		mkdir -p "$dir" || panic "cannot make directory $dir"
+	if [ "$verbose" -ge 1 ]; then
+		echo "############################################################"
+		echo "repository $catch_url"
+		echo "commit/tag/branch $version"
+		echo "############################################################"
 	fi
-done
 
-catch_url="https://github.com/catchorg/Catch2.git"
+	git clone "$catch_url" "$src_dir" || \
+	  panic "cannot clone repo"
 
-if [ "$verbose" -ge 1 ]; then
-	echo "############################################################"
-	echo "repository $gsl_url"
-	echo "commit/tag/branch $version"
-	echo "############################################################"
-fi
+	(cd "$src_dir" && git checkout "$version") || \
+	  panic "cannot clone repo"
 
-git clone "$catch_url" "$src_dir" || \
-  panic "cannot clone repo"
+	cmake_opts=()
+	cmake_opts+=(-DCMAKE_INSTALL_PREFIX="$install_dir")
+	cmake -H"$src_dir" -B"$build_dir" "${cmake_opts[@]}" || \
+	  panic "cmake failed"
 
-(cd "$src_dir" && git checkout "$version") || \
-  panic "cannot clone repo"
+	(cmake --build "$build_dir") || \
+	  panic "cmake failed"
 
-cmake_opts=()
-cmake_opts+=(-DCMAKE_INSTALL_PREFIX="$install_dir")
-cmake -H"$src_dir" -B"$build_dir" "${cmake_opts[@]}" || \
-  panic "cmake failed"
+	(cmake --build "$build_dir" --target install) || \
+	  panic "install failed"
 
-(cmake --build "$build_dir") || \
-  panic "cmake failed"
+	#rm -rf "$tmp_dir"
+	;;
 
-(cmake --build "$build_dir" --target install) || \
-  panic "install failed"
-
-#rm -rf "$tmp_dir"
+esac
