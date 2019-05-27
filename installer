@@ -50,7 +50,7 @@ spl_version=2.0.8
 ndiff_version=2.00
 
 # TeX Live: https://www.tug.org/texlive/acquire.html
-texlive_version=2018
+texlive_version=2019
 
 # Boost: https://www.boost.org/users/download
 # Note: Do not upgrade Boost until CMake catches up; otherwise build problems
@@ -74,13 +74,13 @@ vim_version=8.1
 gsl_version=v2.0.0
 
 # Catch2: https://github.com/catchorg/Catch2/releases
-catch_version=v2.7.2
+catch_version=v2.8.0
 
 # Lcov: https://github.com/linux-test-project/lcov
 lcov_version=v1.14
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=c1be74277471f68f31d2995bb7054676e71aa65b
+vimlsp_version=21d51ffb832aead80d3ba54274db9524d882dd6a
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=f3014550d7a799097e56b094104dd2cd66cf2612
