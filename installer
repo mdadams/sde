@@ -673,7 +673,7 @@ fi
 if [ -n "$spl_dir" ]; then
 	if [ ! -d "$spl_dir" ]; then
 		options=()
-		if [ -d "$texlive_dir" ]; then
+		if [ -d "$texlive_dir" -a "$texlive_version" != 2019 ]; then
 			options+=(-o build_doc)
 			path_string="$texlive_bin_dir:"
 		else
