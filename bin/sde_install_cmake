@@ -96,6 +96,9 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
+install_dir=$(realpath "$install_dir") || \
+  panic "cannot get absolute path for installation directory"
+
 src_dir="$tmp_dir/cmake"
 build_dir="$tmp_dir/build"
 

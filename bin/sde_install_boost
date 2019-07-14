@@ -56,15 +56,18 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 version=
 install_dir=
 toolset=gcc
+omit_cmake_config=0
 
 tmp_dir="${SDE_TMPDIR:-/tmp}/sde_install_boost-$user-$host-$$"
 
-while getopts d:v: opt; do
+while getopts d:v:c opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
 	v)
 		version="$OPTARG";;
+	c)
+		omit_cmake_config=1;;
 	\?)
 		usage
 		break;;
@@ -132,5 +135,22 @@ tar -xzf "$archive_file" -C "$src_dir" --strip-components=1 || \
   panic "build failed"
 
 rm -rf "$tmp_dir"
+
+if [ "$omit_cmake_config" -ne 0 ]; then
+	# Prevent the use of the flakey CMake config files.
+	# Rely on the Boost config files that are included with CMake instead.
+	targets=()
+	for i in $install_dir/lib*/cmake; do
+		if [ -e "$i" ]; then
+			targets+=("$i")
+		fi
+	done
+	for target in "${targets[@]}"; do
+		if [ -e "$target" ]; then
+			mv "$target" "$target-DO_NOT_USE" || \
+			  panic "cannot rename directory"
+		fi
+	done
+fi
 
 exit 0

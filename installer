@@ -560,9 +560,12 @@ fi
 ################################################################################
 
 if [ -n "$boost_dir" ]; then
+	install_boost_options=()
+	install_boost_options+=(-c)
 	if [ ! -d "$boost_dir" ]; then
 		"$sde_shell" -s -p cmake:gcc-$gcc_version:clang-$clang_version -x \
-		  "$sde_install_boost" -v "$boost_version" -d "$boost_dir" || \
+		  "$sde_install_boost" -v "$boost_version" -d "$boost_dir" \
+		  "${install_boost_options[@]}" || \
 		  panic "cannot install boost"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" boost "$boost_version" || \
