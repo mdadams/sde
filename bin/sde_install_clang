@@ -30,6 +30,9 @@
 # Reference: https://llvm.org/svn/llvm-project/cfe/trunk/INSTALL.txt
 # Reference: https://gist.github.com/larsch/6823355
 
+cmd_dir=$(dirname "$0") || exit 1
+source "$cmd_dir/utilities" || exit 1
+
 isabspath()
 {
 	case "$1" in
@@ -206,17 +209,34 @@ if [ "$from_repo" -ne 0 ]; then
 
 else
 
-	llvm_url="http://llvm.org/releases/$version/llvm-$version.src.tar.xz"
-	cfe_url="http://llvm.org/releases/$version/cfe-$version.src.tar.xz"
-	cte_url="http://llvm.org/releases/$version/clang-tools-extra-$version.src.tar.xz"
-	lld_url="http://llvm.org/releases/$version/lld-$version.src.tar.xz"
-	polly_url="http://llvm.org/releases/$version/polly-$version.src.tar.xz"
-	cr_url="http://llvm.org/releases/$version/compiler-rt-$version.src.tar.xz"
-	openmp_url="http://llvm.org/releases/$version/openmp-$version.src.tar.xz"
-	libcxx_url="http://releases.llvm.org/$version/libcxx-$version.src.tar.xz"
-	libcxxabi_url="http://releases.llvm.org/$version/libcxxabi-$version.src.tar.xz"
-	testsuite_url="http://releases.llvm.org/$version/test-suite-$version.src.tar.xz"
-	lldb_url="http://llvm.org/releases/$version/lldb-$version.src.tar.xz"
+	fetch_releases_from_github=0
+	# Note: From the 8.0.1 release onwards (and 7.0.1), releases are available
+	# through GitHub.
+	result=$(compare_versions 8.0.0 "$version") || panic
+	if [ "$result" -lt 0 ]; then
+		fetch_releases_from_github=1
+	fi
+	case "$version" in
+	7.1.0)
+		fetch_releases_from_github=1;;
+	esac
+	if [ "$fetch_releases_from_github" -ne 0 ]; then
+		base_url="https://github.com/llvm/llvm-project/releases/download/llvmorg-$version"
+	else
+		base_url="http://llvm.org/releases/$version"
+	fi
+
+	llvm_url="$base_url/llvm-$version.src.tar.xz"
+	cfe_url="$base_url/cfe-$version.src.tar.xz"
+	cte_url="$base_url/clang-tools-extra-$version.src.tar.xz"
+	lld_url="$base_url/lld-$version.src.tar.xz"
+	polly_url="$base_url/polly-$version.src.tar.xz"
+	cr_url="$base_url/compiler-rt-$version.src.tar.xz"
+	openmp_url="$base_url/openmp-$version.src.tar.xz"
+	libcxx_url="$base_url/libcxx-$version.src.tar.xz"
+	libcxxabi_url="$base_url/libcxxabi-$version.src.tar.xz"
+	testsuite_url="$base_url/test-suite-$version.src.tar.xz"
+	lldb_url="$base_url/lldb-$version.src.tar.xz"
 
 	urls=()
 	urls+=("$llvm_url")

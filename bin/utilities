@@ -1,0 +1,56 @@
+#! /usr/bin/env bash
+
+# __START_OF_LICENSE__
+# 
+# Copyright (c) 2017, 2018 Michael D. Adams
+# All rights reserved.
+# 
+# This file is part of the SDE software.
+# 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3,
+# or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this program; see the file LICENSE.  If not,
+# see <http://www.gnu.org/licenses/>.
+# 
+# __END_OF_LICENSE__
+
+compare_versions()
+{
+	local x=($(tr '.' ' ' <<< "$1"))
+	local y=($(tr '.' ' ' <<< "$2"))
+	local xv
+	local yv
+	local i=0
+	local result=0
+	while [ "$i" -lt 3 ]; do
+		if [ "$i" -lt "${#x[@]}" ]; then
+			xv="${x[$i]}"
+		else
+			xv=0
+		fi
+		if [ "$i" -lt "${#y[@]}" ]; then
+			yv="${y[$i]}"
+		else
+			yv=0
+		fi
+		if [ "$xv" -lt "$yv" ]; then
+			result="-1"
+			break
+		elif [ "$xv" -gt "$yv" ]; then
+			result="1"
+			break
+		fi
+		i=$((i + 1))
+	done
+	echo "$result"
+}
+
