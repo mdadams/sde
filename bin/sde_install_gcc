@@ -58,6 +58,14 @@ validate_url()
 	esac
 }
 
+perform_cleanup()
+{
+	if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
+		rm -rf "$tmp_dir" || \
+		  echo "warning: cannot remove temporary directory $tmp_dir"
+	fi
+}
+
 usage()
 {
 	echo "bad usage: $@"
@@ -79,6 +87,8 @@ usage()
 	    Download only but do not build and install.
 	-p \$patch_file
 	    Apply the patch file \$patch_file before building.
+	-C
+	    Disable cleanup.
 
 	Environment Variables
 	=====================
@@ -115,15 +125,19 @@ from_repo=0
 
 # Do not use user@host in the following pathname, since the GCC build
 # process cannot seem to handle "@" characters in pathnames.
-tmp_dir="${SDE_TMPDIR:-/tmp}/sde_install_gcc-$user-$host-$$"
+tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_gcc-$user-$host-XXXXXXXX"
 
 old_abi=0
 num_jobs=4
 download_only=0
 patch_files=()
+tmp_dir=
+cleanup=1
 
-while getopts d:v:o:rj:xp: opt; do
+while getopts Cd:v:o:rj:xp: opt; do
 	case "$opt" in
+	C)
+		cleanup=0;;
 	d)
 		install_dir="$OPTARG";;
 	v)
@@ -169,6 +183,12 @@ abs_install_dir=$(readlink -f "$install_dir") || \
 # This will help to increase the likelihood that the installed software
 # will be accessible by all users.
 umask 022
+
+tmp_dir=$(mktemp -d "$tmp_dir_template") || \
+  panic "cannot create temporary directory"
+if [ "$cleanup" -ne 0 ]; then
+	trap perform_cleanup EXIT
+fi
 
 make_opts=()
 make_opts+=("-j$num_jobs")
@@ -279,6 +299,6 @@ echo "TEMPORARY DIRECTORY DISK USAGE $tmp_dir_space"
 echo "SOURCE DIRECTORY DISK USAGE $src_dir_space"
 echo "BUILD DIRECTORY DISK USAGE $build_dir_space"
 
-rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"
+#rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"
 
 exit 0

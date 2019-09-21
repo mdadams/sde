@@ -43,6 +43,14 @@ isabspath()
 	esac
 }
 
+perform_cleanup()
+{
+	if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
+		rm -rf "$tmp_dir" || \
+		  echo "warning: cannot remove temporary directory $tmp_dir"
+	fi
+}
+
 panic()
 {
 	echo "ERROR: $@"
@@ -87,10 +95,11 @@ usage()
 user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
+tmp_dir=
 
 version=
 install_dir=
-tmp_dir="${SDE_TMPDIR:-/tmp}/sde_install_clang-$user@$host-$$"
+tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_clang-$user@$host-XXXXXXXX"
 gcc_dir=""
 use_old_host_toolchain=0
 install_libcxx=0
@@ -99,9 +108,12 @@ install_testsuite=0
 stop_early=0
 install_lldb=0
 num_jobs=4
+cleanup=1
 
-while getopts tlfg:d:v:rSDj: opt; do
+while getopts Ctlfg:d:v:rSDj: opt; do
 	case "$opt" in
+	C)
+		cleanup=0;;
 	l)
 		install_libcxx=1;;
 	t)
@@ -147,6 +159,12 @@ fi
 # This will help to increase the likelihood that the installed software
 # will be accessible by all users.
 umask 022
+
+tmp_dir=$(mktemp -d "$tmp_dir_template") || \
+  panic "cannot create temporary directory"
+if [ "$cleanup" -ne 0 ]; then
+	trap perform_cleanup EXIT
+fi
 
 mangled_version=$(echo "$version" | tr '/' '-') || panic
 top_dir="$tmp_dir/llvm-clang-$mangled_version"
@@ -208,18 +226,25 @@ if [ "$from_repo" -ne 0 ]; then
 	fi
 
 else
-
-	fetch_releases_from_github=0
-	# Note: From the 8.0.1 release onwards (and 7.0.1), releases are available
-	# through GitHub.
-	result=$(compare_versions 8.0.0 "$version") || panic
-	if [ "$result" -lt 0 ]; then
-		fetch_releases_from_github=1
+	# Note: Some LLVM Clang releases appear to be available only from GitHub.
+	# In particular, this seems to be the case for the 8.0.1 release.
+	if [ 1 -ne 0 ]; then
+		fetch_releases_from_github=0
+		#result=$(compare_versions 8.0.0 "$version") || panic
+		#if [ "$result" -lt 0 ]; then
+		#	fetch_releases_from_github=1
+		#fi
+		#case "$version" in
+		#7.1.0)
+		#	fetch_releases_from_github=1;;
+		#esac
+		case "$version" in
+		8.0.1)
+			fetch_releases_from_github=1;;
+		esac
+	else
+		fetch_releases_from_github=0
 	fi
-	case "$version" in
-	7.1.0)
-		fetch_releases_from_github=1;;
-	esac
 	if [ "$fetch_releases_from_github" -ne 0 ]; then
 		base_url="https://github.com/llvm/llvm-project/releases/download/llvmorg-$version"
 	else
@@ -387,4 +412,6 @@ else
 fi
 (cd "$build_dir" && make "$install_target") || panic "make install failed"
 
-rm -rf "$tmp_dir"
+#rm -rf "$tmp_dir"
+
+exit 0
