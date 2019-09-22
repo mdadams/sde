@@ -33,6 +33,29 @@ panic()
 	exit 1
 }
 
+validate_url()
+{
+	local url="$1"
+	case "$url" in
+	http*)
+		wget -S --spider "$url" 2>&1 | grep -q "HTTP/1.1 200 OK"
+		;;
+	ftp*)
+		wget -S --spider "$url" 2>&1 | grep -q -i "exists"
+		;;
+	*)
+		return 2;;
+	esac
+}
+
+perform_cleanup()
+{
+	if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
+		rm -rf "$tmp_dir" || \
+		  echo "warning: cannot remove temporary directory $tmp_dir"
+	fi
+}
+
 usage()
 {
 	echo "$@"
@@ -52,16 +75,20 @@ usage()
 user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
+tmp_dir=
 
+tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_boost-$user@$host-XXXXXXXX"
+#tmp_dir="${SDE_TMPDIR:-/tmp}/sde_install_boost-$user-$host-$$"
 version=
 install_dir=
 toolset=gcc
 omit_cmake_config=0
+cleanup=1
 
-tmp_dir="${SDE_TMPDIR:-/tmp}/sde_install_boost-$user-$host-$$"
-
-while getopts d:v:c opt; do
+while getopts Cd:v:c opt; do
 	case "$opt" in
+	C)
+		cleanup=0;;
 	d)
 		install_dir="$OPTARG";;
 	v)
@@ -91,6 +118,12 @@ abs_install_dir=$(readlink -f "$install_dir") || \
 # will be accessible by all users.
 umask 022
 
+tmp_dir=$(mktemp -d "$tmp_dir_template") || \
+  panic "cannot create temporary directory"
+if [ "$cleanup" -ne 0 ]; then
+	trap perform_cleanup EXIT
+fi
+
 make_opts="-j2"
 
 top_dir="$tmp_dir/boost-$version"
@@ -106,13 +139,49 @@ done
 
 filename_version=$(echo "$version" | tr . _) || panic "failed"
 
-url="https://sourceforge.net/projects/boost/files/boost/$version/boost_${filename_version}.tar.gz"
+urls=()
+urls+=("https://sourceforge.net/projects/boost/files/boost/$version/boost_${filename_version}.tar.bz2")
+urls+=("https://sourceforge.net/projects/boost/files/boost/$version/boost_${filename_version}.tar.gz")
+urls+=("https://dl.bintray.com/boostorg/release/$version/source/boost_${filename_version}.tar.bz2")
+urls+=("https://dl.bintray.com/boostorg/release/$version/source/boost_${filename_version}.tar.gz")
 
-(cd "$archive_dir" && wget "$url" ) || \
-  panic "cannot download archive"
+download_status=1
+for url in "${urls[@]}"; do
 
-archive_file="$archive_dir/boost_${filename_version}.tar.gz"
-tar -xzf "$archive_file" -C "$src_dir" --strip-components=1 || \
+	validate_url "$url"
+	status=$?
+	if [ "$status" -eq 0 ]; then
+		(cd "$archive_dir" && wget "$url")
+		download_status=$?
+		if [ "$download_status" -eq 0 ]; then
+			#archive_file="$archive_dir/boost_${filename_version}.tar.gz"
+			archive_base=$(basename "$url") || panic "basename failed"
+			archive_file="$archive_dir/$archive_base"
+			break
+		fi
+	fi
+	echo "cannot download from $url"
+
+done
+
+if [ "$download_status" -ne 0 ]; then
+	panic "cannot download"
+fi
+
+tar_options=()
+case "$archive_file" in
+*.tar.gz|*.tgz)
+	tar_options+=(-z);;
+*.tar.bz2)
+	tar_options+=(-j);;
+*.tar.xz)
+	tar_options+=(-J);;
+*)
+	panic "unknown format";;
+esac
+
+tar -x "${tar_options[@]}" -f "$archive_file" -C "$src_dir" \
+  --strip-components=1 || \
   panic "cannot extract archive"
 
 #(cd "$src_dir/tools/build" && ./bootstrap.sh --prefix="$install_dir") || \
@@ -134,7 +203,7 @@ tar -xzf "$archive_file" -C "$src_dir" --strip-components=1 || \
 (cd "$src_dir" && ./b2 install) || \
   panic "build failed"
 
-rm -rf "$tmp_dir"
+#rm -rf "$tmp_dir"
 
 if [ "$omit_cmake_config" -ne 0 ]; then
 	# Prevent the use of the flakey CMake config files.
