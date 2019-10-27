@@ -63,7 +63,7 @@ cgal_version=4.14.1
 aristotle_version=v3.0.30
 
 # YCM: https://github.com/Valloric/YouCompleteMe
-ycm_version=94cfacd11ff97643a32409671fed072e3b1412d6
+ycm_version=3620fb550d6dd790376b18ed730dbc0f53239b35
 
 # Vim: https://www.vim.org/download.php
 vim_version=8.1
@@ -79,7 +79,7 @@ catch_version=v2.10.0
 lcov_version=40580cd65909bc8324ae09b36bca2e178652ff3f
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=cc6074a62436aa0c5c352277f91573066996a089
+vimlsp_version=46af4cd6015a786877d58fc65802435d60d11e0c
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=627a8c4092df24260d3dc2104bc1d944c78f91ca
@@ -199,6 +199,8 @@ sde_shell="$sde_top_dir/bin/sde_shell"
 ################################################################################
 # START OF INSTALLATION
 ################################################################################
+
+date_stamp=$(date "+%Y%m%d") || panic "cannot get date"
 
 cat <<- EOF
 ============================================================
@@ -483,7 +485,7 @@ fi
 ################################################################################
 
 if [ "${SDE_GCC_TRUNK_INSTALL:-0}" -ne 0 ]; then
-	gcc_trunk_dir="$packages_dir/gcc-trunk"
+	gcc_trunk_dir="$packages_dir/gcc-trunk-${date_stamp}"
 	if [ -n "$gcc_trunk_dir" ]; then
 		if [ ! -d "$gcc_trunk_dir" ]; then
 			"$sde_shell" -s -p null -x \
@@ -493,6 +495,13 @@ if [ "${SDE_GCC_TRUNK_INSTALL:-0}" -ne 0 ]; then
 		fi
 		#"$sde_cmd" pkg -d "$sde_top_dir" gcc "$gcc_version" || \
 		#  panic "cannot configure gcc"
+		base=$(basename "$gcc_trunk_dir") || \
+		  panic "cannot get basename"
+		target="$packages_dir/gcc-trunk"
+		if [ ! -e "$target" ]; then
+			ln -s "$base" "$target" || \
+			  panic "cannot create symlink"
+		fi
 	fi
 fi
 
@@ -540,6 +549,7 @@ fi
 ################################################################################
 
 if [ "${SDE_CLANG_TRUNK_INSTALL:-0}" -ne 0 ]; then
+	clang_trunk_dir="$packages_dir/clang-trunk-${date_stamp}"
 	if [ -n "$clang_trunk_dir" ]; then
 		if [ ! -d "$clang_trunk_dir" ]; then
 			"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
@@ -550,6 +560,13 @@ if [ "${SDE_CLANG_TRUNK_INSTALL:-0}" -ne 0 ]; then
 		fi
 		#"$sde_cmd" pkg -d "$sde_top_dir" clang "$clang_version" || \
 		#  panic "cannot configure clang"
+		base=$(basename "$clang_trunk_dir") || \
+		  panic "cannot get basename"
+		target="$packages_dir/clang-trunk"
+		if [ ! -e "$target" ]; then
+			ln -s "$base" "$target" || \
+			  panic "cannot create symlink"
+		fi
 	fi
 fi
 
