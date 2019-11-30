@@ -36,6 +36,9 @@ gcc_version=9.2.0
 # LLVM: http://releases.llvm.org/download.html
 clang_version=9.0.0
 
+# Muscl:
+muscl_version=1.1.24
+
 # JasPer: https://www.ece.uvic.ca/~frodo/jasper/#download
 jasper_version=2.0.14
 
@@ -159,6 +162,7 @@ sde_install_vimlsp="$bin_dir/sde_install_vimlsp"
 sde_install_cgal="$bin_dir/sde_install_cgal"
 sde_install_hub="$bin_dir/sde_install_hub"
 sde_install_ghi="$bin_dir/sde_install_ghi"
+sde_install_muscl="$bin_dir/sde_install_muscl"
 
 ################################################################################
 # Process command line
@@ -249,6 +253,7 @@ vimlsp_dir="$packages_dir/vimlsp-$vimlsp_version"
 cgal_dir="$packages_dir/CGAL-$cgal_version"
 hub_dir="$packages_dir/hub-$hub_version"
 ghi_dir="$packages_dir/ghi-$ghi_version"
+muscl_dir="$packages_dir/muscl-$muscl_version"
 
 gcc_install_options=()
 if [ "${SDE_GCC_USE_OLD_ABI:-0}" -ne 0 ]; then
@@ -568,6 +573,20 @@ if [ "${SDE_CLANG_TRUNK_INSTALL:-0}" -ne 0 ]; then
 			  panic "cannot create symlink"
 		fi
 	fi
+fi
+
+################################################################################
+# Install Muscl
+################################################################################
+
+if [ -n "$muscl_dir" ]; then
+	if [ ! -d "$muscl_dir" ]; then
+		"$sde_shell" -s -x \
+		  "$sde_install_muscl" -v "$muscl_version" -d "$muscl_dir" || \
+		  panic "cannot install muscl"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" muscl "$muscl_version" || \
+	  panic "cannot configure muscl"
 fi
 
 ################################################################################

@@ -1,0 +1,152 @@
+#! /usr/bin/env bash
+
+# __START_OF_LICENSE__
+# 
+# Copyright (c) 2017, 2018 Michael D. Adams
+# All rights reserved.
+# 
+# This file is part of the SDE software.
+# 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3,
+# or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this program; see the file LICENSE.  If not,
+# see <http://www.gnu.org/licenses/>.
+# 
+# __END_OF_LICENSE__
+
+repo_url="git://git.musl-libc.org/musl"
+snapshot_url='https://git.musl-libc.org/cgit/musl/snapshot/musl-$version.tar.gz'
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+perform_cleanup()
+{
+	if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
+		rm -rf "$tmp_dir" || \
+		  echo "warning: cannot remove temporary directory $tmp_dir"
+	fi
+}
+
+usage()
+{
+	if [ $# -gt 0 ]; then
+		echo "bad usage: $@"
+		echo
+	fi
+	cat <<- EOF
+	Options
+	=======
+
+	-d \$install_dir
+	    Set the installation directory to \$install_dir.
+	-v \$version
+	    Set the version to install to \$version.
+	    (e.g. v1.1.24)
+
+	Examples
+	========
+
+	$0 -v 1.1.24 -d /tmp/muscl
+	$0 -r -v v1.1.24 -d /tmp/muscl
+	EOF
+	exit 2
+}
+
+user=$(whoami) || panic "cannot get user name"
+host=$(hostname) || panic "cannot get host name"
+cur_dir=$(pwd) || panic "cannot get current directory"
+
+version=
+install_dir=
+from_repo=0
+cleanup=1
+
+while getopts Cd:v:r opt; do
+	case "$opt" in
+	C)
+		cleanup=0;;
+	r)
+		from_repo=1;;
+	d)
+		install_dir="$OPTARG";;
+	v)
+		version="$OPTARG";;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$install_dir" ]; then
+	usage "no installation directory specified"
+fi
+if [ -z "$version" ]; then
+	usage "no version specified"
+fi
+
+tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_muscl-$user-$host-XXXXXXXX"
+
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
+tmp_dir=
+if [ "$cleanup" -ne 0 ]; then
+	trap perform_cleanup EXIT
+fi
+tmp_dir=$(mktemp -d "$tmp_dir_template") || \
+  panic "cannot create temporary directory"
+
+source_dir="$tmp_dir/source"
+
+#for dir in "$source_dir" "$build_dir"; do
+#	if [ ! -d "$dir" ]; then
+#		mkdir -p "$dir" || panic "cannot make directory $dir"
+#	fi
+#done
+
+if [ "$from_repo" -eq 0 ]; then
+	url=$(echo "$snapshot_url" | sed 's/\$version/'"$version"'/g') || \
+	  panic "string substitution failed"
+	base=$(basename "$url") || \
+	  panic "basename failed"
+	archive_file="$tmp_dir/$base"
+	wget -O "$archive_file" "$url" || \
+	  panic "download failed"
+	mkdir -p "$source_dir" || \
+	  panic "cannot make directory $source_dir"
+	tar --strip-components=1 -x -z -f "$archive_file" -C "$source_dir" || \
+	  panic "cannot extract archive"
+else
+	git clone "$repo_url" "$tmp_dir/muscl" || \
+	  panic "clone failed"
+	(cd "$tmp_dir/muscl" && git checkout "$version") || \
+	  panic "checkout failed"
+	ln -s muscl "$source_dir" || \
+	  panic "link failed"
+fi
+
+(cd "$source_dir" && ./configure --prefix="$install_dir") || \
+  panic "configure failed"
+
+(cd "$source_dir" && make) || \
+  panic "build failed"
+
+(cd "$source_dir" && make install) || \
+  panic "install failed"
