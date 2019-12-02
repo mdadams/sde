@@ -28,7 +28,7 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.15.5
+cmake_version=3.16.0
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=9.2.0
@@ -36,7 +36,7 @@ gcc_version=9.2.0
 # LLVM: http://releases.llvm.org/download.html
 clang_version=9.0.0
 
-# Muscl:
+# Muscl: https://www.musl-libc.org/download.html
 muscl_version=1.1.24
 
 # JasPer: https://www.ece.uvic.ca/~frodo/jasper/#download
@@ -66,7 +66,7 @@ cgal_version=5.0
 aristotle_version=v3.0.30
 
 # YCM: https://github.com/Valloric/YouCompleteMe
-ycm_version=a7fd70cf7213c75088a47967c3e28aa4f6c47872
+ycm_version=520477fe6997a529e0e6b76654476230d88c11b6
 
 # Vim: https://www.vim.org/download.php
 vim_version=8.1
@@ -82,7 +82,7 @@ catch_version=v2.11.0
 lcov_version=40580cd65909bc8324ae09b36bca2e178652ff3f
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=e566dcd160497f9903bfa1c822f3c89dd8242f1a
+vimlsp_version=fd40b2f4d64eb0520a4a986c83a81aa0c012a170
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=627a8c4092df24260d3dc2104bc1d944c78f91ca
@@ -91,7 +91,7 @@ vimlsp_async_version=627a8c4092df24260d3dc2104bc1d944c78f91ca
 vimlsp_ac_version=db3ab51ef6d42ac410afaea53fc0513afd0d5e25
 
 # Vim Asyncomplete LSP: https://github.com/prabirshrestha/asyncomplete-lsp.vim.git
-vimlsp_aclsp_version=c749679a4ed375cd658f775e4763c6b9694a808b
+vimlsp_aclsp_version=9e7b2492578dca86ed12b6352cb56d9fc8ac9a6e
 
 # Hub: https://github.com/github/hub
 hub_version=2.13.0
