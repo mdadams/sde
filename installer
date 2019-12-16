@@ -28,8 +28,8 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-#cmake_version=3.16.0
-cmake_version=3.15.5
+#cmake_version=3.15.5
+cmake_version=3.16.1
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=9.2.0
@@ -58,7 +58,7 @@ texlive_version=2019
 # Boost: https://www.boost.org/users/download
 # Note: Do not upgrade Boost until CMake catches up; otherwise build problems
 # will likely result.
-boost_version=1.71.0
+boost_version=1.72.0
 
 # CGAL: https://github.com/CGAL/cgal/releases
 cgal_version=5.0
@@ -67,10 +67,10 @@ cgal_version=5.0
 aristotle_version=v3.0.30
 
 # YCM: https://github.com/Valloric/YouCompleteMe
-ycm_version=520477fe6997a529e0e6b76654476230d88c11b6
+ycm_version=25b620de35f45c046b220923a45c55ee062f9201
 
 # Vim: https://www.vim.org/download.php
-vim_version=8.1
+vim_version=8.2
 
 # GSL: https://github.com/Microsoft/GSL/releases
 gsl_version=v2.0.0
@@ -83,7 +83,7 @@ catch_version=v2.11.0
 lcov_version=40580cd65909bc8324ae09b36bca2e178652ff3f
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=fd40b2f4d64eb0520a4a986c83a81aa0c012a170
+vimlsp_version=d85c6a5f874c66b46089454bf6b1cb91de250e3d
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=627a8c4092df24260d3dc2104bc1d944c78f91ca
