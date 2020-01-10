@@ -59,8 +59,8 @@ usage()
 	Examples
 	========
 
-	$0 -v 1.1.24 -d /tmp/muscl
-	$0 -r -v v1.1.24 -d /tmp/muscl
+	$0 -v 1.1.24 -d /tmp/musl
+	$0 -r -v v1.1.24 -d /tmp/musl
 	EOF
 	exit 2
 }
@@ -98,7 +98,7 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
-tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_muscl-$user-$host-XXXXXXXX"
+tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_musl-$user-$host-XXXXXXXX"
 
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
@@ -134,11 +134,11 @@ if [ "$from_repo" -eq 0 ]; then
 	tar --strip-components=1 -x -z -f "$archive_file" -C "$source_dir" || \
 	  panic "cannot extract archive"
 else
-	git clone "$repo_url" "$tmp_dir/muscl" || \
+	git clone "$repo_url" "$tmp_dir/musl" || \
 	  panic "clone failed"
-	(cd "$tmp_dir/muscl" && git checkout "$version") || \
+	(cd "$tmp_dir/musl" && git checkout "$version") || \
 	  panic "checkout failed"
-	ln -s muscl "$source_dir" || \
+	ln -s musl "$source_dir" || \
 	  panic "link failed"
 fi
 
