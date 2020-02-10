@@ -1,4 +1,4 @@
-#! /usr/bin/env bash
+#!/usr/bin/env bash
 
 # __START_OF_LICENSE__
 # 
@@ -77,6 +77,7 @@ usage()
 	    Install libcxx.
 	-j \$num_jobs
 	    Allow the use of \$num_jobs siumultaneous jobs.
+	-x do not use static libstdc++
 
 	Environment variables:
 	SDE_INSTALL_CLANG_STRIPPED
@@ -84,6 +85,7 @@ usage()
         Valid values: 0, 1
 
 	Examples:
+	$0 -v 9.0.1 -d $HOME/local/clang
 	$0 -r -v trunk -d $HOME/local/clang
 	$0 -r -v branches/release_70 -d $HOME/local/clang
 	$0 -r -v tags/RELEASE_700/final -d $HOME/local/clang
@@ -91,6 +93,10 @@ usage()
 	EOF
 	exit 2
 }
+
+################################################################################
+# Parse command line options.
+################################################################################
 
 user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
@@ -109,9 +115,12 @@ stop_early=0
 install_lldb=0
 num_jobs=4
 cleanup=1
+use_static_libstdcxx=1
 
-while getopts Ctlfg:d:v:rSDj: opt; do
+while getopts Ctlfg:d:v:rxDj: opt; do
 	case "$opt" in
+	x)
+		use_static_libstdcxx=0;;
 	C)
 		cleanup=0;;
 	l)
@@ -154,6 +163,10 @@ if [ "$result" -eq 0 ]; then
 	abs_install_dir="$cur_dir/$abs_install_dir"
 fi
 
+################################################################################
+# Perform some setup.
+################################################################################
+
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
 # This will help to increase the likelihood that the installed software
@@ -171,130 +184,167 @@ top_dir="$tmp_dir/llvm-clang-$mangled_version"
 archive_dir="$top_dir/archives"
 src_dir="$top_dir/src"
 build_dir="$top_dir/build"
+git_dir="$top_dir/git"
 
-for dir in "$top_dir" "$archive_dir" "$src_dir" "$build_dir"; do
+for dir in "$top_dir" "$archive_dir" "$src_dir" "$build_dir "$git_dir""; do
 	if [ ! -d "$dir" ]; then
 		mkdir -p "$dir" || panic "cannot make directory $dir"
 	fi
 done
 
+github_base_url="https://github.com/llvm/llvm-project/releases/download/llvmorg-$version"
+llvm_base_url="http://llvm.org/releases/$version"
+git_repo_url="https://github.com/llvm/llvm-project.git"
+repo_base_url="http://llvm.org/svn/llvm-project"
+
+################################################################################
+# Download the software.
+################################################################################
+
+cat <<- EOF
+============================================================
+Downloading software.
+============================================================
+EOF
+
 if [ "$from_repo" -ne 0 ]; then
 
-	repo_base="http://llvm.org/svn/llvm-project"
+	echo "Downloading from repository with base URL $repo_base_url"
+
+if [ 0 -ne 0 ]; then
 
 	(cd "$src_dir" && \
-	  svn co -q "$repo_base/llvm/$version" .) || \
+	  svn co -q "$repo_base_url/llvm/$version" .) || \
 	  panic "cannot checkout llvm"
 	(cd "$src_dir/tools" && \
-	  svn co -q "$repo_base/cfe/$version" clang) || \
+	  svn co -q "$repo_base_url/cfe/$version" clang) || \
 	  panic "cannot checkout cfe"
 	(cd "$src_dir/tools/clang/tools" && \
-	  svn co -q "$repo_base/clang-tools-extra/$version" extra) || \
+	  svn co -q "$repo_base_url/clang-tools-extra/$version" extra) || \
 	  panic "cannot checkout clang-tools-extra"
 	(cd "$src_dir/tools" && \
-	  svn co -q "$repo_base/lld/$version" lld) || \
+	  svn co -q "$repo_base_url/lld/$version" lld) || \
 	  panic "cannot checkout lld"
 	(cd "$src_dir/tools" && \
-	  svn co -q "$repo_base/polly/$version" polly) || \
+	  svn co -q "$repo_base_url/polly/$version" polly) || \
 	  panic "cannot checkout polly"
 	(cd "$src_dir/projects" && \
-	  svn co -q "$repo_base/compiler-rt/$version" compiler-rt) || \
+	  svn co -q "$repo_base_url/compiler-rt/$version" compiler-rt) || \
 	  panic "cannot checkout compiler-rt"
 	(cd "$src_dir/projects" && \
-	  svn co -q "$repo_base/openmp/$version" openmp) || \
+	  svn co -q "$repo_base_url/openmp/$version" openmp) || \
 	  panic "cannot checkout openmp"
 
 	if [ "$install_libcxx" -ne 0 ]; then
 		(cd "$src_dir/projects" && \
-		  svn co -q "$repo_base/libcxx/$version" libcxx) || \
+		  svn co -q "$repo_base_url/libcxx/$version" libcxx) || \
 		  panic "cannot checkout libcxx"
 		(cd "$src_dir/projects" && \
-		  svn co -q "$repo_base/libcxxabi/$version" libcxxabi) || \
+		  svn co -q "$repo_base_url/libcxxabi/$version" libcxxabi) || \
 		  panic "cannot checkout libcxxabi"
 	fi
 
 	if [ "$install_testsuite" -ne 0 ]; then
 		(cd "$src_dir/projects" && \
-		  svn co -q "$repo_base/test-suite/$version" test-suite) || \
+		  svn co -q "$repo_base_url/test-suite/$version" test-suite) || \
 		  panic "cannot checkout test-suite"
 	fi
 
 	if [ "$install_lldb" -ne 0 ]; then
 		(cd "$src_dir/tools" && \
-		  svn co -q "$repo_base/lldb/$version" lldb) || \
+		  svn co -q "$repo_base_url/lldb/$version" lldb) || \
 		  panic "cannot checkout lldb"
 	fi
 
+fi
+
+	git clone "$git_repo_url" "$git_dir" || \
+	  panic "cannot clone repository"
+	(cd "$git_dir" && git checkout "$version") || \
+	  panic "cannot checkout"
+	src_root_dir="$git_dir/llvm"
+
 else
+
 	# Note: Some LLVM Clang releases appear to be available only from GitHub.
 	# In particular, this seems to be the case for the 8.0.1 release.
-	if [ 1 -ne 0 ]; then
-		fetch_releases_from_github=0
-		#result=$(compare_versions 8.0.0 "$version") || panic
-		#if [ "$result" -lt 0 ]; then
-		#	fetch_releases_from_github=1
-		#fi
-		#case "$version" in
-		#7.1.0)
-		#	fetch_releases_from_github=1;;
-		#esac
-		case "$version" in
-		8.0.1)
-			fetch_releases_from_github=1;;
-		esac
-	else
-		fetch_releases_from_github=0
-	fi
-	if [ "$fetch_releases_from_github" -ne 0 ]; then
-		base_url="https://github.com/llvm/llvm-project/releases/download/llvmorg-$version"
-	else
-		base_url="http://llvm.org/releases/$version"
-	fi
 
-	llvm_url="$base_url/llvm-$version.src.tar.xz"
-	cfe_url="$base_url/cfe-$version.src.tar.xz"
-	cte_url="$base_url/clang-tools-extra-$version.src.tar.xz"
-	lld_url="$base_url/lld-$version.src.tar.xz"
-	polly_url="$base_url/polly-$version.src.tar.xz"
-	cr_url="$base_url/compiler-rt-$version.src.tar.xz"
-	openmp_url="$base_url/openmp-$version.src.tar.xz"
-	libcxx_url="$base_url/libcxx-$version.src.tar.xz"
-	libcxxabi_url="$base_url/libcxxabi-$version.src.tar.xz"
-	testsuite_url="$base_url/test-suite-$version.src.tar.xz"
-	lldb_url="$base_url/lldb-$version.src.tar.xz"
+	download_success=0
 
-	urls=()
-	urls+=("$llvm_url")
-	urls+=("$cfe_url")
-	urls+=("$cr_url")
-	urls+=("$cte_url")
-	urls+=("$lld_url")
-	urls+=("$polly_url")
-	urls+=("$openmp_url")
-	if [ "$install_libcxx" -ne 0 ]; then
-		urls+=("$libcxx_url")
-		urls+=("$libcxxabi_url")
-	fi
-	if [ "$install_lldb" -ne 0 ]; then
-		urls+=("$lldb_url")
-	fi
-	if [ "$install_testsuite" -ne 0 ]; then
-		urls+=("$testsuite_url")
-	fi
-	for url in "${urls[@]}"; do
-		(cd "$archive_dir" && wget "$url") || panic "cannot get URL $url"
+	base_urls=()
+	base_urls+=("$llvm_base_url")
+	base_urls+=("$github_base_url")
+
+	for base_url in "${base_urls[@]}"; do
+	
+		echo "Downloading from release with base URL $base_url"
+
+		llvm_url="$base_url/llvm-$version.src.tar.xz"
+		cfe_url="$base_url/cfe-$version.src.tar.xz"
+cfe_url="$base_url/clang-$version.src.tar.xz"
+		cte_url="$base_url/clang-tools-extra-$version.src.tar.xz"
+		lld_url="$base_url/lld-$version.src.tar.xz"
+		polly_url="$base_url/polly-$version.src.tar.xz"
+		cr_url="$base_url/compiler-rt-$version.src.tar.xz"
+		openmp_url="$base_url/openmp-$version.src.tar.xz"
+		libcxx_url="$base_url/libcxx-$version.src.tar.xz"
+		libcxxabi_url="$base_url/libcxxabi-$version.src.tar.xz"
+		testsuite_url="$base_url/test-suite-$version.src.tar.xz"
+		lldb_url="$base_url/lldb-$version.src.tar.xz"
+
+		urls=()
+		urls+=("$llvm_url")
+		urls+=("$cfe_url")
+		urls+=("$cr_url")
+		urls+=("$cte_url")
+		urls+=("$lld_url")
+		urls+=("$polly_url")
+		urls+=("$openmp_url")
+		if [ "$install_libcxx" -ne 0 ]; then
+			urls+=("$libcxx_url")
+			urls+=("$libcxxabi_url")
+		fi
+		if [ "$install_lldb" -ne 0 ]; then
+			urls+=("$lldb_url")
+		fi
+		if [ "$install_testsuite" -ne 0 ]; then
+			urls+=("$testsuite_url")
+		fi
+		for url in "${urls[@]}"; do
+			echo "downloading $url"
+			(cd "$archive_dir" && wget "$url")
+			status=$?
+			if [ "$status" -ne 0 ]; then
+				echo "NOTE: download failed using base URL $base_url"
+				break
+			fi
+		done
+
+		if [ "$status" -eq 0 ]; then
+			download_success=1
+			break
+		fi
+
 	done
 
+	if [ "$download_success" -eq 0 ]; then
+		panic "download failed"
+	fi
+
+	# extract llvm archive to $TOPDIR
 	tar -xJf "$archive_dir/$(basename "$llvm_url")" \
 	  -C "$src_dir" --strip-components=1 || panic "cannot extract llvm archive"
 
+	# extract cfe archive to $TOPDIR/tools/clang
 	extract_dir="$src_dir/tools/clang"
 	if [ ! -d "$extract_dir" ]; then
 		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
 	fi
 	tar -xJf "$archive_dir/$(basename "$cfe_url")" \
-	  -C "$extract_dir" --strip-components=1 || panic "cannot extract cfe archive"
+	  -C "$extract_dir" --strip-components=1 || \
+	  panic "cannot extract cfe archive"
 
+	# extract clang-tools-extra archive to $TOPDIR/tools/clang/tools/extra
 	extract_dir="$src_dir/tools/clang/tools/extra"
 	if [ ! -d "$extract_dir" ]; then
 		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
@@ -303,6 +353,7 @@ else
 	  -C "$extract_dir" --strip-components=1 || \
 	  panic "cannot extract clang-tools-extra archive"
 
+	# extract lld archive to $TOPDIR/tools/lld
 	extract_dir="$src_dir/tools/lld"
 	if [ ! -d "$extract_dir" ]; then
 		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
@@ -311,6 +362,7 @@ else
 	  -C "$extract_dir" --strip-components=1 || \
 	  panic "cannot extract lld archive"
 
+	# extract polly archive to $TOPDIR/tools/polly
 	extract_dir="$src_dir/tools/polly"
 	if [ ! -d "$extract_dir" ]; then
 		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
@@ -319,13 +371,16 @@ else
 	  -C "$extract_dir" --strip-components=1 || \
 	  panic "cannot extract polly archive"
 
+	# extract compiler-rt archive to $TOPDIR/projects/compiler-rt
 	extract_dir="$src_dir/projects/compiler-rt"
 	if [ ! -d "$extract_dir" ]; then
 		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
 	fi
 	tar -xJf "$archive_dir/$(basename "$cr_url")" \
-	  -C "$extract_dir" --strip-components=1 || panic "cannot extract compiler-rt archive"
+	  -C "$extract_dir" --strip-components=1 || \
+	  panic "cannot extract compiler-rt archive"
 
+	# extract openmp archive to $TOPDIR/projects/openmp
 	extract_dir="$src_dir/projects/openmp"
 	if [ ! -d "$extract_dir" ]; then
 		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
@@ -334,49 +389,72 @@ else
 	  -C "$extract_dir" --strip-components=1 || \
 	  panic "cannot extract openmp archive"
 
+	# extract libcxx archive to $TOPDIR/projects/libcxx
 	if [ "$install_libcxx" -ne 0 ]; then
 		extract_dir="$src_dir/projects/libcxx"
 		if [ ! -d "$extract_dir" ]; then
 			mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
 		fi
 		tar -xJf "$archive_dir/$(basename "$libcxx_url")" \
-		  -C "$extract_dir" --strip-components=1 || panic "cannot extract libcxx archive"
+		  -C "$extract_dir" --strip-components=1 || \
+		  panic "cannot extract libcxx archive"
 	fi
 
+	# extract libcxxabi archive to $TOPDIR/projects/libcxxabi
 	if [ "$install_libcxx" -ne 0 ]; then
 		extract_dir="$src_dir/projects/libcxxabi"
 		if [ ! -d "$extract_dir" ]; then
-			mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+			mkdir -p "$extract_dir" || \
+			  panic "cannot make directory $extract_dir"
 		fi
 		tar -xJf "$archive_dir/$(basename "$libcxxabi_url")" \
-		  -C "$extract_dir" --strip-components=1 || panic "cannot extract libcxx archive"
+		  -C "$extract_dir" --strip-components=1 || \
+		  panic "cannot extract libcxx archive"
 	fi
 
+	# extract lldb archive to $TOPDIR/tools/lldb
 	if [ "$install_lldb" -ne 0 ]; then
 		extract_dir="$src_dir/tools/lldb"
 		if [ ! -d "$extract_dir" ]; then
-			mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+			mkdir -p "$extract_dir" || \
+			  panic "cannot make directory $extract_dir"
 		fi
 		tar -xJf "$archive_dir/$(basename "$lldb_url")" \
 		  -C "$extract_dir" --strip-components=1 || \
 		  panic "cannot extract lldb archive"
 	fi
 
+	# extract testsuite archive to $TOPDIR/projects/test-suite
 	if [ "$install_testsuite" -ne 0 ]; then
 		extract_dir="$src_dir/projects/test-suite"
 		if [ ! -d "$extract_dir" ]; then
-			mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
+			mkdir -p "$extract_dir" || \
+			  panic "cannot make directory $extract_dir"
 		fi
 		tar -xJf "$archive_dir/$(basename "$testsuite_url")" \
 		  -C "$extract_dir" --strip-components=1 || \
 		  panic "cannot extract test-suite archive"
 	fi
 
+	echo "Download successful release with base URL $base_url"
+
+	src_root_dir="$src_dir"
+
 fi
+
+################################################################################
+# Build the software.
+################################################################################
 
 if [ "$stop_early" -ne 0 ]; then
 	exit 0
 fi
+
+cat <<- EOF
+============================================================
+Building software
+============================================================
+EOF
 
 cmake_opts=()
 
@@ -384,7 +462,9 @@ cmake_opts+=(-G "Unix Makefiles")
 cmake_opts+=(-DCMAKE_INSTALL_PREFIX="$abs_install_dir")
 cmake_opts+=(-DCMAKE_VERBOSE_MAKEFILE=true)
 cmake_opts+=(-DCMAKE_BUILD_TYPE=Release)
-cmake_opts+=(-DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++")
+if [ "$use_static_libstdcxx" -ne 0 ]; then
+	cmake_opts+=(-DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++")
+fi
 if [ "$use_old_host_toolchain" -ne 0 ]; then
 	cmake_opts+=(-DLLVM_FORCE_USE_OLD_HOST_TOOLCHAIN=true)
 fi
@@ -396,8 +476,8 @@ if [ -n "$gcc_dir" ]; then
 #	cmake_opts+=(-DCMAKE_CXX_LINK_FLAGS="-L${gcc_dir}/lib64 -Wl,-rpath,${gcc_dir}/lib64")
 fi
 
-echo "Running cd $build_dir && cmake ${cmake_opts[@]} $src_dir"
-(cd "$build_dir" && cmake "${cmake_opts[@]}" "$src_dir") || \
+echo "Running cd $build_dir && cmake ${cmake_opts[@]} $src_root_dir"
+(cd "$build_dir" && cmake "${cmake_opts[@]}" "$src_root_dir") || \
   panic "cmake failed"
 
 make_opts=()
