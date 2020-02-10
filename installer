@@ -29,13 +29,13 @@
 
 # CMake: https://cmake.org/download
 #cmake_version=3.15.5
-cmake_version=3.16.2
+cmake_version=3.16.4
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=9.2.0
 
 # LLVM: http://releases.llvm.org/download.html
-clang_version=9.0.0
+clang_version=9.0.1
 
 # Muscl: https://www.musl-libc.org/download.html
 musl_version=1.1.24
@@ -44,7 +44,7 @@ musl_version=1.1.24
 jasper_version=2.0.14
 
 # GDB: https://www.gnu.org/software/gdb/download/
-gdb_version=8.3.1
+gdb_version=9.1
 
 # SPL: http://www.ece.uvic.ca/~frodo/SPL/#download
 spl_version=2.0.8
@@ -61,13 +61,13 @@ texlive_version=2019
 boost_version=1.72.0
 
 # CGAL: https://github.com/CGAL/cgal/releases
-cgal_version=5.0
+cgal_version=5.0.1
 
 # Aristotle: https://github.com/mdadams/aristotle
 aristotle_version=v3.0.30
 
 # YCM: https://github.com/Valloric/YouCompleteMe
-ycm_version=6be9ce1d51dc3d0590346140ce617f8522460845
+ycm_version=abeac6aa54b6ab394da3e919485a84b5101ef0ba
 
 # Vim: https://www.vim.org/download.php
 vim_version=8.2
@@ -83,19 +83,19 @@ catch_version=v2.11.1
 lcov_version=40580cd65909bc8324ae09b36bca2e178652ff3f
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=70234feca47ce355482d1734b66a78de92edd0d1
+vimlsp_version=20d1cf3968e5c3fbd880ef32202930f68d93a2da
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=f67ecb5a1120d0d0fb9312afcf262c829b218ca2
 
 # Vim Asyncomplete: https://github.com/prabirshrestha/asyncomplete.vim.git
-vimlsp_ac_version=db3ab51ef6d42ac410afaea53fc0513afd0d5e25
+vimlsp_ac_version=52f857a4c4c51abf6b29f4ce0b3db0aae992f619
 
 # Vim Asyncomplete LSP: https://github.com/prabirshrestha/asyncomplete-lsp.vim.git
-vimlsp_aclsp_version=9e7b2492578dca86ed12b6352cb56d9fc8ac9a6e
+vimlsp_aclsp_version=1b93ef2d527e64a55d3b45d370ed59d6aa967fef
 
 # Hub: https://github.com/github/hub
-hub_version=2.13.0
+hub_version=2.14.1
 
 # GHI: https://github.com/stephencelis/ghi
 ghi_version=1.2.0
