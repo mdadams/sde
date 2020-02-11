@@ -167,6 +167,8 @@ fi
 # Perform some setup.
 ################################################################################
 
+start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
 # This will help to increase the likelihood that the installed software
@@ -206,6 +208,9 @@ cat <<- EOF
 Downloading software.
 ============================================================
 EOF
+
+download_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+echo "time: $download_start_time"
 
 if [ "$from_repo" -ne 0 ]; then
 
@@ -464,6 +469,9 @@ Configuring software
 ============================================================
 EOF
 
+configure_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+echo "time: $configure_start_time"
+
 cmake_opts=()
 
 cmake_opts+=(-G "Unix Makefiles")
@@ -494,6 +502,9 @@ Building software
 ============================================================
 EOF
 
+build_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+echo "time: $build_start_time"
+
 make_opts=()
 make_opts+=(-j$num_jobs)
 
@@ -505,11 +516,33 @@ Installing software
 ============================================================
 EOF
 
+install_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+echo "time: $install_start_time"
+
 if [ "${SDE_INSTALL_CLANG_STRIPPED:-0}" -ne 0 ]; then
 	install_target="install/strip"
 else
 	install_target="install"
 fi
 (cd "$build_dir" && make "$install_target") || panic "make install failed"
+
+################################################################################
+# Build the software.
+################################################################################
+
+cat <<- EOF
+============================================================
+Done.
+============================================================
+EOF
+
+end_time=$(date +%Y-%m-%d@%H:%M:%S)
+
+echo "start time ............. $start_time"
+echo "download start time .... $download_start_time"
+echo "configure start time ... $configure_start_time"
+echo "build start time ....... $build_start_time"
+echo "install start time ..... $install_start_time"
+echo "end time ............... $end_time"
 
 exit 0
