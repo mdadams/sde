@@ -212,6 +212,8 @@ EOF
 download_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
 echo "time: $download_start_time"
 
+cmake_extra_opts=()
+
 if [ "$from_repo" -ne 0 ]; then
 
 	echo "Downloading from repository with base URL $repo_base_url"
@@ -263,11 +265,29 @@ if [ 0 -ne 0 ]; then
 
 fi
 
-	git clone "$git_repo_url" "$git_dir" || \
+	git clone --progress "$git_repo_url" "$git_dir" || \
 	  panic "cannot clone repository"
 	(cd "$git_dir" && git checkout "$version") || \
 	  panic "cannot checkout"
 	src_root_dir="$git_dir/llvm"
+
+	projects=()
+	projects+=(clang)
+	projects+=(clang-tools-extra)
+	projects+=(compiler-rt)
+	#projects+=(debuginfo-tests) # Note: This causes configuration errors.
+	projects+=(libcxx)
+	projects+=(libcxxabi)
+	projects+=(libunwind)
+	projects+=(lld)
+	projects+=(lldb)
+	projects+=(openmp)
+	projects+=(polly)
+
+	buffer=$(tr ' ' ';' <<< "${projects[@]}") || \
+	  panic "internal error"
+	cmake_extra_opts+=("-DLLVM_ENABLE_PROJECTS=$buffer")
+	echo "cmake_extra_opts: ${cmake_extra_opts[@]}"
 
 else
 
@@ -484,6 +504,7 @@ fi
 if [ "$use_old_host_toolchain" -ne 0 ]; then
 	cmake_opts+=(-DLLVM_FORCE_USE_OLD_HOST_TOOLCHAIN=true)
 fi
+cmake_opts+=("${cmake_extra_opts[@]}")
 
 if [ -n "$gcc_dir" ]; then
 	cmake_opts+=(-DCMAKE_C_COMPILER="${gcc_dir}/bin/gcc")

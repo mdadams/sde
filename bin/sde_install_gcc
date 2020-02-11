@@ -37,6 +37,16 @@ panic()
 	exit 1
 }
 
+isabspath()
+{
+	case "$1" in
+	/*)
+		echo "1";;
+	*)
+		echo "0";;
+	esac
+}
+
 disk_usage()
 {
 	local dir="$1"
@@ -106,11 +116,12 @@ usage()
 	========
 
 	$0 -v 8.2.0 -d $HOME/local/gcc
-	$0 -r -v tags/gcc_8_2_0_release -d $HOME/local/gcc
-	$0 -r -v branches/c++-modules -d $HOME/local/gcc
-	$0 -r -v trunk -d $HOME/local/gcc
-	SDE_TMPDIR=/var/tmp $0 -r -v trunk -d $HOME/local/gcc
 	SDE_INSTALL_GCC_ENABLE_LANGUAGES=go $0 -v 8.2.0 -d $HOME/local/gccgo
+
+	$0 -r -v releases/gcc-9.2.0 -d $HOME/local/gcc
+	$0 -r -v devel/c++-module -d $HOME/local/gcc
+	$0 -r -v master -d $HOME/local/gcc
+	SDE_TMPDIR=/var/tmp $0 -r -v master -d $HOME/local/gcc
 	EOF
 	exit 2
 }
@@ -175,8 +186,20 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
-abs_install_dir=$(readlink -f "$install_dir") || \
-  panic "cannot get absolute pathname"
+#abs_install_dir=$(readlink -f "$install_dir") || \
+#  panic "cannot get absolute pathname"
+
+abs_install_dir="$install_dir"
+result=$(isabspath "$abs_install_dir") || panic "absolute path test failed"
+if [ "$result" -eq 0 ]; then
+	abs_install_dir="$cur_dir/$abs_install_dir"
+fi
+
+################################################################################
+# Perform some setup.
+################################################################################
+
+start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
 
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
@@ -209,10 +232,30 @@ done
 
 #unset INCLUDE_PATH CPLUS_INCLUDE_PATH CFLAGS CXXFLAGS
 
+################################################################################
+# Download the software.
+################################################################################
+
+cat <<- EOF
+============================================================
+Downloading software.
+============================================================
+EOF
+
+download_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+echo "time: $download_start_time"
+
 if [ $from_repo -ne 0 ]; then
-	svn_repo="svn://gcc.gnu.org/svn/gcc/$version"
-	svn co "$svn_repo" "$src_dir" || panic "cannot checkout source"
+
+	#svn_repo="svn://gcc.gnu.org/svn/gcc/$version"
+	#svn co "$svn_repo" "$src_dir" || panic "cannot checkout source"
+	git_repo="git://gcc.gnu.org/git/gcc.git"
+	git clone --progress "$git_repo" "$src_dir" || \
+	  panic "cannot clone repository"
+	(cd "$src_dir" && git checkout "$version") || panic "cannot checkout"
+
 else
+
 	urls=()
 	urls+=("https://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.xz")
 	urls+=("https://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.bz2")
@@ -247,6 +290,7 @@ else
 	tar -x "${tar_options[@]}" -f "$archive_file" -C "$src_dir" \
 	  --strip-components=1 || \
 	  panic "cannot extract archive"
+
 fi
 
 (cd "$src_dir" && ./contrib/download_prerequisites) || \
@@ -267,6 +311,19 @@ if [ "$download_only" -ne 0 ]; then
 	exit 0
 fi
 
+################################################################################
+# Configure the software.
+################################################################################
+
+cat <<- EOF
+============================================================
+Configuring software.
+============================================================
+EOF
+
+configure_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+echo "time: $configure_start_time"
+
 options=()
 if [ "$old_abi" -ne 0 ]; then
 	options+=(--with-default-libstdcxx-abi=gcc4-compatible)
@@ -281,8 +338,34 @@ fi
   ../src/configure --prefix="$abs_install_dir" "${options[@]}") || \
   panic "configure failed"
 
+################################################################################
+# Build the software.
+################################################################################
+
+cat <<- EOF
+============================================================
+Building software.
+============================================================
+EOF
+
+build_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+echo "time: $build_start_time"
+
 (cd "$build_dir" && make "${make_opts[@]}") || \
   panic "make failed"
+
+################################################################################
+# Install the software.
+################################################################################
+
+cat <<- EOF
+============================================================
+Installing software.
+============================================================
+EOF
+
+install_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+echo "time: $install_start_time"
 
 if [ "${SDE_INSTALL_GCC_STRIPPED:-0}" -ne 0 ]; then
 	install_target="install-strip"
@@ -292,13 +375,30 @@ fi
 (cd "$build_dir" && make "$install_target") || \
   panic "make install failed"
 
+################################################################################
+# Print some information about the installation process.
+################################################################################
+
+cat <<- EOF
+============================================================
+Done.
+============================================================
+EOF
+
+end_time=$(date +%Y-%m-%d@%H:%M:%S)
+
+echo "start time ............. $start_time"
+echo "download start time .... $download_start_time"
+echo "configure start time ... $configure_start_time"
+echo "build start time ....... $build_start_time"
+echo "install start time ..... $install_start_time"
+echo "end time ............... $end_time"
+
 tmp_dir_space=$(disk_usage "$tmp_dir")
 src_dir_space=$(disk_usage "$src_dir")
 build_dir_space=$(disk_usage "$build_dir")
 echo "TEMPORARY DIRECTORY DISK USAGE $tmp_dir_space"
 echo "SOURCE DIRECTORY DISK USAGE $src_dir_space"
 echo "BUILD DIRECTORY DISK USAGE $build_dir_space"
-
-#rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"
 
 exit 0
