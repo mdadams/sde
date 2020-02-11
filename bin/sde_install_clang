@@ -186,7 +186,7 @@ src_dir="$top_dir/src"
 build_dir="$top_dir/build"
 git_dir="$top_dir/git"
 
-for dir in "$top_dir" "$archive_dir" "$src_dir" "$build_dir "$git_dir""; do
+for dir in "$top_dir" "$archive_dir" "$src_dir" "$build_dir" "$git_dir"; do
 	if [ ! -d "$dir" ]; then
 		mkdir -p "$dir" || panic "cannot make directory $dir"
 	fi
@@ -269,6 +269,15 @@ else
 	# Note: Some LLVM Clang releases appear to be available only from GitHub.
 	# In particular, this seems to be the case for the 8.0.1 release.
 
+	# Note: As of 9.0.1, the cfe archive is renamed clang.
+	result=$(compare_versions "$version" 9.0.1) || \
+	  panic "comparison failed"
+	if [ "$result" -lt 0 ]; then
+		cfe_name="cfe"
+	else
+		cfe_name="clang"
+	fi
+
 	download_success=0
 
 	base_urls=()
@@ -280,8 +289,7 @@ else
 		echo "Downloading from release with base URL $base_url"
 
 		llvm_url="$base_url/llvm-$version.src.tar.xz"
-		cfe_url="$base_url/cfe-$version.src.tar.xz"
-cfe_url="$base_url/clang-$version.src.tar.xz"
+		cfe_url="$base_url/$cfe_name-$version.src.tar.xz"
 		cte_url="$base_url/clang-tools-extra-$version.src.tar.xz"
 		lld_url="$base_url/lld-$version.src.tar.xz"
 		polly_url="$base_url/polly-$version.src.tar.xz"
@@ -452,7 +460,7 @@ fi
 
 cat <<- EOF
 ============================================================
-Building software
+Configuring software
 ============================================================
 EOF
 
@@ -480,10 +488,22 @@ echo "Running cd $build_dir && cmake ${cmake_opts[@]} $src_root_dir"
 (cd "$build_dir" && cmake "${cmake_opts[@]}" "$src_root_dir") || \
   panic "cmake failed"
 
+cat <<- EOF
+============================================================
+Building software
+============================================================
+EOF
+
 make_opts=()
 make_opts+=(-j$num_jobs)
 
 (cd "$build_dir" && make "${make_opts[@]}") || panic "make failed"
+
+cat <<- EOF
+============================================================
+Installing software
+============================================================
+EOF
 
 if [ "${SDE_INSTALL_CLANG_STRIPPED:-0}" -ne 0 ]; then
 	install_target="install/strip"
@@ -491,7 +511,5 @@ else
 	install_target="install"
 fi
 (cd "$build_dir" && make "$install_target") || panic "make install failed"
-
-#rm -rf "$tmp_dir"
 
 exit 0
