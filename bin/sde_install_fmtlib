@@ -1,0 +1,144 @@
+#! /usr/bin/env bash
+
+# __START_OF_LICENSE__
+# 
+# Copyright (c) 2020 Michael D. Adams
+# All rights reserved.
+# 
+# This file is part of the SDE software.
+# 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3,
+# or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this program; see the file LICENSE.  If not,
+# see <http://www.gnu.org/licenses/>.
+# 
+# __END_OF_LICENSE__
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+perform_cleanup()
+{
+	if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
+		rm -rf "$tmp_dir" || \
+		  echo "warning: cannot remove temporary directory $tmp_dir"
+	fi
+}
+
+usage()
+{
+	echo "BAD USAGE: $@"
+	cat <<- EOF
+	-d \$install_dir
+	    Set the installation directory to \$install_dir.
+	-v \$version
+	    Set the version to install to \$version.
+	    (e.g. 6.1.2)
+	-n name
+
+	Examples
+	========
+
+	$0 -v 6.1.2 -d /tmp/fmt
+	EOF
+	exit 2
+}
+
+user=$(whoami) || panic "cannot get user name"
+host=$(hostname) || panic "cannot get host name"
+cur_dir=$(pwd) || panic "cannot get current directory"
+
+tmp_dir=
+tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_misclib-$user@$host-XXXXXXXX"
+
+cleanup=1
+install_dir=
+version=
+enable_hack=0
+
+while getopts d:v:n:x opt; do
+	case "$opt" in
+	d)
+		install_dir="$OPTARG";;
+	v)
+		version=("$OPTARG");;
+	x)
+		enable_hack=1;;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$install_dir" ]; then
+	usage "no installation directory specified"
+fi
+
+if [ -z "$version" ]; then
+	usage "no version specified"
+fi
+
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
+commit="$version"
+
+tmp_dir=$(mktemp -d "$tmp_dir_template") || \
+  panic "cannot create temporary directory"
+if [ "$cleanup" -ne 0 ]; then
+	trap perform_cleanup EXIT
+fi
+
+#echo "TMP DIR $tmp_dir"
+
+git_dir="$tmp_dir/git"
+build_dir="$tmp_dir/build"
+
+for dir in "$git_dir" "$build_dir"; do
+	mkdir -p "$dir" || panic
+done
+
+repo_url="https://github.com/fmtlib/fmt.git"
+
+(git clone "$repo_url" "$git_dir") || \
+  panic "cannot clone"
+#ls -al "$git_dir"
+(cd "$git_dir" && git checkout "$commit") || panic "cannot checkout"
+
+(cd "$git_dir" && \
+  cmake -H. -B"$build_dir" -DCMAKE_INSTALL_PREFIX="$install_dir") || \
+  panic "cannot configure"
+(cmake --build "$build_dir") || \
+  panic "cannot build"
+(cmake --build "$build_dir" --target install) || \
+  panic "cannot install"
+
+if [ "$enable_hack" -ne 0 ]; then
+	format_file="$tmp_dir/format"
+	cat > "$format_file" <<- EOF
+	#include <fmt/format.h>
+	namespace std {
+		//using fmt::format;
+		//using fmt::format_to;
+		using namespace fmt;
+	};
+	EOF
+	[ $? -eq 0 ] || panic
+	mv "$format_file" "$install_dir/include" || panic "cannot move"
+fi

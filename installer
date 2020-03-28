@@ -102,6 +102,9 @@ hub_version=2.14.2
 # GHI: https://github.com/stephencelis/ghi
 ghi_version=1.2.0
 
+# Fmtlib: https://github.com/fmtlib/fmt.git
+fmtlib_version=6.1.2
+
 ################################################################################
 # Utility functions.
 ################################################################################
@@ -166,6 +169,7 @@ sde_install_cgal="$bin_dir/sde_install_cgal"
 sde_install_hub="$bin_dir/sde_install_hub"
 sde_install_ghi="$bin_dir/sde_install_ghi"
 sde_install_musl="$bin_dir/sde_install_musl"
+sde_install_fmtlib="$bin_dir/sde_install_fmtlib"
 
 ################################################################################
 # Process command line
@@ -257,6 +261,7 @@ cgal_dir="$packages_dir/CGAL-$cgal_version"
 hub_dir="$packages_dir/hub-$hub_version"
 ghi_dir="$packages_dir/ghi-$ghi_version"
 musl_dir="$packages_dir/musl-$musl_version"
+fmtlib_dir="$packages_dir/fmtlib-$fmtlib_version"
 
 gcc_install_options=()
 if [ "${SDE_GCC_USE_OLD_ABI:-0}" -ne 0 ]; then
@@ -576,6 +581,20 @@ if [ "${SDE_CLANG_TRUNK_INSTALL:-0}" -ne 0 ]; then
 			  panic "cannot create symlink"
 		fi
 	fi
+fi
+
+################################################################################
+# Install fmtlib
+################################################################################
+
+if [ -n "$fmtlib_dir" ]; then
+	if [ ! -d "$fmtlib_dir" ]; then
+		"$sde_shell" -s -x \
+		  "$sde_install_fmtlib" -v "$fmtlib_version" -d "$fmtlib_dir" -x || \
+		  panic "cannot install fmtlib"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" fmtlib "$fmtlib_version" || \
+	  panic "cannot configure fmtlib"
 fi
 
 ################################################################################
