@@ -105,6 +105,12 @@ ghi_version=1.2.0
 # Fmtlib: https://github.com/fmtlib/fmt.git
 fmtlib_version=6.1.2
 
+# range: https://github.com/ericniebler/range-v3.git
+range_version=0.10.0
+
+# cmcstl2: https://github.com/CaseyCarter/cmcstl2.git
+cmcstl2_version=684a96d527e4dc733897255c0177b784dc280980
+
 ################################################################################
 # Utility functions.
 ################################################################################
@@ -170,6 +176,8 @@ sde_install_hub="$bin_dir/sde_install_hub"
 sde_install_ghi="$bin_dir/sde_install_ghi"
 sde_install_musl="$bin_dir/sde_install_musl"
 sde_install_fmtlib="$bin_dir/sde_install_fmtlib"
+sde_install_range="$bin_dir/sde_install_range"
+sde_install_cmcstl2="$bin_dir/sde_install_cmcstl2"
 
 ################################################################################
 # Process command line
@@ -262,6 +270,8 @@ hub_dir="$packages_dir/hub-$hub_version"
 ghi_dir="$packages_dir/ghi-$ghi_version"
 musl_dir="$packages_dir/musl-$musl_version"
 fmtlib_dir="$packages_dir/fmtlib-$fmtlib_version"
+range_dir="$packages_dir/range-$range_version"
+cmcstl2_dir="$packages_dir/cmcstl2-$cmcstl2_version"
 
 gcc_install_options=()
 if [ "${SDE_GCC_USE_OLD_ABI:-0}" -ne 0 ]; then
@@ -595,6 +605,34 @@ if [ -n "$fmtlib_dir" ]; then
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" fmtlib "$fmtlib_version" || \
 	  panic "cannot configure fmtlib"
+fi
+
+################################################################################
+# Install range
+################################################################################
+
+if [ -n "$range_dir" ]; then
+	if [ ! -d "$range_dir" ]; then
+		"$sde_shell" -s -x \
+		  "$sde_install_range" -v "$range_version" -d "$range_dir" -x || \
+		  panic "cannot install range"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" range "$range_version" || \
+	  panic "cannot configure range"
+fi
+
+################################################################################
+# Install cmcstl2
+################################################################################
+
+if [ -n "$cmcstl2_dir" ]; then
+	if [ ! -d "$cmcstl2_dir" ]; then
+		"$sde_shell" -s -x \
+		  "$sde_install_cmcstl2" -v "$cmcstl2_version" -d "$cmcstl2_dir" -x || \
+		  panic "cannot install cmcstl2"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" cmcstl2 "$cmcstl2_version" || \
+	  panic "cannot configure cmcstl2"
 fi
 
 ################################################################################
