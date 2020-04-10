@@ -35,6 +35,14 @@ isabspath()
 	esac
 }
 
+perform_cleanup()
+{
+	if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
+		rm -rf "$tmp_dir" || \
+		  echo "warning: cannot remove temporary directory $tmp_dir"
+	fi
+}
+
 usage()
 {
 	echo "bad usage: $@"
@@ -66,10 +74,14 @@ use_repo=0
 version=
 install_dir=
 
-tmp_dir="/tmp/sde_install_vim-$user-$host-$$"
+tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_vim-$user@$host-XXXXXXXX"
+tmp_dir=
+cleanup=1
 
-while getopts d:v:r opt; do
+while getopts d:v:rC opt; do
 	case "$opt" in
+	C)
+		cleanup=0;;
 	d)
 		install_dir="$OPTARG";;
 	v)
@@ -101,6 +113,12 @@ fi
 # This will help to increase the likelihood that the installed software
 # will be accessible by all users.
 umask 022
+
+tmp_dir=$(mktemp -d "$tmp_dir_template") || \
+  panic "cannot create temporary directory"
+if [ "$cleanup" -ne 0 ]; then
+	trap perform_cleanup EXIT
+fi
 
 top_dir="$tmp_dir/vim-$version"
 archive_dir="$top_dir/archive"
@@ -150,6 +168,8 @@ options=()
 options+=(--prefix="$abs_install_dir")
 options+=(--enable-perlinterp)
 options+=(--enable-pythoninterp)
+options+=(--enable-python3interp)
+options+=(--with-python3-command=python3)
 options+=(--enable-rubyinterp)
 options+=(--enable-cscope)
 options+=(--enable-gui=auto)
@@ -179,6 +199,6 @@ make_opts=("-j2")
 (cd "$src_dir" && make install) || \
   panic "make install failed"
 
-rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"
+#rm -rf "$tmp_dir" || panic "cannot remove temporary directory $tmp_dir"
 
 exit 0

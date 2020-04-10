@@ -28,7 +28,7 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.17.0
+cmake_version=3.17.1
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=9.3.0
@@ -55,6 +55,7 @@ spl_version=2.0.8
 ndiff_version=2.00
 
 # TeX Live: https://www.tug.org/texlive/acquire.html
+#texlive_version=2020
 texlive_version=2019
 
 # Boost: https://www.boost.org/users/download
@@ -85,7 +86,7 @@ catch_version=v2.11.3
 lcov_version=40580cd65909bc8324ae09b36bca2e178652ff3f
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=43be528071eace63a1462749982c94c2583ffa3b
+vimlsp_version=174e4bf82e87ebf9a9a76dfb3b19f05ac9044f07
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=f67ecb5a1120d0d0fb9312afcf262c829b218ca2
@@ -297,6 +298,15 @@ if [ "${SDE_CGAL_INSTALL:-0}" -eq 0 ]; then
 fi
 if [ "${SDE_HUB_INSTALL:-0}" -eq 0 ]; then
 	hub_dir=
+fi
+if [ "${SDE_MUSL_INSTALL:-1}" -eq 0 ]; then
+	musl_dir=
+fi
+if [ "${SDE_SPL_INSTALL:-1}" -eq 0 ]; then
+	spl_dir=
+fi
+if [ "${SDE_GHI_INSTALL:-1}" -eq 0 ]; then
+	ghi_dir=
 fi
 
 ################################################################################
