@@ -63,11 +63,20 @@ usage()
 	usage:
 	$0 [options]
 
-	options:
+	Options
+	=======
+
 	-d \$install_dir
 	    Set the installation directory to \$install_dir.
 	-v \$version
 	    Set the version to install to \$version (e.g., 1.66.0).
+	-b \$b2_config_data
+
+
+	Environment Variables
+	=====================
+
+	SDE_BOOST_CONFIG_DATA
 	EOF
 	exit 2
 }
@@ -84,8 +93,9 @@ install_dir=
 toolset=gcc
 omit_cmake_config=0
 cleanup=1
+config_data="$SDE_BOOST_CONFIG_DATA"
 
-while getopts Cd:v:c opt; do
+while getopts Cd:v:cb: opt; do
 	case "$opt" in
 	C)
 		cleanup=0;;
@@ -95,6 +105,8 @@ while getopts Cd:v:c opt; do
 		version="$OPTARG";;
 	c)
 		omit_cmake_config=1;;
+	b)
+		config_data="$OPTARG";;
 	\?)
 		usage
 		break;;
@@ -123,6 +135,7 @@ tmp_dir=$(mktemp -d "$tmp_dir_template") || \
 if [ "$cleanup" -ne 0 ]; then
 	trap perform_cleanup EXIT
 fi
+echo "temporary directory: $tmp_dir"
 
 make_opts="-j2"
 
@@ -197,10 +210,29 @@ tar -x "${tar_options[@]}" -f "$archive_file" -C "$src_dir" \
 #  toolset="$toolset" stage) || \
 #  panic "cannot build"
 
-(cd "$src_dir" && ./bootstrap.sh --prefix="$abs_install_dir") || \
+bootstrap_options=()
+bootstrap_options+=(--prefix="$abs_install_dir")
+(cd "$src_dir" && ./bootstrap.sh "${bootstrap_options[@]}") || \
   panic "cannot bootstrap"
 
-(cd "$src_dir" && ./b2 install) || \
+config_file="$tmp_dir/config.jam"
+if [ -n "$config_data" ]; then
+	echo "$config_data" > "$config_file" || \
+	  panic "cannot create config file"
+	cat <<- EOF
+	B2 CONFIG FILE CONTENTS:
+	============================================================
+	$(cat "$config_file")
+	============================================================
+	EOF
+fi
+
+b2_options=()
+b2_options+=(-q)
+if [ -n "$config_data" ]; then
+	b2_options+=(--user-config="$config_file")
+fi
+(cd "$src_dir" && ./b2 "${b2_options[@]}" install) || \
   panic "build failed"
 
 #rm -rf "$tmp_dir"
