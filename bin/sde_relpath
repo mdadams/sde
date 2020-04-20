@@ -31,6 +31,22 @@ panic()
 	exit 1
 }
 
+find_python()
+{
+	local prog_name
+	local prog_path
+	local prog_names
+	#prog_names=(python2 python python3)
+	prog_names=(python3 python python2)
+	for prog_name in "${prog_names[@]}"; do
+		prog_path=$(type -P "$prog_name")
+		if [ $? -eq 0 ]; then
+			echo "$prog_path" || return 1
+			return 0
+		fi
+	done
+}
+
 usage()
 {
 	cat <<- EOF
@@ -64,8 +80,9 @@ fi
 
 paths=("$@")
 
+python_program=$(find_python) || panic "cannot find python"
+
 for path in "${paths[@]}"; do
-	python -c \
+	"$python_program" -c \
 	  "import os.path; print(os.path.relpath('""$path""', '""$relative_to""'))"
 done
-
