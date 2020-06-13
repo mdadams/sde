@@ -108,7 +108,8 @@ ghi_version=1.2.0
 fmtlib_version=6.2.1
 
 # range: https://github.com/ericniebler/range-v3.git
-range_version=0.10.0
+#range_version=0.10.0
+range_version=
 
 # cmcstl2: https://github.com/CaseyCarter/cmcstl2.git
 cmcstl2_version=684a96d527e4dc733897255c0177b784dc280980
@@ -458,7 +459,7 @@ fi
 # Since some software requires CMake to build, install CMake before
 # building other software.
 
-if [ -n "$cmake_dir" ]; then
+if [ -n "$cmake_version" -a -n "$cmake_dir" ]; then
 	if [ ! -d "$cmake_dir" ]; then
 		"$sde_shell" -s -p null -x \
 		  "$sde_install_cmake" -v "$cmake_version" -d "$cmake_dir" || \
@@ -489,7 +490,7 @@ fi
 # Install GHI
 ################################################################################
 
-if [ -n "$ghi_dir" ]; then
+if [ -n "$ghi_version" -a -n "$ghi_dir" ]; then
 	if [ ! -d "$ghi_dir" ]; then
 		"$sde_shell" -s -p null -x \
 		  "$sde_install_ghi" -v "$ghi_version" -d "$ghi_dir" || \
@@ -503,7 +504,7 @@ fi
 # Install GCC
 ################################################################################
 
-if [ -n "$gcc_dir" ]; then
+if [ -n "$gcc_version" -a -n "$gcc_dir" ]; then
 	if [ ! -d "$gcc_dir" ]; then
 		"$sde_shell" -s -p null -x \
 		  "$sde_install_gcc" -v "$gcc_version" -d "$gcc_dir" \
@@ -543,7 +544,7 @@ fi
 # Install Clang
 ################################################################################
 
-if [ -n "$clang_dir" ]; then
+if [ -n "$clang_version" -a -n "$clang_dir" ]; then
 	if [ ! -d "$clang_dir" ]; then
 
 		# Try to compile Clang with Clang if it is available.
@@ -608,7 +609,7 @@ fi
 # Install Muscl
 ################################################################################
 
-if [ -n "$musl_dir" ]; then
+if [ -n "$musl_version" -a -n "$musl_dir" ]; then
 	if [ ! -d "$musl_dir" ]; then
 		"$sde_shell" -s -x \
 		  "$sde_install_musl" -v "$musl_version" -d "$musl_dir" || \
@@ -622,7 +623,7 @@ fi
 # Install Boost
 ################################################################################
 
-if [ -n "$boost_dir" ]; then
+if [ -n "$boost_version" -a -n "$boost_dir" ]; then
 	install_boost_options=()
 	install_boost_options+=(-c)
 	if [ ! -d "$boost_dir" ]; then
@@ -639,7 +640,7 @@ fi
 # Install fmtlib
 ################################################################################
 
-if [ -n "$fmtlib_dir" ]; then
+if [ -n "$fmtlib_version" -a -n "$fmtlib_dir" ]; then
 	if [ ! -d "$fmtlib_dir" ]; then
 		"$sde_shell" -s -x \
 		  "$sde_install_fmtlib" -v "$fmtlib_version" -d "$fmtlib_dir" -x || \
@@ -653,7 +654,7 @@ fi
 # Install range
 ################################################################################
 
-if [ -n "$range_dir" ]; then
+if [ -n "$range_version" -a -n "$range_dir" ]; then
 	if [ ! -d "$range_dir" ]; then
 		# Note: The Range library has a dependency on Boost.
 		"$sde_shell" -s -x \
@@ -668,7 +669,7 @@ fi
 # Install cmcstl2
 ################################################################################
 
-if [ -n "$cmcstl2_dir" ]; then
+if [ -n "$cmcstl2_version" -a -n "$cmcstl2_dir" ]; then
 	if [ ! -d "$cmcstl2_dir" ]; then
 		"$sde_shell" -s -x \
 		  "$sde_install_cmcstl2" -v "$cmcstl2_version" -d "$cmcstl2_dir" -x || \
@@ -682,7 +683,7 @@ fi
 # Install CGAL
 ################################################################################
 
-if [ -n "$cgal_dir" ]; then
+if [ -n "$cgal_version" -a -n "$cgal_dir" ]; then
 	if [ ! -d "$cgal_dir" ]; then
 		"$sde_shell" -s -x \
 		  "$sde_install_cgal" -v "$cgal_version" -d "$cgal_dir" || \
@@ -696,7 +697,7 @@ fi
 # Install GDB
 ################################################################################
 
-if [ -n "$gdb_dir" ]; then
+if [ -n "$gdb_version" -a -n "$gdb_dir" ]; then
 	if [ ! -d "$gdb_dir" ]; then
 		"$sde_shell" -s -x \
 		  "$sde_install_gdb" -v "$gdb_version" -d "$gdb_dir" || \
@@ -710,7 +711,7 @@ fi
 # Install Lcov
 ################################################################################
 
-if [ -n "$lcov_dir" ]; then
+if [ -n "$lcov_version" -a -n "$lcov_dir" ]; then
 	if [ ! -d "$lcov_dir" ]; then
 		"$sde_shell" -s -x \
 		  "$sde_install_lcov" -v "$lcov_version" -d "$lcov_dir" || \
@@ -756,7 +757,7 @@ texlive_bin_dir="$texlive_dir/bin"
 
 # JasPer might need a more recent LaTeX version
 # Install JasPer after LaTeX.
-if [ -n "$jasper_dir" ]; then
+if [ -n "$jasper_version" -a -n "$jasper_dir" ]; then
 	if [ ! -d "$jasper_dir" ]; then
 		options=()
 		if [ -d "$texlive_dir" ]; then
@@ -780,7 +781,7 @@ fi
 # Install SPL
 ################################################################################
 
-if [ -n "$spl_dir" ]; then
+if [ -n "$spl_version" -a -n "$spl_dir" ]; then
 	if [ ! -d "$spl_dir" ]; then
 		options=()
 		if [ -d "$texlive_dir" -a "$texlive_version" != 2019 ]; then
@@ -803,7 +804,7 @@ fi
 # Install GSL
 ################################################################################
 
-if [ -n "$gsl_dir" ]; then
+if [ -n "$gsl_version" -a -n "$gsl_dir" ]; then
 	if [ ! -d "$gsl_dir" ]; then
 #		PATH="$gcc_bin_dir:$PATH" \
 		"$sde_shell" -s -x \
@@ -818,7 +819,7 @@ fi
 # Install Catch2
 ################################################################################
 
-if [ -n "$catch_dir" ]; then
+if [ -n "$catch_version" -a -n "$catch_dir" ]; then
 	if [ ! -d "$catch_dir" ]; then
 		"$sde_shell" -s -x \
 		  "$sde_install_catch" -v "$catch_version" -d "$catch_dir" || \
@@ -832,7 +833,7 @@ fi
 # Install Ndiff
 ################################################################################
 
-if [ -n "$ndiff_dir" ]; then
+if [ -n "$ndiff_version" -a -n "$ndiff_dir" ]; then
 	if [ ! -d "$ndiff_dir" ]; then
 		"$sde_shell" -s -x \
 		  "$sde_install_ndiff" -v "$ndiff_version" -d "$ndiff_dir" || \
@@ -846,7 +847,7 @@ fi
 # Install Aristotle
 ################################################################################
 
-if [ -n "$aristotle_dir" ]; then
+if [ -n "$aristotle_version" -a -n "$aristotle_dir" ]; then
 	if [ ! -d "$aristotle_dir" ]; then
 		"$sde_shell" -s -x \
 		  "$sde_install_aristotle" \
@@ -863,7 +864,7 @@ fi
 # Install Vim
 ################################################################################
 
-if [ -n "$vim_dir" ]; then
+if [ -n "$vim_version" -a -n "$vim_dir" ]; then
 	if [ ! -d "$vim_dir" ]; then
 		"$sde_shell" -s -x \
 		  "$sde_install_vim" -v "$vim_version" -d "$vim_dir" || \
@@ -877,7 +878,7 @@ fi
 # Install Vim LSP
 ################################################################################
 
-if [ -n "$vimlsp_dir" ]; then
+if [ -n "$vimlsp_version" -a -n "$vimlsp_dir" ]; then
 	if [ ! -d "$vimlsp_dir" ]; then
 		"$sde_shell" -s -x \
 		  "$sde_install_vimlsp" -d "$vimlsp_dir" \
@@ -894,7 +895,7 @@ fi
 # Install YCM
 ################################################################################
 
-if [ -n "$ycm_dir" ]; then
+if [ -n "$ycm_version" -a -n "$ycm_dir" ]; then
 	if [ ! -d "$ycm_dir" ]; then
 		libclang="$clang_dir/lib/libclang.so"
 		options=()
@@ -925,7 +926,7 @@ fi
 #
 ################################################################################
 
-if [ -n "$hub_dir" ]; then
+if [ -n "$hub_version" -a -n "$hub_dir" ]; then
 	if [ ! -d "$hub_dir" ]; then
 		gccgo_dir="$packages_dir/gccgo-$gccgo_version"
 		if [ ! -d "$gccgo_dir" ]; then
