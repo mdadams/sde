@@ -605,48 +605,6 @@ if [ "${SDE_CLANG_TRUNK_INSTALL:-0}" -ne 0 ]; then
 fi
 
 ################################################################################
-# Install fmtlib
-################################################################################
-
-if [ -n "$fmtlib_dir" ]; then
-	if [ ! -d "$fmtlib_dir" ]; then
-		"$sde_shell" -s -x \
-		  "$sde_install_fmtlib" -v "$fmtlib_version" -d "$fmtlib_dir" -x || \
-		  panic "cannot install fmtlib"
-	fi
-	"$sde_cmd" pkg -d "$sde_top_dir" fmtlib "$fmtlib_version" || \
-	  panic "cannot configure fmtlib"
-fi
-
-################################################################################
-# Install range
-################################################################################
-
-if [ -n "$range_dir" ]; then
-	if [ ! -d "$range_dir" ]; then
-		"$sde_shell" -s -x \
-		  "$sde_install_range" -v "$range_version" -d "$range_dir" -x || \
-		  panic "cannot install range"
-	fi
-	"$sde_cmd" pkg -d "$sde_top_dir" range "$range_version" || \
-	  panic "cannot configure range"
-fi
-
-################################################################################
-# Install cmcstl2
-################################################################################
-
-if [ -n "$cmcstl2_dir" ]; then
-	if [ ! -d "$cmcstl2_dir" ]; then
-		"$sde_shell" -s -x \
-		  "$sde_install_cmcstl2" -v "$cmcstl2_version" -d "$cmcstl2_dir" -x || \
-		  panic "cannot install cmcstl2"
-	fi
-	"$sde_cmd" pkg -d "$sde_top_dir" cmcstl2 "$cmcstl2_version" || \
-	  panic "cannot configure cmcstl2"
-fi
-
-################################################################################
 # Install Muscl
 ################################################################################
 
@@ -675,6 +633,49 @@ if [ -n "$boost_dir" ]; then
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" boost "$boost_version" || \
 	  panic "cannot configure boost"
+fi
+
+################################################################################
+# Install fmtlib
+################################################################################
+
+if [ -n "$fmtlib_dir" ]; then
+	if [ ! -d "$fmtlib_dir" ]; then
+		"$sde_shell" -s -x \
+		  "$sde_install_fmtlib" -v "$fmtlib_version" -d "$fmtlib_dir" -x || \
+		  panic "cannot install fmtlib"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" fmtlib "$fmtlib_version" || \
+	  panic "cannot configure fmtlib"
+fi
+
+################################################################################
+# Install range
+################################################################################
+
+if [ -n "$range_dir" ]; then
+	if [ ! -d "$range_dir" ]; then
+		# Note: The Range library has a dependency on Boost.
+		"$sde_shell" -s -x \
+		  "$sde_install_range" -v "$range_version" -d "$range_dir" -x || \
+		  panic "cannot install range"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" range "$range_version" || \
+	  panic "cannot configure range"
+fi
+
+################################################################################
+# Install cmcstl2
+################################################################################
+
+if [ -n "$cmcstl2_dir" ]; then
+	if [ ! -d "$cmcstl2_dir" ]; then
+		"$sde_shell" -s -x \
+		  "$sde_install_cmcstl2" -v "$cmcstl2_version" -d "$cmcstl2_dir" -x || \
+		  panic "cannot install cmcstl2"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" cmcstl2 "$cmcstl2_version" || \
+	  panic "cannot configure cmcstl2"
 fi
 
 ################################################################################
