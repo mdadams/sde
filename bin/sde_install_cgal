@@ -34,7 +34,7 @@ validate_url()
 	local url="$1"
 	case "$url" in
 	http*)
-		wget -S --spider "$url" 2>&1 | grep -q "HTTP/1.1 200 OK"
+		wget -S --spider "$url" 2>&1 | grep -q -E "HTTP/1.1 (200 OK|302 Found)"
 		;;
 	ftp*)
 		wget -S --spider "$url" 2>&1 | grep -q -i "exists"
