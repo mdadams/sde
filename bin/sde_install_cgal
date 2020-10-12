@@ -99,7 +99,7 @@ src_dir="$tmp_dir/src"
 build_dir="$tmp_dir/build"
 
 archive_urls=()
-archive_urls+=("https://github.com/CGAL/cgal/releases/download/v$version/CGAL-$version/CGAL-$version.tar.xz")
+archive_urls+=("https://github.com/CGAL/cgal/releases/download/v$version/CGAL-$version.tar.xz")
 archive_urls+=("https://github.com/CGAL/cgal/releases/download/releases/CGAL-$version/CGAL-$version.tar.xz")
 archive_urls+=("https://github.com/CGAL/cgal/archive/releases/CGAL-$version.tar.gz")
 
