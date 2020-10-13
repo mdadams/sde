@@ -38,7 +38,7 @@ gcc_version=10.2.0
 gccgo_version=9.3.0
 
 # LLVM: http://releases.llvm.org/download.html
-clang_version=10.0.1
+clang_version=11.0.0
 
 # Musl: https://www.musl-libc.org/download.html
 musl_version=1.2.0
@@ -93,7 +93,7 @@ vimlsp_version=dcdc00c296d8e038bc07376e2c362f4d38a0cf67
 vimlsp_async_version=6102020b4690f05ab6509a37fa25bc53e2d799a9
 
 # Vim Asyncomplete: https://github.com/prabirshrestha/asyncomplete.vim.git
-vimlsp_ac_version=b65efdced5ab98ed9fedca5fab99fc51592bd56e
+vimlsp_ac_version=e82ab2e849e03d076518e60458ce216a2ace3e0e
 
 # Vim Asyncomplete LSP: https://github.com/prabirshrestha/asyncomplete-lsp.vim.git
 vimlsp_aclsp_version=684c34453db9dcbed5dbf4769aaa6521530a23e0
