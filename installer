@@ -28,14 +28,14 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.18.4
+cmake_version=3.19.1
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=10.2.0
 
 # GCC Go
 #gccgo_version="$gcc_version"
-gccgo_version=9.3.0
+gccgo_version=10.2.0
 
 # LLVM: http://releases.llvm.org/download.html
 clang_version=11.0.0
@@ -47,7 +47,7 @@ musl_version=1.2.0
 jasper_version=2.0.14
 
 # GDB: https://www.gnu.org/software/gdb/download/
-gdb_version=9.2
+gdb_version=10.1
 
 # SPL: http://www.ece.uvic.ca/~frodo/SPL/#download
 spl_version=2.0.8
@@ -65,13 +65,13 @@ texlive_version=2020
 boost_version=1.74.0
 
 # CGAL: https://github.com/CGAL/cgal/releases
-cgal_version=5.1
+cgal_version=5.1.1
 
 # Aristotle: https://github.com/mdadams/aristotle
 aristotle_version=v3.0.31
 
 # YCM: https://github.com/Valloric/YouCompleteMe
-ycm_version=3e72ffa0f5792ba25b275d4db882c64770b0488d
+ycm_version=4496153a3efdb0891dac24510ac1ee519f1778a6
 
 # Vim: https://www.vim.org/download.php
 vim_version=8.2
@@ -80,20 +80,20 @@ vim_version=8.2
 gsl_version=v3.1.0
 
 # Catch2: https://github.com/catchorg/Catch2/releases
-catch_version=v2.13.2
+catch_version=v2.13.3
 
 # Lcov: https://github.com/linux-test-project/lcov
 lcov_version=v1.15
 #lcov_version=bee8ae7130987730bb819044481d22c25803181d
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=dcdc00c296d8e038bc07376e2c362f4d38a0cf67
+vimlsp_version=a56304f238f5368ad6c1b3b14b96308edd25a1f9
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=6102020b4690f05ab6509a37fa25bc53e2d799a9
 
 # Vim Asyncomplete: https://github.com/prabirshrestha/asyncomplete.vim.git
-vimlsp_ac_version=e82ab2e849e03d076518e60458ce216a2ace3e0e
+vimlsp_ac_version=c5f5808581bd3a41ee379836ebf804eb46a189a5
 
 # Vim Asyncomplete LSP: https://github.com/prabirshrestha/asyncomplete-lsp.vim.git
 vimlsp_aclsp_version=684c34453db9dcbed5dbf4769aaa6521530a23e0
@@ -105,7 +105,7 @@ hub_version=2.14.2
 ghi_version=1.2.0
 
 # Fmtlib: https://github.com/fmtlib/fmt.git
-fmtlib_version=7.0.3
+fmtlib_version=7.1.3
 
 # range: https://github.com/ericniebler/range-v3.git
 #range_version=0.10.0
