@@ -28,7 +28,7 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.19.2
+cmake_version=3.19.3
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=10.2.0
@@ -38,10 +38,10 @@ gcc_version=10.2.0
 gccgo_version=10.2.0
 
 # LLVM: http://releases.llvm.org/download.html
-clang_version=11.0.0
+clang_version=11.0.1
 
 # Musl: https://www.musl-libc.org/download.html
-musl_version=1.2.1
+musl_version=1.2.2
 
 # JasPer: https://www.ece.uvic.ca/~frodo/jasper/#download
 jasper_version=2.0.14
@@ -61,16 +61,16 @@ texlive_version=2020
 # Boost: https://www.boost.org/users/download
 # Note: Do not upgrade Boost until CMake catches up; otherwise build problems
 # will likely result.
-boost_version=1.74.0
+boost_version=1.75.0
 
 # CGAL: https://github.com/CGAL/cgal/releases
-cgal_version=5.1.1
+cgal_version=5.2
 
 # Aristotle: https://github.com/mdadams/aristotle
 aristotle_version=v3.0.31
 
 # YCM: https://github.com/Valloric/YouCompleteMe
-ycm_version=e252f6512f1f4a9a515dfc42401baf30a5fe72c8
+ycm_version=2434b104065be4590f07ad950d0943b7194f01e6
 
 # Vim: https://www.vim.org/download.php
 vim_version=8.2
@@ -79,17 +79,17 @@ vim_version=8.2
 gsl_version=v3.1.0
 
 # Catch2: https://github.com/catchorg/Catch2/releases
-catch_version=v2.13.3
+catch_version=v2.13.4
 
 # Lcov: https://github.com/linux-test-project/lcov
 lcov_version=v1.15
 #lcov_version=bee8ae7130987730bb819044481d22c25803181d
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=9dce8c50ed845b1f68d03875007c0a8a47b5490a
+vimlsp_version=7380d31c4f49d76ce3895c386e2a7a40b2b2df08
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
-vimlsp_async_version=6102020b4690f05ab6509a37fa25bc53e2d799a9
+vimlsp_async_version=236debf1a68d69a74f1f6647c273b0477e1ec1bf
 
 # Vim Asyncomplete: https://github.com/prabirshrestha/asyncomplete.vim.git
 vimlsp_ac_version=c5f5808581bd3a41ee379836ebf804eb46a189a5
