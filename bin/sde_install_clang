@@ -86,10 +86,7 @@ usage()
 
 	Examples:
 	$0 -v 9.0.1 -d $HOME/local/clang
-	$0 -r -v trunk -d $HOME/local/clang
-	$0 -r -v branches/release_70 -d $HOME/local/clang
-	$0 -r -v tags/RELEASE_700/final -d $HOME/local/clang
-	CC=gcc CXX=g++ $0 -r -v trunk -d $HOME/local/clang
+	SDE_TMPDIR=/var/tmp CC=gcc CXX=g++ $0 -r -v master -d $HOME/local/clang
 	EOF
 	exit 2
 }
@@ -265,10 +262,13 @@ if [ 0 -ne 0 ]; then
 
 fi
 
+	echo "CLONING REPOSITORY"
 	git clone --progress "$git_repo_url" "$git_dir" || \
 	  panic "cannot clone repository"
 	(cd "$git_dir" && git checkout "$version") || \
 	  panic "cannot checkout"
+	echo "RUNNING GIT LOG"
+	(cd "$git_dir" && git log -1) || panic "git log failed"
 	src_root_dir="$git_dir/llvm"
 
 	projects=()

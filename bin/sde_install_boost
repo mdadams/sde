@@ -71,12 +71,19 @@ usage()
 	-v \$version
 	    Set the version to install to \$version (e.g., 1.66.0).
 	-b \$b2_config_data
+	-c
+	    Omit CMake configuration.
 
 
 	Environment Variables
 	=====================
 
 	SDE_BOOST_CONFIG_DATA
+
+	Examples
+	========
+
+	$0 -c -v 1.74.0 -d boost-1.74.0
 	EOF
 	exit 2
 }
@@ -210,9 +217,18 @@ tar -x "${tar_options[@]}" -f "$archive_file" -C "$src_dir" \
 #  toolset="$toolset" stage) || \
 #  panic "cannot build"
 
+python_program=python
+pyconfig_file=$("$python_program" \
+  -c 'import sysconfig; print(sysconfig.get_config_h_filename())') || \
+  panic
+python_inc_dir=$(dirname "$pyconfig_file") || panic
+env=()
+env+=("CPLUS_INCLUDE_PATH=$python_in_dir")
+echo "Python include directory $python_inc_dir"
+
 bootstrap_options=()
 bootstrap_options+=(--prefix="$abs_install_dir")
-(cd "$src_dir" && ./bootstrap.sh "${bootstrap_options[@]}") || \
+(cd "$src_dir" && env "${env[@]}" ./bootstrap.sh "${bootstrap_options[@]}") || \
   panic "cannot bootstrap"
 
 config_file="$tmp_dir/config.jam"
@@ -232,7 +248,7 @@ b2_options+=(-q)
 if [ -n "$config_data" ]; then
 	b2_options+=(--user-config="$config_file")
 fi
-(cd "$src_dir" && ./b2 "${b2_options[@]}" install) || \
+(cd "$src_dir" && env "${env[@]}" ./b2 "${b2_options[@]}" install) || \
   panic "build failed"
 
 #rm -rf "$tmp_dir"

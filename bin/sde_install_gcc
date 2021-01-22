@@ -250,9 +250,12 @@ if [ $from_repo -ne 0 ]; then
 	#svn_repo="svn://gcc.gnu.org/svn/gcc/$version"
 	#svn co "$svn_repo" "$src_dir" || panic "cannot checkout source"
 	git_repo="git://gcc.gnu.org/git/gcc.git"
+	echo "CLONING REPOSITORY"
 	git clone --progress "$git_repo" "$src_dir" || \
 	  panic "cannot clone repository"
 	(cd "$src_dir" && git checkout "$version") || panic "cannot checkout"
+	echo "RUNNING GIT LOG"
+	(cd "$src_dir" && git log -1) || panic "git log failed"
 
 else
 
