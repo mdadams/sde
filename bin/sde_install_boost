@@ -101,8 +101,9 @@ toolset=gcc
 omit_cmake_config=0
 cleanup=1
 config_data="$SDE_BOOST_CONFIG_DATA"
+python_hack=0
 
-while getopts Cd:v:cb: opt; do
+while getopts Cd:v:cb:p opt; do
 	case "$opt" in
 	C)
 		cleanup=0;;
@@ -114,6 +115,8 @@ while getopts Cd:v:cb: opt; do
 		omit_cmake_config=1;;
 	b)
 		config_data="$OPTARG";;
+	p)
+		python_hack=1;;
 	\?)
 		usage
 		break;;
@@ -217,14 +220,16 @@ tar -x "${tar_options[@]}" -f "$archive_file" -C "$src_dir" \
 #  toolset="$toolset" stage) || \
 #  panic "cannot build"
 
-python_program=python
-pyconfig_file=$("$python_program" \
-  -c 'import sysconfig; print(sysconfig.get_config_h_filename())') || \
-  panic
-python_inc_dir=$(dirname "$pyconfig_file") || panic
 env=()
-env+=("CPLUS_INCLUDE_PATH=$python_in_dir")
-echo "Python include directory $python_inc_dir"
+if [ "$python_hack" -ne 0 ]; then
+	python_program=python
+	pyconfig_file=$("$python_program" \
+	  -c 'import sysconfig; print(sysconfig.get_config_h_filename())') || \
+	  panic
+	python_inc_dir=$(dirname "$pyconfig_file") || panic
+	env+=("CPLUS_INCLUDE_PATH=$python_in_dir")
+	echo "Python include directory $python_inc_dir"
+fi
 
 bootstrap_options=()
 bootstrap_options+=(--prefix="$abs_install_dir")
