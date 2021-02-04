@@ -589,7 +589,7 @@ if [ "${SDE_CLANG_TRUNK_INSTALL:-0}" -ne 0 ]; then
 			"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
 			  env CXX="$gcc_dir/bin/g++" CC="$gcc_dir/bin/gcc" \
 			  "$sde_install_clang" "${install_clang_options[@]}" \
-			  -r -v master -d "$clang_trunk_dir" -f || \
+			  -r -v main -d "$clang_trunk_dir" -f || \
 			  panic "cannot install clang"
 		fi
 		#"$sde_cmd" pkg -d "$sde_top_dir" clang "$clang_version" || \
