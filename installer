@@ -28,7 +28,7 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.19.4
+cmake_version=3.19.5
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=10.2.0
@@ -70,7 +70,7 @@ cgal_version=5.2
 aristotle_version=v3.0.31
 
 # YCM: https://github.com/Valloric/YouCompleteMe
-ycm_version=2434b104065be4590f07ad950d0943b7194f01e6
+ycm_version=dbf67638cb7084883c7463b0d6226be9d9159b9a
 
 # Vim: https://www.vim.org/download.php
 vim_version=8.2
@@ -86,7 +86,7 @@ lcov_version=v1.15
 #lcov_version=bee8ae7130987730bb819044481d22c25803181d
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=0c77beb2eb99263e69a25b4d66e7ca2cd15cb0ef
+vimlsp_version=6f8dfe19d59041a606f30b7764ccd51d4299d0e5
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=236debf1a68d69a74f1f6647c273b0477e1ec1bf
