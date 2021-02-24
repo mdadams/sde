@@ -37,6 +37,16 @@ perform_cleanup()
 	fi
 }
 
+isabspath()
+{
+	case "$1" in
+	/*)
+		echo "1";;
+	*)
+		echo "0";;
+	esac
+}
+
 usage()
 {
 	echo "BAD USAGE: $@"
@@ -93,8 +103,12 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
-abs_install_dir="$(readlink -f "$install_dir")" || \
-  panic "readlink failed"
+abs_install_dir="$install_dir"
+result=$(isabspath "$abs_install_dir") || \
+  panic "absolute path test failed"
+if [ "$result" -eq 0 ]; then
+	abs_install_dir="$cur_dir/$abs_install_dir"
+fi
 install_dir="$abs_install_dir"
 
 # Set the user file-creation mask to allow read and execute permissions
