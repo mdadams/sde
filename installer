@@ -28,7 +28,7 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.19.5
+cmake_version=3.19.6
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=10.2.0
@@ -86,7 +86,7 @@ lcov_version=v1.15
 #lcov_version=bee8ae7130987730bb819044481d22c25803181d
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=6f8dfe19d59041a606f30b7764ccd51d4299d0e5
+vimlsp_version=6a2b97cd598963d1e1e110e8ddb226cb4b7c5715
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=236debf1a68d69a74f1f6647c273b0477e1ec1bf
