@@ -38,7 +38,7 @@ gcc_version=10.2.0
 gccgo_version=10.2.0
 
 # LLVM: http://releases.llvm.org/download.html
-clang_version=11.0.1
+clang_version=11.1.0
 
 # Musl: https://www.musl-libc.org/download.html
 musl_version=1.2.2
