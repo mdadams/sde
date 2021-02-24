@@ -43,8 +43,8 @@ clang_version=11.0.1
 # Musl: https://www.musl-libc.org/download.html
 musl_version=1.2.2
 
-# JasPer: https://www.ece.uvic.ca/~frodo/jasper/#download
-jasper_version=2.0.14
+# JasPer: https://github.com/jasper-software/jasper
+jasper_version=2.0.25
 
 # GDB: https://www.gnu.org/software/gdb/download/
 gdb_version=10.1
