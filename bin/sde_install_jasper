@@ -129,7 +129,7 @@ fi
 src_dir="$tmp_dir"
 build_dir="$tmp_dir/tmp_cmake"
 
-for dir in "$tmp_dir" "$build_dir"; do
+for dir in "$build_dir"; do
 	mkdir -p "$dir" || \
 	  panic "cannot make directory $dir"
 done
@@ -165,6 +165,3 @@ make_opts+=(-j4)
 
 (cd "$build_dir" && make install) || \
   panic "make install failed"
-
-rm -rf "$tmp_dir" || \
-  panic "cannot remove temporary directory $tmp_dir"
