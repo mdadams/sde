@@ -53,11 +53,20 @@ usage()
 	cat <<- EOF
 	usage: $0 -v \$version -d \$install_dir
 
-	Options:
+	Options
+	=======
+
 	-v \$version
 	    Set the version of the software for installation to \$version.
 	-d \$install_dir
 	    Set the installation directory to \$install_dir.
+
+	Examples
+	========
+
+	$0 -v 2.0.25 -d /tmp/jasper
+	$0 -v 2.0.25 -o build_doc -d /tmp/jasper-doc
+	$0 -v 2.0.25 -o no_build_doc -d /tmp/jasper-nodoc
 	EOF
 	exit 2
 }
@@ -119,7 +128,9 @@ umask 022
 
 url="https://github.com/jasper-software/jasper/archive/version-$version.tar.gz"
 
-tmp_dir_template="/tmp/sde_install_jasper-$user@$host-XXXXXXXX"
+# Note: Do not use the "@" character in pathnames as this can cause problems
+# with Doxygen (resulting in bogus warnings).
+tmp_dir_template="/tmp/sde_install_jasper-$user-XXXXXXXX"
 
 tmp_dir=$(mktemp -d "$tmp_dir_template") || \
   panic "cannot create temporary directory"
@@ -129,7 +140,7 @@ fi
 src_dir="$tmp_dir"
 build_dir="$tmp_dir/tmp_cmake"
 
-for dir in "$build_dir"; do
+for dir in "$src_dir" "$build_dir"; do
 	mkdir -p "$dir" || \
 	  panic "cannot make directory $dir"
 done
@@ -143,25 +154,31 @@ archive=$(basename "$url") || \
 (cd "$tmp_dir" && tar -xzf "$archive" --strip-components=1) || \
   panic "cannot extract archive"
 
-cmake_opts=()
-cmake_opts+=(-G "Unix Makefiles")
-cmake_opts+=(-DCMAKE_INSTALL_PREFIX="$install_dir")
-cmake_opts+=(-DCMAKE_BUILD_TYPE=Debug)
-if [ "$build_doc" -ne 0 ]; then
-	cmake_opts+=(-DJAS_ENABLE_DOC=true)
-else
-	cmake_opts+=(-DJAS_ENABLE_DOC=false)
+if [ ! -f "$src_dir/CMakeLists.txt" ]; then
+	panic "missing CMakeLists.txt file"
 fi
 
-(cd "$build_dir" &&
-  cmake "${cmake_opts[@]}" "$src_dir") || \
-  panic "cmake failed"
+config_opts=()
+config_opts+=(-G "Unix Makefiles")
+config_opts+=(-DCMAKE_VERBOSE_MAKEFILE=true)
+config_opts+=(-DCMAKE_INSTALL_PREFIX="$install_dir")
+config_opts+=(-DCMAKE_BUILD_TYPE=Debug)
+if [ "$build_doc" -ne 0 ]; then
+	config_opts+=(-DJAS_ENABLE_DOC=true)
+else
+	config_opts+=(-DJAS_ENABLE_DOC=false)
+fi
 
-make_opts=()
-make_opts+=(-j4)
+cmake -H"$src_dir" -B"$build_dir" "${config_opts[@]}" || \
+  panic "cmake configure failed"
 
-(cd "$build_dir" && make "${make_opts[@]}") || \
-  panic "make failed"
+build_opts=()
+# Note: Enabling multiple jobs appears to create a race condition in the
+# build process.
+#build_opts+=(-j4)
 
-(cd "$build_dir" && make install) || \
-  panic "make install failed"
+cmake --build "$build_dir" "${build_opts[@]}" || \
+  panic "cmake build failed"
+
+cmake --build "$build_dir" --target install || \
+  panic "cmake install failed"
