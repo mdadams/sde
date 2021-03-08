@@ -26,5 +26,7 @@ vimlsp
 ycm
 ycm_extras
 
+fmtlib
+
 #libcxx
 #gccgo

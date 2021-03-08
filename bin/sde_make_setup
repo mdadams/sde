@@ -23,6 +23,9 @@
 # 
 # __END_OF_LICENSE__
 
+################################################################################
+################################################################################
+
 panic()
 {
 	echo "FATAL ERROR: $@" 1>&2
@@ -88,6 +91,9 @@ add_to_path()
 	echo "$path"
 }
 
+################################################################################
+################################################################################
+
 bash_setup()
 {
 	echo 'export SDE_LEVEL="'$sde_level'";' || return 1
@@ -113,84 +119,107 @@ bash_setup()
 	echo 'export SDE_PATH_SUFFIX='\"$(join_by : ${path_suffix[@]})\"';' || \
 	  return 1
 
+	#echo 'export SDE_GCC_INC_PATH=;' || \
+	#  return 1
+	echo 'export SDE_GCC_INC_PATH='\"$(join_by : ${gcc_inc_path[@]})\"';' || \
+	  return 1
+	echo 'export SDE_GCC_C_INC_PATH='\"$(join_by : ${gcc_inc_path[@]})\"';' || \
+	  return 1
+	echo 'export SDE_GCC_CXX_INC_PATH='\"$(join_by : ${gcc_inc_path[@]})\"';' || \
+	  return 1
+
+	#echo 'export SDE_CLANG_INC_PATH=;' || \
+	#  return 1
+	echo 'export SDE_CLANG_INC_PATH='\"$(join_by : ${clang_inc_path[@]})\"';' || \
+	  return 1
+	echo 'export SDE_CLANG_C_INC_PATH='\"$(join_by : ${clang_inc_path[@]})\"';' || \
+	  return 1
+	echo 'export SDE_CLANG_CXX_INC_PATH='\"$(join_by : ${clang_inc_path[@]})\"';' || \
+	  return 1
+
+	echo 'export SDE_GCC_LIB_PATH='\"$(join_by : ${lib_path[@]})\"';' || \
+	  return 1
+	echo 'export SDE_CLANG_LIB_PATH='\"$(join_by : ${lib_path[@]})\"';' || \
+	  return 1
+
 	# GNU C++ compiler
 	echo 'export SDE_GCC_CXX_PROGRAM='"$gcc_cxx_program"';' || \
 	  return 1
 	echo 'export SDE_GCC_CXX_TRANSFORM='\""$gcc_cxx_transform"\"';' || \
 	  return 1
-	if [ ${gcc_cxx_transform:-0} -ne 0 ]; then
+	#if [ ${gcc_cxx_transform:-0} -ne 0 ]; then
 		echo 'export SDE_GCC_CXX_OPTIONS_PREFIX='\""${gcc_cxx_options_prefix[*]}"\"';' || \
 		  return 1
 		echo 'export SDE_GCC_CXX_OPTIONS_SUFFIX='\""${gcc_cxx_options_suffix[*]}"\"';' || \
 		  return 1
-	fi
+	#fi
 
 	# GNU C compiler
 	echo 'export SDE_GCC_C_PROGRAM='"$gcc_c_program"';' || \
 	  return 1
 	echo 'export SDE_GCC_C_TRANSFORM='\""$gcc_c_transform"\"';' || \
 	  return 1
-	if [ ${gcc_c_transform:-0} -ne 0 ]; then
+	#if [ ${gcc_c_transform:-0} -ne 0 ]; then
 		echo 'export SDE_GCC_C_OPTIONS_PREFIX='\""${gcc_c_options_prefix[*]}"\"';' || \
 		  return 1
 		echo 'export SDE_GCC_C_OPTIONS_SUFFIX='\""${gcc_c_options_suffix[*]}"\"';' || \
 		  return 1
-	fi
+	#fi
 
 	# GCC Go compiler
 	echo 'export SDE_GCC_GCCGO_PROGRAM='"$gcc_gccgo_program"';' || \
 	  return 1
 	echo 'export SDE_GCC_GCCGO_TRANSFORM='\""$gcc_gccgo_transform"\"';' || \
 	  return 1
-	if [ ${gcc_gccgo_transform:-0} -ne 0 ]; then
+	#if [ ${gcc_gccgo_transform:-0} -ne 0 ]; then
 		echo 'export SDE_GCC_GCCGO_OPTIONS_PREFIX='\""${gcc_gccgo_options_prefix[*]}"\"';' || \
 		  return 1
 		echo 'export SDE_GCC_GCCGO_OPTIONS_SUFFIX='\""${gcc_gccgo_options_suffix[*]}"\"';' || \
 		  return 1
-	fi
+	#fi
 
 	# GCC Go program
 	echo 'export SDE_GCC_GO_PROGRAM='"$gcc_go_program"';' || \
 	  return 1
 	echo 'export SDE_GCC_GO_TRANSFORM='\""$gcc_go_transform"\"';' || \
 	  return 1
-	if [ ${gcc_go_transform:-0} -ne 0 ]; then
+	#if [ ${gcc_go_transform:-0} -ne 0 ]; then
 		echo 'export SDE_GCC_GO_OPTIONS_PREFIX='\""${gcc_go_options_prefix[*]}"\"';' || \
 		  return 1
 		echo 'export SDE_GCC_GO_OPTIONS_SUFFIX='\""${gcc_go_options_suffix[*]}"\"';' || \
 		  return 1
-	fi
+	#fi
 
 	# Clang C++ compiler
 	echo 'export SDE_CLANG_CXX_PROGRAM='"$clang_cxx_program"';' || \
 	  return 1
 	echo 'export SDE_CLANG_CXX_TRANSFORM='\""$clang_cxx_transform"\"';' || \
 	  return 1
-	if [ ${clang_cxx_transform:-0} -ne 0 ]; then
+	#if [ ${clang_cxx_transform:-0} -ne 0 ]; then
 		echo 'export SDE_CLANG_CXX_OPTIONS_PREFIX='\""${clang_cxx_options_prefix[*]}"\"';' || \
 		  return 1
 		echo 'export SDE_CLANG_CXX_OPTIONS_SUFFIX='\""${clang_cxx_options_suffix[*]}"\"';' || \
 		  return 1
-	fi
+	#fi
 
 	# Clang C compiler
 	echo 'export SDE_CLANG_C_PROGRAM='"$clang_c_program"';' || \
 	  return 1
 	echo 'export SDE_CLANG_C_TRANSFORM='\""$clang_c_transform"\"';' || \
 	  return 1
-	if [ ${sde_clang_c_transform:-0} -ne 0 ]; then
+	#if [ ${sde_clang_c_transform:-0} -ne 0 ]; then
 		echo 'export SDE_CLANG_C_OPTIONS_PREFIX='\""${clang_c_options_prefix[*]}"\"';' || \
 		  return 1
 		echo 'export SDE_CLANG_C_OPTIONS_SUFFIX='\""${clang_c_options_suffix[*]}"\"';' || \
 		  return 1
-	fi
+	#fi
 
 	# CMake
 	echo 'export SDE_CMAKE_PROGRAM='"$cmake_program"';' || \
 	  return 1
 	echo 'export SDE_CMAKE_TRANSFORM='"$cmake_transform"';' || \
 	  return 1
-	if [ ${cmake_transform:-0} -ne 0 ]; then
+	#if [ ${cmake_transform:-0} -ne 0 ]; then
 #		#  return 1
 #		local path=$(add_to_path \
 #		  "$CMAKE_PREFIX_PATH" \
@@ -203,7 +232,7 @@ bash_setup()
 		  return 1
 		echo 'export SDE_CMAKE_PATH_SUFFIX='\"$(join_by : ${cmake_path_suffix[@]})\"';' || \
 		  return 1
-	fi
+	#fi
 
 	# CXX and CC environment variables
 	#echo 'export SDE_CXX='"$SDE_GCC_CXX_PROGRAM"';' || \
@@ -227,6 +256,9 @@ bash_setup()
 	fi
 }
 
+################################################################################
+################################################################################
+
 usage()
 {
 	echo "$@"
@@ -244,6 +276,9 @@ usage()
 	EOF
 	exit 2
 }
+
+################################################################################
+################################################################################
 
 cmd_dir=$(dirname "$0") || panic "cannot get command directory"
 top_dir="$cmd_dir/.."
@@ -267,8 +302,9 @@ cmake_transform=0
 adaptive=0
 emit_path=0
 boost_root=
+force_trunk=0
 
-while getopts vn:s:fap:ZD: opt; do
+while getopts vn:s:fap:ZD:z opt; do
 	case "$opt" in
 	D)
 		debug_level="$OPTARG";;
@@ -286,6 +322,8 @@ while getopts vn:s:fap:ZD: opt; do
 		package_spec="$OPTARG";;
 	Z)
 		emit_path=1;;
+	z)
+		force_trunk=1;;
 	*)
 		usage "invalid option $opt";;
 	esac
@@ -357,6 +395,7 @@ packages_dir="$sde_top_dir/packages"
 packages_valid=0
 
 if [ "$packages_valid" -eq 0 -a "$adaptive" -ne 0 ]; then
+
 	packages=()
 	for path in "$packages_dir"/*; do
 		package_name=$(basename "$path") || panic
@@ -366,8 +405,10 @@ if [ "$packages_valid" -eq 0 -a "$adaptive" -ne 0 ]; then
 			fi
 		fi
 	done
+
 	packages_valid=1
 	name="$all_packages_name"
+
 fi
 
 if [ "$packages_valid" -eq 0 -a -n "$name" ]; then
@@ -383,6 +424,29 @@ if [ "$packages_valid" -eq 0 -a -n "$package_spec" ]; then
 		packages_valid=1
 fi
 
+if [ "$force_trunk" -ne 0 ]; then
+	gcc_package=gcc
+	if [ -d "$packages_dir/gcc-trunk" ]; then
+		gcc_package=gcc-trunk
+	fi
+	clang_package=clang
+	if [ -d "$packages_dir/clang-trunk" ]; then
+		clang_package=clang-trunk
+	fi
+	new_packages=()
+	for package in "${packages[@]}"; do
+		case "$package" in
+		gcc)
+			package="$gcc_package";;
+		clang)
+			package="$clang_package";;
+		*)
+		esac
+		new_packages+=("$package")
+	done
+	packages=("${new_packages[@]}")
+fi
+
 if [ "$debug_level" -ge 1 ]; then
 	eecho "packages:"
 	for package in "${packages[@]}"; do
@@ -392,6 +456,9 @@ fi
 
 sde_name="$name"
 
+################################################################################
+################################################################################
+
 cmake_package=
 gcc_package=
 clang_package=
@@ -399,6 +466,8 @@ gccgo_package=
 gdb_package=
 use_libcxx=0
 has_normal_package=0
+
+fmtlib_package=
 
 path_prefix=()
 path_suffix=()
@@ -408,6 +477,12 @@ cmake_path_prefix=()
 cmake_path_suffix=()
 ld_path_prefix=()
 ld_path_suffix=()
+
+gcc_inc_path=()
+gcc_lib_path=()
+
+clang_inc_path=()
+clang_lib_path=()
 
 gcc_gccgo_options_prefix=()
 gcc_gccgo_options_suffix=()
@@ -443,6 +518,8 @@ for package in "${packages[@]}"; do
 		boost_root="$packages_dir/$package";;
 	gccgo|gccgo-*)
 		gccgo_package="$package";;
+	fmtlib*)
+		fmtlib_package="$package";;
 	esac
 
 	case "$package" in
@@ -511,37 +588,57 @@ if [ "$has_normal_package" -ne 0 ]; then
 	cmake_transform=1
 fi
 
+clang_cxx_options_prefix+=(-Wno-unused-command-line-argument)
+clang_c_options_prefix+=(-Wno-unused-command-line-argument)
+
 if [ "$use_libcxx" -ne 0 ]; then
-		clang_cxx_options_prefix+=(-stdlib=libc++ -isystem \
-		  "$clang_dir"/include/c++/v1)
-		clang_cxx_options_suffix+=( \
-		  -L"$gcc_dir"/lib64 -Wl,-rpath,"$gcc_dir"/lib64)
-		clang_cxx_options_suffix+=( \
-		  -L"$clang_dir"/lib -Wl,-rpath,"$clang_dir"/lib)
+		clang_cxx_options_prefix+=(-stdlib=libc++)
+		#clang_cxx_options_prefix+=(-isystem "$clang_dir"/include/c++/v1)
+		clang_inc_path+=("$clang_dir"/include/c++/v1)
+		#clang_cxx_options_suffix+=(-L"$gcc_dir"/lib64)
 		ld_path_prefix+=("$gcc_dir"/lib64)
+		clang_cxx_options_suffix+=(-Wl,-rpath,"$gcc_dir"/lib64)
+		#clang_cxx_options_suffix+=(-L"$clang_dir"/lib)
 		ld_path_prefix+=("$clang_dir"/lib)
+		clang_cxx_options_suffix+=(-Wl,-rpath,"$clang_dir"/lib)
 else
 		clang_cxx_options_prefix+=(--gcc-toolchain="$gcc_dir")
-		clang_cxx_options_suffix+=( \
-		  -L"$gcc_dir"/lib64 -Wl,-rpath,"$gcc_dir"/lib64)
-		clang_cxx_options_suffix+=( \
-		  -L"$clang_dir"/lib -Wl,-rpath,"$clang_dir"/lib)
+		#clang_cxx_options_suffix+=(-L"$gcc_dir"/lib64)
 		ld_path_prefix+=("$gcc_dir"/lib64)
+		clang_cxx_options_suffix+=(-Wl,-rpath,"$gcc_dir"/lib64)
+		#clang_cxx_options_suffix+=(-L"$clang_dir"/lib)
 		ld_path_prefix+=("$clang_dir"/lib)
+		clang_cxx_options_suffix+=(-Wl,-rpath,"$clang_dir"/lib)
 fi
 
 for dir in "${inc_path[@]}"; do
-	gcc_cxx_options_prefix+=(-isystem "$dir")
-	gcc_c_options_prefix+=(-isystem "$dir")
-	clang_cxx_options_prefix+=(-isystem "$dir")
-	clang_c_options_prefix+=(-isystem "$dir")
+
+	#gcc_cxx_options_prefix+=(-isystem "$dir")
+	#gcc_c_options_prefix+=(-isystem "$dir")
+	gcc_inc_path+=("$dir")
+
+	#clang_cxx_options_prefix+=(-isystem "$dir")
+	#clang_c_options_prefix+=(-isystem "$dir")
+	clang_inc_path+=("$dir")
+
 done
+
 for dir in "${lib_path[@]}"; do
-	gcc_cxx_options_suffix+=(-L "$dir" -Wl,-rpath,"$dir")
-	gcc_c_options_suffix+=(-L "$dir" -Wl,-rpath,"$dir")
-	clang_cxx_options_suffix+=(-L "$dir" -Wl,-rpath,"$dir")
-	clang_c_options_suffix+=(-L "$dir" -Wl,-rpath,"$dir")
+
+	#gcc_cxx_options_suffix+=(-L "$dir")
+	#gcc_c_options_suffix+=(-L "$dir")
+	gcc_lib_path+=("$dir")
+
+	#clang_cxx_options_suffix+=(-L "$dir")
+	#clang_c_options_suffix+=(-L "$dir")
+	clang_lib_path+=("$dir")
+
+	gcc_cxx_options_suffix+=(-Wl,-rpath,"$dir")
+	gcc_c_options_suffix+=(-Wl,-rpath,"$dir")
+	clang_cxx_options_suffix+=(-Wl,-rpath,"$dir")
+	clang_c_options_suffix+=(-Wl,-rpath,"$dir")
 	ld_path_prefix+=("$dir")
+
 done
 
 if [ -n "$gcc_package" ]; then
@@ -594,6 +691,13 @@ else
 	gdb_program=$(type -p gdb) || gdb_program=false
 fi
 
+# If fmtlib is installed, automatically link with it so that std::format
+# functionality is available without any special effort being required.
+if [ -n "$fmtlib_package" ]; then
+	gcc_cxx_options_suffix+=(-lfmt)
+	clang_cxx_options_suffix+=(-lfmt)
+fi
+
 if [ "$verbose" -ge 1 ]; then
 	eecho "packages:"
 	for package in "${packages[@]}"; do
@@ -616,6 +720,9 @@ if [ "$verbose" -ge 1 ]; then
 	done
 fi
 
+################################################################################
+################################################################################
+
 if [ "$verbose" -ge 1 ]; then
 	eecho "name $name"
 	eecho "shell $shell"
@@ -630,4 +737,3 @@ bash)
 esac
 
 exit
-

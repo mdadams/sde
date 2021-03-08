@@ -59,6 +59,10 @@ c++|g++)
 		if [ -n "$SDE_GCC_CXX_OPTIONS_SUFFIX" ]; then
 			args+=($SDE_GCC_CXX_OPTIONS_SUFFIX)
 		fi
+		export CPATH="$SDE_GCC_INC_PATH"
+		export C_INCLUDE_PATH="$SDE_GCC_C_INC_PATH"
+		export CPLUS_INCLUDE_PATH="$SDE_GCC_CPP_INC_PATH"
+		export LIBRARY_PATH="$SDE_GCC_LIB_PATH"
 	else
 		args+=("$@")
 	fi
@@ -81,6 +85,10 @@ cc|gcc)
 		if [ -n "$SDE_GCC_C_OPTIONS_SUFFIX" ]; then
 			args+=($SDE_GCC_C_OPTIONS_SUFFIX)
 		fi
+		export CPATH="$SDE_GCC_INC_PATH"
+		export C_INCLUDE_PATH="$SDE_GCC_C_INC_PATH"
+		export CPLUS_INCLUDE_PATH="$SDE_GCC_CPP_INC_PATH"
+		export LIBRARY_PATH="$SDE_GCC_LIB_PATH"
 	else
 		args+=("$@")
 	fi
@@ -104,6 +112,10 @@ clang++)
 		if [ -n "$SDE_CLANG_CXX_OPTIONS_SUFFIX" ]; then
 			args+=($SDE_CLANG_CXX_OPTIONS_SUFFIX)
 		fi
+		export CPATH="$SDE_CLANG_INC_PATH"
+		export C_INCLUDE_PATH="$SDE_CLANG_C_INC_PATH"
+		export CPLUS_INCLUDE_PATH="$SDE_CLANG_CPP_INC_PATH"
+		export LIBRARY_PATH="$SDE_CLANG_LIB_PATH"
 	else
 		args+=("$@")
 	fi
@@ -126,6 +138,10 @@ clang)
 		if [ -n "$SDE_CLANG_C_OPTIONS_SUFFIX" ]; then
 			args+=($SDE_CLANG_C_OPTIONS_SUFFIX)
 		fi
+		export CPATH="$SDE_CLANG_INC_PATH"
+		export C_INCLUDE_PATH="$SDE_CLANG_C_INC_PATH"
+		export CPLUS_INCLUDE_PATH="$SDE_CLANG_CPP_INC_PATH"
+		export LIBRARY_PATH="$SDE_CLANG_LIB_PATH"
 	else
 		args+=("$@")
 	fi
@@ -148,6 +164,10 @@ gccgo)
 		if [ -n "$SDE_GCC_GCCGO_OPTIONS_SUFFIX" ]; then
 			args+=($SDE_GCC_GCCGO_OPTIONS_SUFFIX)
 		fi
+		export CPATH="$SDE_GCC_INC_PATH"
+		export C_INCLUDE_PATH="$SDE_GCC_C_INC_PATH"
+		export CPLUS_INCLUDE_PATH="$SDE_GCC_CPP_INC_PATH"
+		export LIBRARY_PATH="$SDE_GCC_LIB_PATH"
 	else
 		args+=("$@")
 	fi
@@ -171,6 +191,10 @@ go)
 		if [ -n "$SDE_GCC_GO_OPTIONS_SUFFIX" ]; then
 			args+=($SDE_GCC_GO_OPTIONS_SUFFIX)
 		fi
+		export CPATH="$SDE_GCC_INC_PATH"
+		export C_INCLUDE_PATH="$SDE_GCC_C_INC_PATH"
+		export CPLUS_INCLUDE_PATH="$SDE_GCC_CPP_INC_PATH"
+		export LIBRARY_PATH="$SDE_GCC_LIB_PATH"
 	else
 		args+=("$@")
 	fi

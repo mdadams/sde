@@ -39,7 +39,10 @@ usage()
 	echo "$@"
 	cat <<- EOF
 	usage: $0 [options]
-	options:
+
+	Options
+	=======
+
 	-n \$env
 	    Set the environment to \$env.
 	-f
@@ -50,6 +53,14 @@ usage()
 	    Program to execute and its arguments follow.
 	-q
 	    Reduce verbosity of output.
+
+	Examples
+	========
+
+	$0
+	$0 -n base
+	$0 -x bash
+	$0 -p cmake:gcc:clang
 	EOF
 	exit 2
 }
@@ -70,9 +81,14 @@ name=
 verbose=1
 package_spec=
 print_motd=1
+use_z=0
 
-while getopts D:n:fqxvp:s opt; do
+while getopts D:n:fqxvp:sS:z opt; do
 	case "$opt" in
+	z)
+		use_z=1;;
+	S)
+		make_setup="$OPTARG";;
 	v)
 		verbose=$((verbose + 1));;
 	q)
@@ -146,6 +162,10 @@ else
 	esac
 fi
 
+if [ ! -x "$make_setup" ]; then
+	panic "make_setup program not found"
+fi
+
 make_setup_opts=()
 
 make_setup_opts+=(-f)
@@ -157,6 +177,9 @@ if [ -n "$name" ]; then
 fi
 if [ -n "$package_spec" ]; then
 	make_setup_opts+=(-p "$package_spec")
+fi
+if [ "$use_z" -ne 0 ]; then
+	make_setup_opts+=(-z)
 fi
 
 buffer=$("$make_setup" "${make_setup_opts[@]}" -s bash) || \
