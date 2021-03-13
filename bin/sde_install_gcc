@@ -31,6 +31,8 @@
 # Note: The GCC build process cannot seem to handle "@" characters
 # in pathnames.
 
+git_repo="git://gcc.gnu.org/git/gcc.git"
+
 panic()
 {
 	echo "ERROR: $@"
@@ -122,6 +124,9 @@ usage()
 	$0 -r -v devel/c++-module -d $HOME/local/gcc
 	$0 -r -v master -d $HOME/local/gcc
 	SDE_TMPDIR=/var/tmp $0 -r -v master -d $HOME/local/gcc
+
+	commit=\$($0 -r -n -v master)
+	SDE_TMPDIR=/var/tmp $0 -r -v \$commit -d /tmp/gcc-trunk-\$commit
 	EOF
 	exit 2
 }
@@ -144,8 +149,9 @@ download_only=0
 patch_files=()
 tmp_dir=
 cleanup=1
+print_commit=0
 
-while getopts Cd:v:o:rj:xp: opt; do
+while getopts Cd:v:o:rj:xp:n opt; do
 	case "$opt" in
 	C)
 		cleanup=0;;
@@ -172,12 +178,27 @@ while getopts Cd:v:o:rj:xp: opt; do
 		download_only=1;;
 	p)
 		patch_files+=("$OPTARG");;
+	n)
+		print_commit=1;;
 	\?)
 		usage
 		break;;
 	esac
 done
 shift $((OPTIND - 1))
+
+if [ "$print_commit" -ne 0 ]; then
+	if [ "$from_repo" -ne 0 ]; then
+		if [ -z "$version" ]; then
+			usage "no version specified"
+		fi
+		commit="$(git ls-remote "$git_repo" "$version" | \
+		  awk -v x='refs/heads/'"$version" '{if ($2 == x) {print $1;}}')" || \
+		  panic "git rev-parse failed"
+		echo "$commit" || panic "echo failed"
+	fi
+	exit 0
+fi
 
 if [ -z "$install_dir" ]; then
 	usage "no installation directory specified"
@@ -232,6 +253,16 @@ done
 
 #unset INCLUDE_PATH CPLUS_INCLUDE_PATH CFLAGS CXXFLAGS
 
+cat <<- EOF
+============================================================
+Starting installation process for GCC.
+
+install directory: $abs_install_dir
+temporary directory: $tmp_dir
+version: $version
+============================================================
+EOF
+
 ################################################################################
 # Download the software.
 ################################################################################
@@ -249,13 +280,16 @@ if [ $from_repo -ne 0 ]; then
 
 	#svn_repo="svn://gcc.gnu.org/svn/gcc/$version"
 	#svn co "$svn_repo" "$src_dir" || panic "cannot checkout source"
-	git_repo="git://gcc.gnu.org/git/gcc.git"
 	echo "CLONING REPOSITORY"
 	git clone --progress "$git_repo" "$src_dir" || \
 	  panic "cannot clone repository"
 	(cd "$src_dir" && git checkout "$version") || panic "cannot checkout"
 	echo "RUNNING GIT LOG"
 	(cd "$src_dir" && git log -1) || panic "git log failed"
+	commit="$(git ls-remote "$git_repo" "$version" | \
+	  awk -v x='refs/heads/'"$version" '{if ($2 == x) {print $1;}}')" || \
+	  panic "git rev-parse failed"
+	echo "$commit" || panic "echo failed"
 
 else
 
@@ -293,6 +327,7 @@ else
 	tar -x "${tar_options[@]}" -f "$archive_file" -C "$src_dir" \
 	  --strip-components=1 || \
 	  panic "cannot extract archive"
+	commit=
 
 fi
 
@@ -377,6 +412,11 @@ else
 fi
 (cd "$build_dir" && make "$install_target") || \
   panic "make install failed"
+
+if [ "$from_repo" -ne 0 ]; then
+	echo "$commit" > "$install_dir/.version" || \
+	  panic "cannot make version file"
+fi
 
 ################################################################################
 # Print some information about the installation process.

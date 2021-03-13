@@ -519,11 +519,13 @@ fi
 ################################################################################
 
 if [ "${SDE_GCC_TRUNK_INSTALL:-0}" -ne 0 ]; then
-	gcc_trunk_dir="$packages_dir/gcc-trunk-${date_stamp}"
+	commit="$("$sde_install_gcc -r -v master -n")" || \
+	  panic "cannot get GCC commit"
+	gcc_trunk_dir="$packages_dir/gcc-trunk-${date_stamp}-$commit"
 	if [ -n "$gcc_trunk_dir" ]; then
 		if [ ! -d "$gcc_trunk_dir" ]; then
 			"$sde_shell" -s -p null -x \
-			  "$sde_install_gcc" -r -v master -d "$gcc_trunk_dir" \
+			  "$sde_install_gcc" -r -v "$commit" -d "$gcc_trunk_dir" \
 			  "${gcc_install_options[@]}" || \
 			  panic "cannot install gcc"
 		fi
@@ -583,13 +585,15 @@ fi
 ################################################################################
 
 if [ "${SDE_CLANG_TRUNK_INSTALL:-0}" -ne 0 ]; then
-	clang_trunk_dir="$packages_dir/clang-trunk-${date_stamp}"
+	commit="$("$sde_install_clang -r -v main -n")" || \
+	  panic "cannot get Clang commit"
+	clang_trunk_dir="$packages_dir/clang-trunk-${date_stamp}-$commit"
 	if [ -n "$clang_trunk_dir" ]; then
 		if [ ! -d "$clang_trunk_dir" ]; then
 			"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
 			  env CXX="$gcc_dir/bin/g++" CC="$gcc_dir/bin/gcc" \
 			  "$sde_install_clang" "${install_clang_options[@]}" \
-			  -r -v main -d "$clang_trunk_dir" -f || \
+			  -r -v "$commit" -d "$clang_trunk_dir" -f || \
 			  panic "cannot install clang"
 		fi
 		#"$sde_cmd" pkg -d "$sde_top_dir" clang "$clang_version" || \

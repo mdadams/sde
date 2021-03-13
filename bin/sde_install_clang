@@ -33,6 +33,8 @@
 cmd_dir=$(dirname "$0") || exit 1
 source "$cmd_dir/utilities" || exit 1
 
+git_repo_url="https://github.com/llvm/llvm-project.git"
+
 isabspath()
 {
 	case "$1" in
@@ -64,7 +66,9 @@ usage()
 	Usage:
 	$0 [options] -v \$version -d \$install_dir
 
-	Options:
+	Options
+	=======
+
 	-r
 	    Build from Subversion repository.
 	-g \$gcc_dir
@@ -79,14 +83,21 @@ usage()
 	    Allow the use of \$num_jobs siumultaneous jobs.
 	-x do not use static libstdc++
 
-	Environment variables:
+	Environment Variables
+	=====================
+
 	SDE_INSTALL_CLANG_STRIPPED
 	    Install stripped executables.
         Valid values: 0, 1
 
-	Examples:
+	Examples
+	========
+
 	$0 -v 9.0.1 -d $HOME/local/clang
 	SDE_TMPDIR=/var/tmp CC=gcc CXX=g++ $0 -r -v master -d $HOME/local/clang
+
+	commit=\$($0 -r -v master -n)
+	SDE_TMPDIR=/var/tmp CC=gcc CXX=g++ $0 -r -v \$commit -d /tmp/clang-trunk-\$commit
 	EOF
 	exit 2
 }
@@ -113,8 +124,9 @@ install_lldb=0
 num_jobs=4
 cleanup=1
 use_static_libstdcxx=1
+print_commit=0
 
-while getopts Ctlfg:d:v:rxDj: opt; do
+while getopts Ctlfg:d:v:rxDj:n opt; do
 	case "$opt" in
 	x)
 		use_static_libstdcxx=0;;
@@ -140,12 +152,27 @@ while getopts Ctlfg:d:v:rxDj: opt; do
 		install_lldb=1;;
 	j)
 		num_jobs="$OPTARG";;
+	n)
+		print_commit=1;;
 	\?)
 		usage
 		break;;
 	esac
 done
 shift $((OPTIND - 1))
+
+if [ "$print_commit" -ne 0 ]; then
+	if [ "$from_repo" -ne 0 ]; then
+		if [ -z "$version" ]; then
+			usage "no version specified"
+		fi
+		commit="$(git ls-remote "$git_repo_url" "$version" | \
+		  awk -v x='refs/heads/'"$version" '{if ($2 == x) {print $1;}}')" || \
+		  panic "git rev-parse failed"
+		echo "$commit" || panic "echo failed"
+	fi
+	exit 0
+fi
 
 if [ -z "$install_dir" ]; then
 	usage "no installation directory specified"
@@ -191,10 +218,18 @@ for dir in "$top_dir" "$archive_dir" "$src_dir" "$build_dir" "$git_dir"; do
 	fi
 done
 
-github_base_url="https://github.com/llvm/llvm-project/releases/download/llvmorg-$version"
 llvm_base_url="http://llvm.org/releases/$version"
-git_repo_url="https://github.com/llvm/llvm-project.git"
-repo_base_url="http://llvm.org/svn/llvm-project"
+github_base_url="https://github.com/llvm/llvm-project/releases/download/llvmorg-$version"
+
+cat <<- EOF
+============================================================
+Starting installation process for Clang.
+
+install directory: $abs_install_dir
+temporary directory: $tmp_dir
+version: $version
+============================================================
+EOF
 
 ################################################################################
 # Download the software.
@@ -213,54 +248,7 @@ cmake_extra_opts=()
 
 if [ "$from_repo" -ne 0 ]; then
 
-	echo "Downloading from repository with base URL $repo_base_url"
-
-if [ 0 -ne 0 ]; then
-
-	(cd "$src_dir" && \
-	  svn co -q "$repo_base_url/llvm/$version" .) || \
-	  panic "cannot checkout llvm"
-	(cd "$src_dir/tools" && \
-	  svn co -q "$repo_base_url/cfe/$version" clang) || \
-	  panic "cannot checkout cfe"
-	(cd "$src_dir/tools/clang/tools" && \
-	  svn co -q "$repo_base_url/clang-tools-extra/$version" extra) || \
-	  panic "cannot checkout clang-tools-extra"
-	(cd "$src_dir/tools" && \
-	  svn co -q "$repo_base_url/lld/$version" lld) || \
-	  panic "cannot checkout lld"
-	(cd "$src_dir/tools" && \
-	  svn co -q "$repo_base_url/polly/$version" polly) || \
-	  panic "cannot checkout polly"
-	(cd "$src_dir/projects" && \
-	  svn co -q "$repo_base_url/compiler-rt/$version" compiler-rt) || \
-	  panic "cannot checkout compiler-rt"
-	(cd "$src_dir/projects" && \
-	  svn co -q "$repo_base_url/openmp/$version" openmp) || \
-	  panic "cannot checkout openmp"
-
-	if [ "$install_libcxx" -ne 0 ]; then
-		(cd "$src_dir/projects" && \
-		  svn co -q "$repo_base_url/libcxx/$version" libcxx) || \
-		  panic "cannot checkout libcxx"
-		(cd "$src_dir/projects" && \
-		  svn co -q "$repo_base_url/libcxxabi/$version" libcxxabi) || \
-		  panic "cannot checkout libcxxabi"
-	fi
-
-	if [ "$install_testsuite" -ne 0 ]; then
-		(cd "$src_dir/projects" && \
-		  svn co -q "$repo_base_url/test-suite/$version" test-suite) || \
-		  panic "cannot checkout test-suite"
-	fi
-
-	if [ "$install_lldb" -ne 0 ]; then
-		(cd "$src_dir/tools" && \
-		  svn co -q "$repo_base_url/lldb/$version" lldb) || \
-		  panic "cannot checkout lldb"
-	fi
-
-fi
+	echo "Downloading from repository with URL $git_repo_url"
 
 	echo "CLONING REPOSITORY"
 	git clone --progress "$git_repo_url" "$git_dir" || \
@@ -270,6 +258,10 @@ fi
 	echo "RUNNING GIT LOG"
 	(cd "$git_dir" && git log -1) || panic "git log failed"
 	src_root_dir="$git_dir/llvm"
+	commit="$(git ls-remote "$git_repo" "$version" | \
+	  awk -v x='refs/heads/'"$version" '{if ($2 == x) {print $1;}}')" || \
+	  panic "git rev-parse failed"
+	echo "$commit" || panic "echo failed"
 
 	projects=()
 	projects+=(clang)
@@ -473,6 +465,8 @@ else
 
 	src_root_dir="$src_dir"
 
+	commit=
+
 fi
 
 ################################################################################
@@ -546,6 +540,11 @@ else
 	install_target="install"
 fi
 (cd "$build_dir" && make "$install_target") || panic "make install failed"
+
+if [ "$from_repo" -ne 0 ]; then
+	echo "$commit" > "$install_dir/.version" || \
+	  panic "cannot make version file"
+fi
 
 ################################################################################
 # Build the software.
