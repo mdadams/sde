@@ -519,7 +519,7 @@ fi
 ################################################################################
 
 if [ "${SDE_GCC_TRUNK_INSTALL:-0}" -ne 0 ]; then
-	commit="$("$sde_install_gcc -r -v master -n")" || \
+	commit="$("$sde_install_gcc" -r -v master -n)" || \
 	  panic "cannot get GCC commit"
 	gcc_trunk_dir="$packages_dir/gcc-trunk-${date_stamp}-$commit"
 	if [ -n "$gcc_trunk_dir" ]; then
@@ -585,7 +585,7 @@ fi
 ################################################################################
 
 if [ "${SDE_CLANG_TRUNK_INSTALL:-0}" -ne 0 ]; then
-	commit="$("$sde_install_clang -r -v main -n")" || \
+	commit="$("$sde_install_clang" -r -v main -n)" || \
 	  panic "cannot get Clang commit"
 	clang_trunk_dir="$packages_dir/clang-trunk-${date_stamp}-$commit"
 	if [ -n "$clang_trunk_dir" ]; then
