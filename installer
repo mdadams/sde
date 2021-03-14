@@ -86,7 +86,7 @@ lcov_version=v1.15
 #lcov_version=bee8ae7130987730bb819044481d22c25803181d
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=fea03524cb89385dc8997867a8588135bbd454ca
+vimlsp_version=6c21eb65da57cbe0c580b2f26e331872901795d3
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=236debf1a68d69a74f1f6647c273b0477e1ec1bf
