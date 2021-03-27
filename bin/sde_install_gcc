@@ -285,7 +285,7 @@ if [ $from_repo -ne 0 ]; then
 	  panic "cannot clone repository"
 	(cd "$src_dir" && git checkout "$version") || panic "cannot checkout"
 	echo "RUNNING GIT LOG"
-	(cd "$src_dir" && git log -1) || panic "git log failed"
+	(cd "$src_dir" && git --no-pager log -1) || panic "git log failed"
 	commit="$(git ls-remote "$git_repo" "$version" | \
 	  awk -v x='refs/heads/'"$version" '{if ($2 == x) {print $1;}}')" || \
 	  panic "git rev-parse failed"

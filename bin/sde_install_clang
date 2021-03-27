@@ -256,7 +256,7 @@ if [ "$from_repo" -ne 0 ]; then
 	(cd "$git_dir" && git checkout "$version") || \
 	  panic "cannot checkout"
 	echo "RUNNING GIT LOG"
-	(cd "$git_dir" && git log -1) || panic "git log failed"
+	(cd "$git_dir" && git --no-pager log -1) || panic "git log failed"
 	src_root_dir="$git_dir/llvm"
 	commit="$(git ls-remote "$git_repo" "$version" | \
 	  awk -v x='refs/heads/'"$version" '{if ($2 == x) {print $1;}}')" || \
