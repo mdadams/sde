@@ -1,17 +1,22 @@
 cmake
 gcc
+gccgo
 clang
+#musl
 
+libcxx
 boost
 catch
 gsl
 CGAL
 #SPL
+fmtlib
 
 gdb
 lcov
 texlive
 
+gh
 hub
 ghi
 
@@ -26,7 +31,3 @@ vimlsp
 ycm
 ycm_extras
 
-fmtlib
-
-libcxx
-#gccgo
