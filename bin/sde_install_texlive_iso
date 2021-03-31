@@ -34,6 +34,14 @@ warn()
 	echo "WARNING: $@"
 }
 
+perform_cleanup()
+{
+	if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
+		rm -rf "$tmp_dir" || \
+		  echo "warning: cannot remove temporary directory $tmp_dir"
+	fi
+}
+
 usage()
 {
 	echo "BAD USAGE: $@"
@@ -56,9 +64,12 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 iso_file=
 install_dir=
 tmp_dir="/tmp/sde_install_texlive_iso-$user@$host-$$"
+cleanup=1
 
-while getopts d:i: opt; do
+while getopts Cd:i: opt; do
 	case "$opt" in
+	C)
+		cleanup=0;;
 	i)
 		iso_file="$OPTARG";;
 	d)
@@ -74,11 +85,14 @@ if [ -z "$install_dir" ]; then
 	usage "no installation directory specified"
 fi
 abs_install_dir=$(readlink -f "$install_dir") || \
-  panic "cannot canonical pathname"
+  panic "cannot canonicalize pathname $install_dir"
 
 if [ -z "$iso_file" ]; then
 	usage "no ISO image specified"
 fi
+
+tmp_dir=
+tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_texlive_iso-$user-XXXXXXXX"
 
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
@@ -90,10 +104,16 @@ if [ -d "$abs_install_dir" ]; then
 	panic "installation directory already exists"
 fi
 
+tmp_dir=$(mktemp -d "$tmp_dir_template") || \
+  panic "cannot create temporary directory"
+if [ "$cleanup" -ne 0 ]; then
+	trap perform_cleanup EXIT
+fi
+
 profile="$tmp_dir/profile"
 mnt_dir="$tmp_dir/mnt"
 
-for dir in "$tmp_dir" "$mnt_dir"; do
+for dir in "$mnt_dir"; do
 	mkdir -p "$dir" || \
 	  panic "cannot make directory $dir"
 done
@@ -194,4 +214,3 @@ if [ ! -d "$texlive_arch_dir" ]; then
 fi
 (cd "$texlive_bin_dir" && ln -s x86_64-linux/* .) || \
   panic "cannot link files"
-

@@ -32,6 +32,8 @@ panic()
 perform_cleanup()
 {
 	if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
+		find "$tmp_dir" -type d -exec chmod u+w {} \; || \
+		  echo "warning: cannot enable write permissions under $tmp_dir"
 		rm -rf "$tmp_dir" || \
 		  echo "warning: cannot remove temporary directory $tmp_dir"
 	fi
