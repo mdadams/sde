@@ -2,7 +2,7 @@
 
 # __START_OF_LICENSE__
 # 
-# Copyright (c) 2019 Michael D. Adams
+# Copyright (c) 2021 Michael D. Adams
 # All rights reserved.
 # 
 # This file is part of the SDE software.
@@ -51,7 +51,7 @@ usage()
 	    Set the installation directory to \$install_dir.
 
 	Examples:
-	$0 -v 2.9.0 -d /tmp/hub-2.9.0
+	$0 -v 1.8.0 -d /tmp/gh-1.8.0
 	EOF
 	exit 2
 }
@@ -59,10 +59,9 @@ usage()
 ################################################################################
 ################################################################################
 
-tmp_dir=
+cleanup=1
 install_dir=
 version=
-cleanup=1
 
 while getopts Cd:v: opt; do
 	case "$opt" in
@@ -89,17 +88,18 @@ fi
 user=$(whoami) || panic "cannot get user name"
 #host=$(hostname) || panic "cannot get host name"
 
+tmp_dir=
+tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_gh-$user-XXXXXXXX"
+
 if [ "$version" != master ]; then
 	commit="v$version"
 else
 	commit="$version"
 fi
 
-tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_hub-$user-XXXXXXXX"
+install_dir=$(realpath "$install_dir") || panic "realpath failed"
 
-install_dir=$(realpath "$install_dir") || panic
-
-repo_url="https://github.com/github/hub.git"
+repo_url="https://github.com/cli/cli.git"
 
 ################################################################################
 ################################################################################
@@ -116,31 +116,21 @@ if [ "$cleanup" -ne 0 ]; then
 	trap perform_cleanup EXIT
 fi
 
-go_dir="$tmp_dir/go"
-git_dir="$go_dir/src/github.com/github/hub"
+git_dir="$tmp_dir/git"
 
-for dir in "$go_dir" "$git_dir"; do
+for dir in "$git_dir"; do
 	if [ ! -d "$dir" ]; then
 		mkdir -p "$dir" || panic "cannot make directory $dir"
 	fi
 done
 
-git clone \
-  --config transfer.fsckobjects=false \
-  --config receive.fsckobjects=false \
-  --config fetch.fsckobjects=false \
-  "$repo_url" \
-  "$git_dir" \
-  || panic "cannot clone repository"
+git clone "$repo_url" "$git_dir" || \
+  panic "cannot clone repository"
 
 (cd "$git_dir" && git checkout "$commit") || \
   panic "cannot checkout"
 
-(cd "$git_dir" && \
-  GOPATH="$go_dir" \
-  make install prefix="$install_dir") || \
+(cd "$git_dir" && make install prefix="$install_dir") || \
   panic "cannot make install"
-
-#rm -rf "$tmp_dir" || echo "warning: unable to remove temporary directory"
 
 exit 0

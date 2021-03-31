@@ -29,8 +29,21 @@ panic()
 	exit 1
 }
 
+perform_cleanup()
+{
+	if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
+		rm -rf "$tmp_dir" || \
+		  echo "warning: cannot remove temporary directory $tmp_dir"
+	fi
+}
+
 usage()
 {
+	default_vimlsp_version=b8e75ef927b48848f3f21b7033aa68c9c88e9392
+	default_vimlsp_async_version=0fb846e1eb3c2bf04d52a57f41088afb3395212e
+	default_vimlsp_ac_version=8e018dee9c5e2205288bda01be0de196b04b7cf2
+	default_vimlsp_aclsp_version=684c34453db9dcbed5dbf4769aaa6521530a23e0
+
 	echo "BAD USAGE: $@"
 	cat <<- EOF
 	usage:
@@ -42,6 +55,16 @@ usage()
 	-v \$component:\$version
 	    Set the version (i.e., branch/commit) to install.
 	    e.g., vim-lsp:XXX
+
+	Examples
+	========
+
+	$0 -v vim-lsp:$default_vimlsp_version \
+	  -v async.vim:$default_vimlsp_async_version \
+	  -v asyncomplete.vim:$default_vimlsp_ac_version \
+	  -v asyncomplete-lsp.vim:$default_vimlsp_aclsp_version \
+	  -d /tmp/vimlsp
+
 	EOF
 	exit 2
 }
@@ -67,9 +90,12 @@ aclsp_version="master"
 install_dir=
 tmp_dir="/tmp/sde_install_vimlsp-$user@$host-$$"
 verbose=0
+cleanup=1
 
-while getopts d:v:V opt; do
+while getopts Cd:v:V opt; do
 	case "$opt" in
+	C)
+		cleanup=0;;
 	d)
 		install_dir="$OPTARG";;
 	v)
@@ -116,7 +142,13 @@ if [ -z "$aclsp_version" ]; then
 	usage "no asyncomplete-lsp.vim version specified"
 fi
 
-mkdir -p "$tmp_dir" || panic
+tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_vimlsp-$user-XXXXXXXX"
+
+tmp_dir=$(mktemp -d "$tmp_dir_template") || \
+  panic "cannot create temporary directory"
+if [ "$cleanup" -ne 0 ]; then
+	trap perform_cleanup EXIT
+fi
 
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
