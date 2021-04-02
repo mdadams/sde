@@ -32,6 +32,8 @@ panic()
 perform_cleanup()
 {
 	if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
+		find "$tmp_dir" -type d -exec chmod u+w {} \; || \
+		  echo "warning: cannot enable write permissions under $tmp_dir"
 		rm -rf "$tmp_dir" || \
 		  echo "warning: cannot remove temporary directory $tmp_dir"
 	fi
@@ -116,7 +118,8 @@ if [ "$cleanup" -ne 0 ]; then
 	trap perform_cleanup EXIT
 fi
 
-git_dir="$tmp_dir/git"
+go_dir="$tmp_dir/go"
+git_dir="$go_dir/src/github.com/cli/cli"
 
 for dir in "$git_dir"; do
 	if [ ! -d "$dir" ]; then
@@ -130,7 +133,9 @@ git clone "$repo_url" "$git_dir" || \
 (cd "$git_dir" && git checkout "$commit") || \
   panic "cannot checkout"
 
-(cd "$git_dir" && make install prefix="$install_dir") || \
+(cd "$git_dir" && \
+  GOPATH="$go_dir" \
+  make install prefix="$install_dir") || \
   panic "cannot make install"
 
 exit 0

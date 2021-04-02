@@ -56,6 +56,7 @@ spl_version=2.0.8
 ndiff_version=2.00
 
 # TeX Live: https://www.tug.org/texlive/acquire.html
+#texlive_version=2021
 texlive_version=2020
 
 # Boost: https://www.boost.org/users/download
@@ -67,7 +68,7 @@ boost_version=1.75.0
 cgal_version=5.2.1
 
 # Aristotle: https://github.com/mdadams/aristotle
-aristotle_version=v3.0.33
+aristotle_version=v3.0.34
 
 # YCM: https://github.com/Valloric/YouCompleteMe
 ycm_version=ed423e8a1d2a5842a126d33b824ad3b65f85f3ba
@@ -86,7 +87,7 @@ lcov_version=v1.15
 #lcov_version=bee8ae7130987730bb819044481d22c25803181d
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=b8e75ef927b48848f3f21b7033aa68c9c88e9392
+vimlsp_version=ce3add957a696970b44b1cd6d4d53040cf3e2cc1
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=0fb846e1eb3c2bf04d52a57f41088afb3395212e
