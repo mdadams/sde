@@ -56,8 +56,8 @@ spl_version=2.0.8
 ndiff_version=2.00
 
 # TeX Live: https://www.tug.org/texlive/acquire.html
-#texlive_version=2021
-texlive_version=2020
+#texlive_version=2020
+texlive_version=2021
 
 # Boost: https://www.boost.org/users/download
 # Note: Do not upgrade Boost until CMake catches up; otherwise build problems
@@ -87,7 +87,7 @@ lcov_version=v1.15
 #lcov_version=bee8ae7130987730bb819044481d22c25803181d
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=a0023fcc1e2f8196ab974c4769a7e44b23cdcec1
+vimlsp_version=bba0f45c892b3c815c65ce44f93bcbe118a40377
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=0fb846e1eb3c2bf04d52a57f41088afb3395212e
