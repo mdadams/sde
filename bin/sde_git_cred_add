@@ -1,0 +1,164 @@
+#! /usr/bin/env bash
+
+# __START_OF_LICENSE__
+# 
+# Copyright (c) 2021 Michael D. Adams
+# All rights reserved.
+# 
+# This file is part of the SDE software.
+# 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3,
+# or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this program; see the file LICENSE.  If not,
+# see <http://www.gnu.org/licenses/>.
+# 
+# __END_OF_LICENSE__
+
+panic()
+{
+	echo "ERROR: $@" 1>&2
+	exit 1
+}
+
+join_by()
+{
+	local IFS="$1"
+	shift
+	echo "$*"
+}
+
+usage()
+{
+	echo "$@"
+	cat <<- EOF
+	$(basename "$0")
+	Add a credential to the credential cache used by Git.
+	This program should be independent of the underlying credential caching
+	mechanism employed by Git (e.g., libsecret, git-credential-cache, etc.).
+
+	Options
+	=======
+
+	A protocol and hostname must be specified, either via the -U option
+	or via the -p and -h options.
+	The user will be prompted for any other information that is needed but
+	not provided via options.
+
+	-U \$url
+	    Specify the Git URL as \$url.
+	-p \$protocol
+	    Specify the protocol part of the Git URL as \$protocol.
+	    Valid values are https and ssh.
+	-h \$hostname
+	    Specify the hostname part of the Git URL as \$hostname.
+	-P \$path
+	    Specify the path part of the Git URL as \$path.
+	-u \$username
+	    Specify the username as \$username.
+	-f \$password_file
+	    Specify that the password should be obtained from the file
+	    \$password_file.  If \$password_file is "-", standard input is used.
+
+	Examples
+	========
+
+	$0 -U https://jdoe@github.com/jdoe/repo.git -f password_file
+	$0 -U https://jdoe@github.com -f password_file
+	$0 -h github.com -m https -u jdoe -f password_file
+	EOF
+	exit 2
+}
+
+debug_level=0
+url=
+protocol=
+hostname=
+pathname=
+username=
+password_file=
+
+pairs=()
+
+while getopts U:m:h:p:u:f:D: option; do
+	case "$option" in
+	D)
+		debug_level="$OPTARG"
+		;;
+	U)
+		url="$OPTARG"
+		;;
+	p)
+		protocol="$OPTARG"
+		;;
+	h)
+		hostname="$OPTARG"
+		;;
+	P)
+		path="$OPTARG"
+		;;
+	u)
+		username="$OPTARG"
+		;;
+	f)
+		password_file="$OPTARG"
+		;;
+	\?)
+		usage "invalid option $option";;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$url" ]; then
+	if [ -z "$hostname" ]; then
+		usage "no URL/hostname specified"
+	fi
+	if [ -z "$protocol" ]; then
+		usage "no URL/protocol specified"
+	fi
+fi
+
+pairs=()
+if [ -n "$url" ]; then
+	pairs+=("url=$url")
+fi
+if [ -n "$protocol" ]; then
+	pairs+=("protocol=$protocol")
+fi
+if [ -n "$hostname" ]; then
+	pairs+=("host=$hostname")
+fi
+if [ -n "$pathname" ]; then
+	pairs+=("path=$pathname")
+fi
+if [ -n "$username" ]; then
+	pairs+=("username=$username")
+fi
+
+if [ -n "$password_file" ]; then
+	password="$(cat "$password_file" 2> /dev/null)" || \
+	  panic "cannot read password file"
+	if [ "$debug_level" -ge 1 ]; then
+		echo "password $password"
+	fi
+	pairs+=("password=$password")
+fi
+
+info="$(join_by $'\n' "${pairs[@]}")" || \
+  panic "string processing failed"
+info="$(git credential fill <<< "$info")" || \
+  panic "git credential fill failed"
+
+if [ "$debug_level" -ge 1 ]; then
+	echo "$info"
+fi
+git credential approve <<< "$info" || \
+  panic "git credential approve failed"
