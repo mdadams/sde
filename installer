@@ -67,7 +67,7 @@ boost_version=1.75.0
 cgal_version=5.2.1
 
 # Aristotle: https://github.com/mdadams/aristotle
-aristotle_version=v3.0.36
+aristotle_version=v3.0.37
 
 # YCM: https://github.com/Valloric/YouCompleteMe
 ycm_version=d824c512b26c0475d346a6ad379ecd3d3e6abb40
@@ -83,10 +83,9 @@ catch_version=v2.13.5
 
 # Lcov: https://github.com/linux-test-project/lcov
 lcov_version=v1.15
-#lcov_version=bee8ae7130987730bb819044481d22c25803181d
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=bba0f45c892b3c815c65ce44f93bcbe118a40377
+vimlsp_version=9dc382c04af3389b48fd1ffb5ed4b6c294571f62
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=0fb846e1eb3c2bf04d52a57f41088afb3395212e
@@ -312,7 +311,7 @@ fi
 if [ "${SDE_SPL_INSTALL:-1}" -eq 0 ]; then
 	spl_dir=
 fi
-if [ "${SDE_GHI_INSTALL:-1}" -eq 0 ]; then
+if [ "${SDE_GHI_INSTALL:-0}" -eq 0 ]; then
 	ghi_dir=
 fi
 if [ "${SDE_GH_INSTALL:-1}" -eq 0 ]; then
