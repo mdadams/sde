@@ -38,7 +38,7 @@ gcc_version=10.3.0
 gccgo_version=10.3.0
 
 # LLVM: http://releases.llvm.org/download.html
-clang_version=11.1.0
+clang_version=12.0.0
 
 # Musl: https://www.musl-libc.org/download.html
 musl_version=1.2.2
@@ -85,7 +85,7 @@ catch_version=v2.13.5
 lcov_version=v1.15
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=9dc382c04af3389b48fd1ffb5ed4b6c294571f62
+vimlsp_version=5277fc47f0ef419fb01c1d3de66b0a64367bae32
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=0fb846e1eb3c2bf04d52a57f41088afb3395212e
@@ -99,8 +99,8 @@ vimlsp_aclsp_version=684c34453db9dcbed5dbf4769aaa6521530a23e0
 # Hub: https://github.com/github/hub
 hub_version=2.14.2
 
-# Hub: https://github.com/cli/cli
-gh_version=1.8.1
+# GitHub CLI: https://github.com/cli/cli
+gh_version=1.9.1
 
 # GHI: https://github.com/stephencelis/ghi
 ghi_version=1.2.0
