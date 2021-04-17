@@ -123,10 +123,11 @@ num_jobs=4
 cleanup=1
 use_static_libstdcxx=1
 print_commit=0
-install_flang=1
+install_flang=0
 install_libc=0
+debug_level="${SDE_DEBUG_LEVEL:-0}"
 
-while getopts Ctlfg:d:v:rxDj:n opt; do
+while getopts Ctlfg:d:v:rxDj:nT:SF opt; do
 	case "$opt" in
 	x)
 		use_static_libstdcxx=0;;
@@ -154,12 +155,20 @@ while getopts Ctlfg:d:v:rxDj:n opt; do
 		num_jobs="$OPTARG";;
 	n)
 		print_commit=1;;
+	T)
+		tmp_dir_template="$OPTARG";;
+	F)
+		install_flang=1;;
 	\?)
 		usage
 		break;;
 	esac
 done
 shift $((OPTIND - 1))
+
+if [ "$debug_level" -ge 10 ]; then
+	set -xv
+fi
 
 if [ "$print_commit" -ne 0 ]; then
 	if [ "$from_repo" -ne 0 ]; then
@@ -245,34 +254,72 @@ download_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
 echo "time: $download_start_time"
 
 projects=()
+download_names=()
+
+download_names+=(llvm)
+
 projects+=(clang)
+download_names+=(clang)
+
 projects+=(clang-tools-extra)
+download_names+=(clang-tools-extra)
+
 projects+=(compiler-rt)
+download_names+=(compiler-rt)
+
 if [ "$install_flang" -ne 0 ]; then
 	projects+=(flang)
+	download_names+=(flang)
+	projects+=(mlir)
+	download_names+=(mlir)
 fi
+
 #projects+=(debuginfo-tests) # Note: This causes configuration errors.
+#download_names+=(debuginfo-tests) # Note: This causes configuration errors.
+
 if [ "$install_libc" -ne 0 ]; then
 	projects+=(libc)
+	download_names+=(libc)
 fi
+
 if [ "$install_libcxx" -ne 0 ]; then
 	projects+=(libcxx)
+	download_names+=(libcxx)
 	projects+=(libcxxabi)
+	download_names+=(libcxxabi)
 fi
+
 projects+=(libunwind)
+download_names+=(libunwind)
+
 projects+=(lld)
+download_names+=(lld)
+
 if [ "$install_lldb" -ne 0 ]; then
 	projects+=(lldb)
+	download_names+=(lldb)
 fi
-projects+=(openmp)
-#projects+=(libclc)
-projects+=(polly)
-#projects+=(parallel-libs)
-#projects+=(pstl)
 
-#if [ "$install_testsuite" -ne 0 ]; then
-#	projects+=(XXXXXXXXXXXX)
-#fi
+projects+=(openmp)
+download_names+=(openmp)
+
+#projects+=(libclc)
+#download_names+=(libclc)
+
+projects+=(polly)
+download_names+=(polly)
+
+#projects+=(parallel-libs)
+#download_names+=(parallel-libs)
+
+#projects+=(pstl)
+#download_names+=(pstl)
+
+
+if [ "$install_testsuite" -eq 0 ]; then
+	download_names+=(test-suite)
+	projects+=(test-suite)
+fi
 
 if [ "$from_repo" -ne 0 ]; then
 
@@ -311,169 +358,59 @@ else
 	base_urls+=("$llvm_base_url")
 	base_urls+=("$github_base_url")
 
-	for base_url in "${base_urls[@]}"; do
+	for download_name in "${download_names[@]}"; do
+
+		component_name="$download_name"
+		case "$download_name" in
+		clang)
+			download_name="$cfe_name"
+			;;
+		esac
+
+		downloaded=0
+
+		for base_url in "${base_urls[@]}"; do
 	
-		echo "Downloading from release with base URL $base_url"
+			echo "Downloading from release with base URL $base_url"
 
-		llvm_url="$base_url/llvm-$version.src.tar.xz"
-		cfe_url="$base_url/$cfe_name-$version.src.tar.xz"
-		cte_url="$base_url/clang-tools-extra-$version.src.tar.xz"
-		lld_url="$base_url/lld-$version.src.tar.xz"
-		polly_url="$base_url/polly-$version.src.tar.xz"
-		cr_url="$base_url/compiler-rt-$version.src.tar.xz"
-		openmp_url="$base_url/openmp-$version.src.tar.xz"
-		libcxx_url="$base_url/libcxx-$version.src.tar.xz"
-		libcxxabi_url="$base_url/libcxxabi-$version.src.tar.xz"
-		testsuite_url="$base_url/test-suite-$version.src.tar.xz"
-		lldb_url="$base_url/lldb-$version.src.tar.xz"
+			download_url="$base_url/$download_name-$version.src.tar.xz"
 
-		urls=()
-		urls+=("$llvm_url")
-		urls+=("$cfe_url")
-		urls+=("$cr_url")
-		urls+=("$cte_url")
-		urls+=("$lld_url")
-		urls+=("$polly_url")
-		urls+=("$openmp_url")
-		if [ "$install_libcxx" -ne 0 ]; then
-			urls+=("$libcxx_url")
-			urls+=("$libcxxabi_url")
-		fi
-		if [ "$install_lldb" -ne 0 ]; then
-			urls+=("$lldb_url")
-		fi
-		if [ "$install_testsuite" -ne 0 ]; then
-			urls+=("$testsuite_url")
-		fi
-		for url in "${urls[@]}"; do
-			echo "downloading $url"
-			(cd "$archive_dir" && wget "$url")
+			echo "Attempting download of $download_name:"
+			echo "    URL: $download_url"
+			wget --output-document "$archive_dir/$download_name.tar.xz" "$download_url"
 			status=$?
-			if [ "$status" -ne 0 ]; then
-				echo "NOTE: download failed using base URL $base_url"
+			if [ "$status" -eq 0 ]; then
+				downloaded=1
 				break
 			fi
+
+			echo "NOTE: download of $download_name failed using base URL $base_url"
+
 		done
 
-		if [ "$status" -eq 0 ]; then
-			download_success=1
-			break
+		if [ "$downloaded" -eq 0 ]; then
+			panic "download failed"
 		fi
 
+		case "$download_name" in
+		test-suite)
+			component_dir="$src_dir/projects/$component_name"
+			;;
+		*)
+			component_dir="$src_dir/$component_name"
+			;;
+		esac
+
+		mkdir -p "$component_dir" || \
+		  panic "cannot make directory $component_dir"
+		tar -xJf "$archive_dir/$download_name.tar.xz" \
+		  -C "$component_dir" --strip-components=1 || \
+		  panic "cannot extract archive for $download_name"
 	done
-
-	if [ "$download_success" -eq 0 ]; then
-		panic "download failed"
-	fi
-
-	# extract llvm archive to $TOPDIR
-	tar -xJf "$archive_dir/$(basename "$llvm_url")" \
-	  -C "$src_dir" --strip-components=1 || panic "cannot extract llvm archive"
-
-	# extract cfe archive to $TOPDIR/tools/clang
-	extract_dir="$src_dir/tools/clang"
-	if [ ! -d "$extract_dir" ]; then
-		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
-	fi
-	tar -xJf "$archive_dir/$(basename "$cfe_url")" \
-	  -C "$extract_dir" --strip-components=1 || \
-	  panic "cannot extract cfe archive"
-
-	# extract clang-tools-extra archive to $TOPDIR/tools/clang/tools/extra
-	extract_dir="$src_dir/tools/clang/tools/extra"
-	if [ ! -d "$extract_dir" ]; then
-		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
-	fi
-	tar -xJf "$archive_dir/$(basename "$cte_url")" \
-	  -C "$extract_dir" --strip-components=1 || \
-	  panic "cannot extract clang-tools-extra archive"
-
-	# extract lld archive to $TOPDIR/tools/lld
-	extract_dir="$src_dir/tools/lld"
-	if [ ! -d "$extract_dir" ]; then
-		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
-	fi
-	tar -xJf "$archive_dir/$(basename "$lld_url")" \
-	  -C "$extract_dir" --strip-components=1 || \
-	  panic "cannot extract lld archive"
-
-	# extract polly archive to $TOPDIR/tools/polly
-	extract_dir="$src_dir/tools/polly"
-	if [ ! -d "$extract_dir" ]; then
-		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
-	fi
-	tar -xJf "$archive_dir/$(basename "$polly_url")" \
-	  -C "$extract_dir" --strip-components=1 || \
-	  panic "cannot extract polly archive"
-
-	# extract compiler-rt archive to $TOPDIR/projects/compiler-rt
-	extract_dir="$src_dir/projects/compiler-rt"
-	if [ ! -d "$extract_dir" ]; then
-		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
-	fi
-	tar -xJf "$archive_dir/$(basename "$cr_url")" \
-	  -C "$extract_dir" --strip-components=1 || \
-	  panic "cannot extract compiler-rt archive"
-
-	# extract openmp archive to $TOPDIR/projects/openmp
-	extract_dir="$src_dir/projects/openmp"
-	if [ ! -d "$extract_dir" ]; then
-		mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
-	fi
-	tar -xJf "$archive_dir/$(basename "$openmp_url")" \
-	  -C "$extract_dir" --strip-components=1 || \
-	  panic "cannot extract openmp archive"
-
-	# extract libcxx archive to $TOPDIR/projects/libcxx
-	if [ "$install_libcxx" -ne 0 ]; then
-		extract_dir="$src_dir/projects/libcxx"
-		if [ ! -d "$extract_dir" ]; then
-			mkdir -p "$extract_dir" || panic "cannot make directory $extract_dir"
-		fi
-		tar -xJf "$archive_dir/$(basename "$libcxx_url")" \
-		  -C "$extract_dir" --strip-components=1 || \
-		  panic "cannot extract libcxx archive"
-	fi
-
-	# extract libcxxabi archive to $TOPDIR/projects/libcxxabi
-	if [ "$install_libcxx" -ne 0 ]; then
-		extract_dir="$src_dir/projects/libcxxabi"
-		if [ ! -d "$extract_dir" ]; then
-			mkdir -p "$extract_dir" || \
-			  panic "cannot make directory $extract_dir"
-		fi
-		tar -xJf "$archive_dir/$(basename "$libcxxabi_url")" \
-		  -C "$extract_dir" --strip-components=1 || \
-		  panic "cannot extract libcxx archive"
-	fi
-
-	# extract lldb archive to $TOPDIR/tools/lldb
-	if [ "$install_lldb" -ne 0 ]; then
-		extract_dir="$src_dir/tools/lldb"
-		if [ ! -d "$extract_dir" ]; then
-			mkdir -p "$extract_dir" || \
-			  panic "cannot make directory $extract_dir"
-		fi
-		tar -xJf "$archive_dir/$(basename "$lldb_url")" \
-		  -C "$extract_dir" --strip-components=1 || \
-		  panic "cannot extract lldb archive"
-	fi
-
-	# extract testsuite archive to $TOPDIR/projects/test-suite
-	if [ "$install_testsuite" -ne 0 ]; then
-		extract_dir="$src_dir/projects/test-suite"
-		if [ ! -d "$extract_dir" ]; then
-			mkdir -p "$extract_dir" || \
-			  panic "cannot make directory $extract_dir"
-		fi
-		tar -xJf "$archive_dir/$(basename "$testsuite_url")" \
-		  -C "$extract_dir" --strip-components=1 || \
-		  panic "cannot extract test-suite archive"
-	fi
 
 	echo "Download successful release with base URL $base_url"
 
-	src_root_dir="$src_dir"
+	src_root_dir="$src_dir/llvm"
 
 	commit=
 
@@ -484,6 +421,7 @@ fi
 ################################################################################
 
 if [ "$stop_early" -ne 0 ]; then
+	cleanup=0
 	exit 0
 fi
 
@@ -496,33 +434,33 @@ EOF
 configure_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
 echo "time: $configure_start_time"
 
-cmake_opts=()
+configure_opts=()
 
 buffer=$(tr ' ' ';' <<< "${projects[@]}") || \
   panic "internal error"
-cmake_opts+=("-DLLVM_ENABLE_PROJECTS=$buffer")
+configure_opts+=("-DLLVM_ENABLE_PROJECTS=$buffer")
 
-cmake_opts+=(-G "Unix Makefiles")
-cmake_opts+=(-DCMAKE_INSTALL_PREFIX="$abs_install_dir")
-cmake_opts+=(-DCMAKE_VERBOSE_MAKEFILE=true)
-cmake_opts+=(-DCMAKE_BUILD_TYPE=Release)
+configure_opts+=(-G "Unix Makefiles")
+configure_opts+=(-DCMAKE_INSTALL_PREFIX="$abs_install_dir")
+configure_opts+=(-DCMAKE_VERBOSE_MAKEFILE=true)
+configure_opts+=(-DCMAKE_BUILD_TYPE=Release)
 if [ "$use_static_libstdcxx" -ne 0 ]; then
-	cmake_opts+=(-DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++")
+	configure_opts+=(-DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++")
 fi
 if [ "$use_old_host_toolchain" -ne 0 ]; then
-	cmake_opts+=(-DLLVM_FORCE_USE_OLD_HOST_TOOLCHAIN=true)
+	configure_opts+=(-DLLVM_FORCE_USE_OLD_HOST_TOOLCHAIN=true)
 fi
-cmake_opts+=("${cmake_extra_opts[@]}")
+configure_opts+=("${cmake_extra_opts[@]}")
 
 if [ -n "$gcc_dir" ]; then
-	cmake_opts+=(-DCMAKE_C_COMPILER="${gcc_dir}/bin/gcc")
-	cmake_opts+=(-DCMAKE_CXX_COMPILER="${gcc_dir}/bin/g++")
-	cmake_opts+=(-DGCC_INSTALL_PREFIX="${gcc_dir}")
-#	cmake_opts+=(-DCMAKE_CXX_LINK_FLAGS="-L${gcc_dir}/lib64 -Wl,-rpath,${gcc_dir}/lib64")
+	configure_opts+=(-DCMAKE_C_COMPILER="${gcc_dir}/bin/gcc")
+	configure_opts+=(-DCMAKE_CXX_COMPILER="${gcc_dir}/bin/g++")
+	configure_opts+=(-DGCC_INSTALL_PREFIX="${gcc_dir}")
+#	configure_opts+=(-DCMAKE_CXX_LINK_FLAGS="-L${gcc_dir}/lib64 -Wl,-rpath,${gcc_dir}/lib64")
 fi
 
-echo "Running cd $build_dir && cmake ${cmake_opts[@]} $src_root_dir"
-(cd "$build_dir" && cmake "${cmake_opts[@]}" "$src_root_dir") || \
+echo "Running cmake -H$src_root_dir -B$build_dir ${configure_opts[@]}"
+cmake -H"$src_root_dir" -B"$build_dir" "${configure_opts[@]}" || \
   panic "cmake failed"
 
 cat <<- EOF
@@ -534,10 +472,10 @@ EOF
 build_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
 echo "time: $build_start_time"
 
-make_opts=()
-make_opts+=(-j$num_jobs)
+build_opts=()
+build_opts+=(-j $num_jobs)
 
-(cd "$build_dir" && make "${make_opts[@]}") || panic "make failed"
+cmake --build "$build_dir" "${build_opts[@]}" || panic "build failed"
 
 cat <<- EOF
 ============================================================
@@ -553,7 +491,9 @@ if [ "${SDE_INSTALL_CLANG_STRIPPED:-0}" -ne 0 ]; then
 else
 	install_target="install"
 fi
-(cd "$build_dir" && make "$install_target") || panic "make install failed"
+#(cd "$build_dir" && make "$install_target") || panic "make install failed"
+cmake --build "$build_dir" --target "$install_target" || \
+  panic "make install failed"
 
 if [ "$from_repo" -ne 0 ]; then
 	echo "$commit" > "$install_dir/.version" || \
