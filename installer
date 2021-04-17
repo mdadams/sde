@@ -590,19 +590,21 @@ if [ -n "$clang_version" -a -n "$clang_dir" ]; then
 #		fi
 #		CXX="$cpp_compiler_command" CC="$c_compiler_command" \
 		#echo "Building Clang with $compiler_name"
-if [ 0 -ne 0 ]; then
-		"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
-		  env CXX="$gcc_dir/bin/g++" CC="$gcc_dir/bin/gcc" \
-		  "$sde_install_clang" "${install_clang_options[@]}" \
-		  -v "$clang_version" -d "$clang_dir" -f || \
-		  panic "cannot install clang"
-else
-		"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
-		  env CXX="$gcc_dir/bin/g++" CC="$gcc_dir/bin/gcc" \
-		  "$sde_install_clang" "${install_clang_options[@]}" \
-		  -r -v "llvmorg-$clang_version" -d "$clang_dir" -f || \
-		  panic "cannot install clang"
-fi
+
+		SDE_CLANG_FROM_REPO="${SDE_CLANG_FROM_REPO:-0}"
+		if [ "$SDE_CLANG_FROM_REPO" -ne 0 ]; then
+			"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
+			  env CXX="$gcc_dir/bin/g++" CC="$gcc_dir/bin/gcc" \
+			  "$sde_install_clang" "${install_clang_options[@]}" \
+			  -r -v "llvmorg-$clang_version" -d "$clang_dir" -f || \
+			  panic "cannot install clang"
+		else
+			"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
+			  env CXX="$gcc_dir/bin/g++" CC="$gcc_dir/bin/gcc" \
+			  "$sde_install_clang" "${install_clang_options[@]}" \
+			  -v "$clang_version" -d "$clang_dir" -f || \
+			  panic "cannot install clang"
+		fi
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" clang "$clang_version" || \
 	  panic "cannot configure clang"
