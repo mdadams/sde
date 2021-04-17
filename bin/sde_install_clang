@@ -316,7 +316,7 @@ download_names+=(polly)
 #download_names+=(pstl)
 
 
-if [ "$install_testsuite" -eq 0 ]; then
+if [ "$install_testsuite" -ne 0 ]; then
 	download_names+=(test-suite)
 	projects+=(test-suite)
 fi
@@ -393,9 +393,9 @@ else
 		fi
 
 		case "$download_name" in
-		test-suite)
-			component_dir="$src_dir/projects/$component_name"
-			;;
+		#test-suite)
+		#	component_dir="$src_dir/projects/$component_name"
+		#	;;
 		*)
 			component_dir="$src_dir/$component_name"
 			;;
