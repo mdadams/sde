@@ -44,7 +44,7 @@ clang_version=12.0.0
 musl_version=1.2.2
 
 # JasPer: https://github.com/jasper-software/jasper
-jasper_version=2.0.28
+jasper_version=2.0.31
 
 # GDB: https://www.gnu.org/software/gdb/download/
 gdb_version=10.1
@@ -61,7 +61,7 @@ texlive_version=2021
 # Boost: https://www.boost.org/users/download
 # Note: Do not upgrade Boost until CMake catches up; otherwise build problems
 # will likely result.
-boost_version=1.75.0
+boost_version=1.76.0
 
 # CGAL: https://github.com/CGAL/cgal/releases
 cgal_version=5.2.1
@@ -79,13 +79,13 @@ vim_version=8.2
 gsl_version=v3.1.0
 
 # Catch2: https://github.com/catchorg/Catch2/releases
-catch_version=v2.13.5
+catch_version=v2.13.6
 
 # Lcov: https://github.com/linux-test-project/lcov
 lcov_version=v1.15
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=5277fc47f0ef419fb01c1d3de66b0a64367bae32
+vimlsp_version=296fb98d198cbbb5c5c937c09b84c8c7a9605a16
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=0fb846e1eb3c2bf04d52a57f41088afb3395212e
