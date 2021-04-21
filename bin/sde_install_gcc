@@ -125,6 +125,8 @@ usage()
 	$0 -r -v master -d $HOME/local/gcc
 	SDE_TMPDIR=/var/tmp $0 -r -v master -d $HOME/local/gcc
 
+	SDE_TMPDIR=/var/tmp $0 -v 11.1.0-RC-20210420 -d $HOME/local/gcc
+
 	commit=\$($0 -r -n -v master)
 	SDE_TMPDIR=/var/tmp $0 -r -v \$commit -d /tmp/gcc-trunk-\$commit
 	EOF
@@ -297,6 +299,8 @@ else
 	urls+=("https://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.xz")
 	urls+=("https://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.bz2")
 	urls+=("https://ftp.gnu.org/gnu/gcc/gcc-$version/gcc-$version.tar.gz")
+	urls+=("https://gcc.gnu.org/pub/gcc/snapshots/$version/gcc-$version.tar.xz")
+	urls+=("https://gcc.gnu.org/pub/gcc/snapshots/$version/gcc-$version.tar.gz")
 	url=
 	for i in "${urls[@]}"; do
 		validate_url "$i"
