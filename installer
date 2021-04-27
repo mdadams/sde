@@ -31,12 +31,11 @@
 cmake_version=3.20.1
 
 # GCC: https://www.gnu.org/software/gcc
-#gcc_version=10.3.0
-gcc_version=11.1.0-RC-20210420
+gcc_version=11.1.0
 
 # GCC Go
-#gccgo_version="$gcc_version"
-gccgo_version=10.3.0
+gccgo_version="$gcc_version"
+#gccgo_version=10.3.0
 
 # LLVM: http://releases.llvm.org/download.html
 clang_version=12.0.0
@@ -48,7 +47,7 @@ musl_version=1.2.2
 jasper_version=2.0.32
 
 # GDB: https://www.gnu.org/software/gdb/download/
-gdb_version=10.1
+gdb_version=10.2
 
 # SPL: http://www.ece.uvic.ca/~frodo/SPL/#download
 spl_version=2.0.8
@@ -86,7 +85,7 @@ catch_version=v2.13.6
 lcov_version=v1.15
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=296fb98d198cbbb5c5c937c09b84c8c7a9605a16
+vimlsp_version=80f4b269b51eae778a3f3093c144ffe8b2c943a1
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=0fb846e1eb3c2bf04d52a57f41088afb3395212e
@@ -967,7 +966,7 @@ if [ -n "$ycm_version" -a -n "$ycm_dir" ]; then
 fi
 
 ################################################################################
-#
+# GCC Go
 ################################################################################
 
 if [ -n "$gccgo_version" -a ! -d "$gccgo_dir" ]; then
