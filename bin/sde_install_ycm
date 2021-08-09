@@ -33,6 +33,14 @@ panic()
 	exit 1
 }
 
+perform_cleanup()
+{
+	if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
+		rm -rf "$tmp_dir" || \
+		  echo "warning: cannot remove temporary directory $tmp_dir"
+	fi
+}
+
 usage()
 {
 	echo "BAD USAGE: $@"
@@ -56,14 +64,18 @@ user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
+tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_ycm-$user-$host-XXXXXXXX"
+
 version=master
 install_dir=
-tmp_dir="/tmp/sde_install_ycm-$user@$host-$$"
 libclang=
 verbose=0
+cleanup=1
 
-while getopts d:v:l:V opt; do
+while getopts Cd:v:l:V opt; do
 	case "$opt" in
+	C)
+		cleanup=0;;
 	d)
 		install_dir="$OPTARG";;
 	v)
@@ -91,6 +103,13 @@ fi
 # This will help to increase the likelihood that the installed software
 # will be accessible by all users.
 umask 022
+
+tmp_dir=$(mktemp -d "$tmp_dir_template") || \
+  panic "cannot create temporary directory"
+echo "temporary directory: $tmp_dir"
+if [ "$cleanup" -ne 0 ]; then
+	trap perform_cleanup EXIT
+fi
 
 top_dir="$tmp_dir/ycm-$version"
 
@@ -151,4 +170,5 @@ fi
 cp "$example_file" "$misc_dir/ycm_extra_conf.py" || \
   panic "cannot copy file"
 
-rm -rf "$tmp_dir"
+echo "temporary directory: $tmp_dir"
+echo "need to install watchdog now"

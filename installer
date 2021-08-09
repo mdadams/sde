@@ -28,23 +28,23 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.20.1
+cmake_version=3.21.1
 
 # GCC: https://www.gnu.org/software/gcc
-gcc_version=11.1.0
+gcc_version=11.2.0
 
 # GCC Go
 gccgo_version="$gcc_version"
 #gccgo_version=10.3.0
 
 # LLVM: http://releases.llvm.org/download.html
-clang_version=12.0.0
+clang_version=12.0.1
 
 # Musl: https://www.musl-libc.org/download.html
 musl_version=1.2.2
 
 # JasPer: https://github.com/jasper-software/jasper
-jasper_version=2.0.32
+jasper_version=2.0.33
 
 # GDB: https://www.gnu.org/software/gdb/download/
 gdb_version=10.2
@@ -64,10 +64,10 @@ texlive_version=2021
 boost_version=1.76.0
 
 # CGAL: https://github.com/CGAL/cgal/releases
-cgal_version=5.2.1
+cgal_version=5.3
 
 # Aristotle: https://github.com/mdadams/aristotle
-aristotle_version=v3.0.37
+aristotle_version=v3.0.38
 
 # YCM: https://github.com/Valloric/YouCompleteMe
 ycm_version=c8acf70d23337047af6548dbb8337d3e3a0c0357
@@ -79,19 +79,19 @@ vim_version=8.2
 gsl_version=v3.1.0
 
 # Catch2: https://github.com/catchorg/Catch2/releases
-catch_version=v2.13.6
+catch_version=v2.13.7
 
 # Lcov: https://github.com/linux-test-project/lcov
 lcov_version=v1.15
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=80f4b269b51eae778a3f3093c144ffe8b2c943a1
+vimlsp_version=7ba553effb021293c9ff5176b91e76da71797825
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=0fb846e1eb3c2bf04d52a57f41088afb3395212e
 
 # Vim Asyncomplete: https://github.com/prabirshrestha/asyncomplete.vim.git
-vimlsp_ac_version=8e018dee9c5e2205288bda01be0de196b04b7cf2
+vimlsp_ac_version=6c653c3f8f1c1cf7a34522c9555d5160f36d29ee
 
 # Vim Asyncomplete LSP: https://github.com/prabirshrestha/asyncomplete-lsp.vim.git
 vimlsp_aclsp_version=684c34453db9dcbed5dbf4769aaa6521530a23e0
@@ -100,13 +100,13 @@ vimlsp_aclsp_version=684c34453db9dcbed5dbf4769aaa6521530a23e0
 hub_version=2.14.2
 
 # GitHub CLI: https://github.com/cli/cli
-gh_version=1.9.2
+gh_version=1.14.0
 
 # GHI: https://github.com/stephencelis/ghi
 ghi_version=1.2.0
 
 # Fmtlib: https://github.com/fmtlib/fmt.git
-fmtlib_version=7.1.3
+fmtlib_version=8.0.1
 
 # range: https://github.com/ericniebler/range-v3.git
 #range_version=0.10.0
