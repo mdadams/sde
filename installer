@@ -28,7 +28,7 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.21.1
+cmake_version=3.21.3
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=11.2.0
@@ -38,7 +38,7 @@ gccgo_version="$gcc_version"
 #gccgo_version=10.3.0
 
 # LLVM: http://releases.llvm.org/download.html
-clang_version=12.0.1
+clang_version=13.0.0
 
 # Musl: https://www.musl-libc.org/download.html
 musl_version=1.2.2
@@ -61,7 +61,7 @@ texlive_version=2021
 # Boost: https://www.boost.org/users/download
 # Note: Do not upgrade Boost until CMake catches up; otherwise build problems
 # will likely result.
-boost_version=1.76.0
+boost_version=1.77.0
 
 # CGAL: https://github.com/CGAL/cgal/releases
 cgal_version=5.3
@@ -70,7 +70,7 @@ cgal_version=5.3
 aristotle_version=v3.0.38
 
 # YCM: https://github.com/Valloric/YouCompleteMe
-ycm_version=c8acf70d23337047af6548dbb8337d3e3a0c0357
+ycm_version=4117a99861b537830d717c3113e3d584523bc573
 
 # Vim: https://www.vim.org/download.php
 vim_version=8.2
@@ -85,13 +85,13 @@ catch_version=v2.13.7
 lcov_version=v1.15
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=7ba553effb021293c9ff5176b91e76da71797825
+vimlsp_version=7b9da239da68e21aacc96cb77b44b5a669038b2b
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=0fb846e1eb3c2bf04d52a57f41088afb3395212e
 
 # Vim Asyncomplete: https://github.com/prabirshrestha/asyncomplete.vim.git
-vimlsp_ac_version=6c653c3f8f1c1cf7a34522c9555d5160f36d29ee
+vimlsp_ac_version=73ac8e4e4525ba48e82d0f30643987b015233d4e
 
 # Vim Asyncomplete LSP: https://github.com/prabirshrestha/asyncomplete-lsp.vim.git
 vimlsp_aclsp_version=684c34453db9dcbed5dbf4769aaa6521530a23e0
@@ -100,7 +100,7 @@ vimlsp_aclsp_version=684c34453db9dcbed5dbf4769aaa6521530a23e0
 hub_version=2.14.2
 
 # GitHub CLI: https://github.com/cli/cli
-gh_version=1.14.0
+gh_version=2.1.0
 
 # GHI: https://github.com/stephencelis/ghi
 ghi_version=1.2.0
