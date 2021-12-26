@@ -126,9 +126,12 @@ print_commit=0
 install_flang=0
 install_libc=0
 debug_level="${SDE_DEBUG_LEVEL:-0}"
+enable_shared_libllvm=0
 
-while getopts Ctlfg:d:v:rxDj:nT:SF opt; do
+while getopts Ctlfg:d:v:rxDj:nT:SFY opt; do
 	case "$opt" in
+	Y)
+		enable_shared_libllvm=1;;
 	x)
 		use_static_libstdcxx=0;;
 	C)
@@ -457,6 +460,12 @@ if [ -n "$gcc_dir" ]; then
 	configure_opts+=(-DCMAKE_CXX_COMPILER="${gcc_dir}/bin/g++")
 	configure_opts+=(-DGCC_INSTALL_PREFIX="${gcc_dir}")
 #	configure_opts+=(-DCMAKE_CXX_LINK_FLAGS="-L${gcc_dir}/lib64 -Wl,-rpath,${gcc_dir}/lib64")
+fi
+
+if [ "$enable_shared_libllvm" -ne 0 ]; then
+	configure_opts+=(LLVM_BUILD_LLVM_DYLIB=1)
+else
+	configure_opts+=(LLVM_BUILD_LLVM_DYLIB=0)
 fi
 
 echo "Running cmake -H$src_root_dir -B$build_dir ${configure_opts[@]}"
