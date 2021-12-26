@@ -463,9 +463,9 @@ if [ -n "$gcc_dir" ]; then
 fi
 
 if [ "$enable_shared_libllvm" -ne 0 ]; then
-	configure_opts+=(LLVM_BUILD_LLVM_DYLIB=1)
+	configure_opts+=(-DLLVM_BUILD_LLVM_DYLIB=1)
 else
-	configure_opts+=(LLVM_BUILD_LLVM_DYLIB=0)
+	configure_opts+=(-DLLVM_BUILD_LLVM_DYLIB=0)
 fi
 
 echo "Running cmake -H$src_root_dir -B$build_dir ${configure_opts[@]}"
