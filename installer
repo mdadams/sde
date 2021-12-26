@@ -295,6 +295,7 @@ if [ "${SDE_LLVM_INSTALL_TEST_SUITE:-0}" -ne 0 ]; then
 	install_clang_options+=(-t)
 fi
 install_clang_options+=(-l)
+install_clang_options+=(-Y)
 
 if [ "${SDE_VIM_INSTALL:-1}" -eq 0 ]; then
 	vim_dir=
