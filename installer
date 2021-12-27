@@ -44,7 +44,8 @@ clang_version=13.0.0
 musl_version=1.2.2
 
 # JasPer: https://github.com/jasper-software/jasper
-jasper_version=2.0.33
+#jasper_version=version-2.0.33
+jasper_version=7fc0d9adacd72d568e6a6013bb810d7a1a0abc29
 
 # GDB: https://www.gnu.org/software/gdb/download/
 gdb_version=11.1
@@ -817,7 +818,7 @@ if [ -n "$jasper_version" -a -n "$jasper_dir" ]; then
 		fi
 #		PATH="${path_string}$PATH" \
 		"$sde_shell" -s -x \
-		  "$sde_install_jasper" -v "$jasper_version" -d "$jasper_dir" \
+		  "$sde_install_jasper" -r -v "$jasper_version" -d "$jasper_dir" \
 		  "${options[@]}" || \
 		  panic "cannot install jasper"
 	fi

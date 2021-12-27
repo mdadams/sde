@@ -79,8 +79,9 @@ version=
 install_dir=
 build_doc=1
 cleanup=1
+install_from_repo=0
 
-while getopts d:v:o:C opt; do
+while getopts d:v:o:Cr opt; do
 	case "$opt" in
 	C)
 		cleanup=0;;
@@ -88,6 +89,8 @@ while getopts d:v:o:C opt; do
 		install_dir="$OPTARG";;
 	v)
 		version="$OPTARG";;
+	r)
+		install_from_repo=1;;
 	o)
 		case "$OPTARG" in
 		build_doc)
@@ -112,6 +115,9 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
+git_repo="https://github.com/jasper-software/jasper.git"
+url="https://github.com/jasper-software/jasper/archive/version-$version.tar.gz"
+
 abs_install_dir="$install_dir"
 result=$(isabspath "$abs_install_dir") || \
   panic "absolute path test failed"
@@ -125,8 +131,6 @@ install_dir="$abs_install_dir"
 # This will help to increase the likelihood that the installed software
 # will be accessible by all users.
 umask 022
-
-url="https://github.com/jasper-software/jasper/archive/version-$version.tar.gz"
 
 # Note: Do not use the "@" character in pathnames as this can cause problems
 # with Doxygen (resulting in bogus warnings).
@@ -145,14 +149,18 @@ for dir in "$src_dir" "$build_dir"; do
 	  panic "cannot make directory $dir"
 done
 
-(cd "$tmp_dir" && wget "$url") || \
-  panic "cannot download archive"
-
-archive=$(basename "$url") || \
-  panic "cannot get basename of URL"
-
-(cd "$tmp_dir" && tar -xzf "$archive" --strip-components=1) || \
-  panic "cannot extract archive"
+if [ "$install_from_repo" -ne 0 ]; then
+	src_dir="$tmp_dir/git"
+	(git clone "$git_repo" "$src_dir") || panic "git clone failed"
+	(cd "$src_dir" && git checkout "$version") || panic "git checkout failed"
+else
+	(cd "$tmp_dir" && wget "$url") || \
+	  panic "cannot download archive"
+	archive=$(basename "$url") || \
+	  panic "cannot get basename of URL"
+	(cd "$tmp_dir" && tar -xzf "$archive" --strip-components=1) || \
+	  panic "cannot extract archive"
+fi
 
 if [ ! -f "$src_dir/CMakeLists.txt" ]; then
 	panic "missing CMakeLists.txt file"
