@@ -51,13 +51,16 @@ cur_dir=$(pwd) || panic "cannot get current directory"
 version=
 install_dir=
 build_doc=1
+install_from_repo=0
 
-while getopts d:v:o: opt; do
+while getopts d:v:o:r opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
 	v)
 		version="$OPTARG";;
+	r)
+		install_from_repo=1;;
 	o)
 		case "$OPTARG" in
 		build_doc)
@@ -92,6 +95,7 @@ tmp_dir="/tmp/sde_install_spl-$user@$host-$$"
 src_dir="$tmp_dir"
 build_dir="$tmp_dir/tmp_cmake"
 url="http://www.ece.uvic.ca/~mdadams/SPL/software/SPL-$version.tar.gz"
+git_repo="https://github.com/mdadams/SPL.git"
 
 make_opts="-j4"
 
@@ -100,14 +104,18 @@ for dir in "$tmp_dir" "$build_dir"; do
 	  panic "cannot make directory $dir"
 done
 
-(cd "$tmp_dir" && wget "$url") || \
-  panic "cannot download archive"
-
-archive=$(basename "$url") || \
-  panic "cannot get basename of URL"
-
-(cd "$tmp_dir" && tar -xzf "$archive" --strip-components=1) || \
-  panic "cannot extract archive"
+if [ "$install_from_repo" -ne 0 ]; then
+	src_dir="$tmp_dir/git"
+	git clone "$git_repo" "$src_dir" || panic "git clone failed"
+	(cd "$src_dir" && git checkout "$version") || panic "git checkout failed"
+else
+	(cd "$tmp_dir" && wget "$url") || \
+	  panic "cannot download archive"
+	archive=$(basename "$url") || \
+	  panic "cannot get basename of URL"
+	(cd "$tmp_dir" && tar -xzf "$archive" --strip-components=1) || \
+	  panic "cannot extract archive"
+fi
 
 cmake_opts=()
 #cmake_opts+=("-DCMAKE_BUILD_TYPE=Debug")

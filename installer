@@ -51,7 +51,8 @@ jasper_version=7fc0d9adacd72d568e6a6013bb810d7a1a0abc29
 gdb_version=11.1
 
 # SPL: http://www.ece.uvic.ca/~frodo/SPL/#download
-spl_version=2.0.8
+#spl_version=version-2.0.8
+spl_version=b222bdc856ac38d04ae8857218e5a0cbdaaf2121
 
 # Ndiff: ???
 ndiff_version=2.00
@@ -852,7 +853,8 @@ if [ -n "$spl_version" -a -n "$spl_dir" ]; then
 		fi
 #		PATH="$gcc_bin_dir:${path_string}$PATH" \
 		"$sde_shell" -s -x \
-		  "$sde_install_spl" -v "$spl_version" -d "$spl_dir" "${options[@]}" || \
+		  "$sde_install_spl" -r -v "$spl_version" -d "$spl_dir" \
+		  "${options[@]}" || \
 		  panic "cannot install SPL"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" SPL "$spl_version" || \
