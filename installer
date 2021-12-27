@@ -130,6 +130,13 @@ eprint()
 	echo "$@" 1>&2
 }
 
+get_clang_version()
+{
+	clang_program=$(type -P clang) || return 1
+	local buffer=$("$clang_program" --version) || return 1
+	awk '(NR==1) {print $3;}' <<< "$buffer" || return 1
+}
+
 usage()
 {
 	echo "BAD USAGE: $@" 1>&2
@@ -329,6 +336,13 @@ if [ -z "$gccgo_dir" ]; then
 	if [ -n "$hub_dir" ]; then
 		panic "cannot install hub without gccgo"
 	fi
+fi
+
+native_clang_version=$(get_clang_version) || native_clang_version=
+if [ -n "$native_clang_version" -a \
+  "$native_clang_version" = "$clang_version" ]; then
+	echo "clang $clang_version is already installed"
+	clang_version=
 fi
 
 ################################################################################
