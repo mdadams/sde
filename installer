@@ -82,16 +82,16 @@ vim_version=8.2
 gsl_version=v3.1.0
 
 # Catch2: https://github.com/catchorg/Catch2/releases
-catch_version=v2.13.7
+catch_version=v2.13.8
 
 # Lcov: https://github.com/linux-test-project/lcov
 lcov_version=v1.15
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=69e6340c48571cc813c52d6acc2057b8aea6e742
+vimlsp_version=66b56c026fa24f76f38d3bc99bd478eff9aa4be3
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
-vimlsp_async_version=0fb846e1eb3c2bf04d52a57f41088afb3395212e
+vimlsp_async_version=f20569020d65bec3249222606c073c0943045b5e
 
 # Vim Asyncomplete: https://github.com/prabirshrestha/asyncomplete.vim.git
 vimlsp_ac_version=9c7651894c2c6d656c0dc71e87cfabbbb71b9c78
@@ -109,7 +109,7 @@ gh_version=2.4.0
 ghi_version=1.2.0
 
 # Fmtlib: https://github.com/fmtlib/fmt.git
-fmtlib_version=8.0.1
+fmtlib_version=8.1.1
 
 # range: https://github.com/ericniebler/range-v3.git
 #range_version=0.10.0
