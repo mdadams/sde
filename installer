@@ -28,7 +28,7 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.22.1
+cmake_version=3.22.2
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=11.2.0
@@ -38,14 +38,16 @@ gccgo_version="$gcc_version"
 #gccgo_version=10.3.0
 
 # LLVM: http://releases.llvm.org/download.html
-clang_version=13.0.0
+# LLVM Releases: https://github.com/llvm/llvm-project/releases
+clang_version=13.0.1
 
 # Musl: https://www.musl-libc.org/download.html
 musl_version=1.2.2
 
 # JasPer: https://github.com/jasper-software/jasper
+# JasPer Releases: https://github.com/jasper-software/jasper/releases
 #jasper_version=version-2.0.33
-jasper_version=7fc0d9adacd72d568e6a6013bb810d7a1a0abc29
+jasper_version=version-3.0.0
 
 # GDB: https://www.gnu.org/software/gdb/download/
 gdb_version=11.1
@@ -65,10 +67,12 @@ texlive_version=2021
 # will likely result.
 boost_version=1.78.0
 
-# CGAL: https://github.com/CGAL/cgal/releases
-cgal_version=5.3.1
+# CGAL: https://github.com/CGAL/cgal
+# CGAL Releases: https://github.com/CGAL/cgal/releases
+cgal_version=5.4
 
 # Aristotle: https://github.com/mdadams/aristotle
+# Aristotle Releases: https://github.com/mdadams/aristotle/tags
 aristotle_version=v3.0.38
 
 # YCM: https://github.com/Valloric/YouCompleteMe
@@ -79,12 +83,13 @@ ycm_version=
 vim_version=8.2
 
 # GSL: https://github.com/Microsoft/GSL/releases
-gsl_version=v3.1.0
+gsl_version=v4.0.0
 
 # Catch2: https://github.com/catchorg/Catch2/releases
 catch_version=v2.13.8
 
 # Lcov: https://github.com/linux-test-project/lcov
+# Lcov Releases: https://github.com/linux-test-project/lcov/releases
 lcov_version=v1.15
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
@@ -100,15 +105,19 @@ vimlsp_ac_version=9c7651894c2c6d656c0dc71e87cfabbbb71b9c78
 vimlsp_aclsp_version=f6d6a6354ff279ba707c20292aef0dfaadc436a3
 
 # Hub: https://github.com/github/hub
+# Hub Releases: https://github.com/github/hub/releases
 hub_version=2.14.2
 
 # GitHub CLI: https://github.com/cli/cli
-gh_version=2.4.0
+# GitHub CLI Releases: https://github.com/cli/cli/releases
+gh_version=2.5.0
 
 # GHI: https://github.com/stephencelis/ghi
+# GHI Releases: https://github.com/stephencelis/ghi/releases
 ghi_version=1.2.0
 
 # Fmtlib: https://github.com/fmtlib/fmt.git
+# Fmtlib Releases: https://github.com/fmtlib/fmt/releases
 fmtlib_version=8.1.1
 
 # range: https://github.com/ericniebler/range-v3.git
