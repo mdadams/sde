@@ -149,6 +149,27 @@ get_clang_version()
 	awk '(NR==1) {print $3;}' <<< "$buffer" || return 1
 }
 
+get_version_info()
+{
+	if [ $# -ne 2 ]; then
+		return 1
+	fi
+	local version="$1"
+	local key="$2"
+	case "$key" in
+	major)
+		field=1;;
+	minor)
+		field=2;;
+	micro)
+		field=3;;
+	*)
+		return 1;;
+	esac
+	awk -v i="$field" -v FS='.' '(NR==1) {print $i;}' <<< "$version" || \
+	  return 1
+}
+
 usage()
 {
 	echo "BAD USAGE: $@" 1>&2
@@ -351,10 +372,17 @@ if [ -z "$gccgo_dir" ]; then
 fi
 
 native_clang_version=$(get_clang_version) || native_clang_version=
-if [ -n "$native_clang_version" -a \
-  "$native_clang_version" = "$clang_version" ]; then
-	echo "clang $clang_version is already installed"
-	clang_version=
+if [ -n "$native_clang_version" ]; then
+	native_clang_major_version=$(get_version_info \
+	  "$native_clang_version" major) || \
+	  panic "cannot get version information"
+	clang_major_version=$(get_version_info "$clang_version" major) || \
+	  panic "cannot get version information"
+	if [ "$native_clang_major_version" = "$clang_major_version" ]; then
+		echo "clang $clang_major_version is already installed"
+		echo "skipping clang install to avoid possible shared library conflicts"
+		clang_version=
+	fi
 fi
 
 ################################################################################
