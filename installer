@@ -330,13 +330,14 @@ fi
 
 install_clang_options=()
 if [ "${SDE_LLVM_INSTALL_LLDB:-0}" -ne 0 ]; then
-	install_clang_options+=(-D)
+	install_clang_options+=(--enable-lldb)
 fi
 if [ "${SDE_LLVM_INSTALL_TEST_SUITE:-0}" -ne 0 ]; then
-	install_clang_options+=(-t)
+	install_clang_options+=(--enable-test-suite)
 fi
-install_clang_options+=(-l)
-install_clang_options+=(-Y)
+install_clang_options+=(--enable-libcxx)
+install_clang_options+=(--enable-shared-libllvm)
+install_clang_options+=(--enable-static-libstdcxx)
 
 if [ "${SDE_VIM_INSTALL:-1}" -eq 0 ]; then
 	vim_dir=

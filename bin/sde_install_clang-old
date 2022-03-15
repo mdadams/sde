@@ -1,0 +1,544 @@
+#!/usr/bin/env bash
+
+# __START_OF_LICENSE__
+# 
+# Copyright (c) 2017, 2018 Michael D. Adams
+# All rights reserved.
+# 
+# This file is part of the SDE software.
+# 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3,
+# or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this program; see the file LICENSE.  If not,
+# see <http://www.gnu.org/licenses/>.
+# 
+# __END_OF_LICENSE__
+
+# Reference: http://llvm.org/releases/download.html
+# Reference: http://llvm.org/docs/GettingStarted.html
+# Reference: http://llvm.org/docs/GettingStarted.html#compiling-the-llvm-suite-source-code
+# Reference: http://clang.llvm.org/get_started.html
+# Reference: https://llvm.org/svn/llvm-project/cfe/trunk/INSTALL.txt
+# Reference: https://gist.github.com/larsch/6823355
+
+cmd_dir=$(dirname "$0") || exit 1
+source "$cmd_dir/utilities" || exit 1
+
+git_repo_url="https://github.com/llvm/llvm-project.git"
+
+isabspath()
+{
+	case "$1" in
+	/*)
+		echo "1";;
+	*)
+		echo "0";;
+	esac
+}
+
+perform_cleanup()
+{
+	if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
+		rm -rf "$tmp_dir" || \
+		  echo "warning: cannot remove temporary directory $tmp_dir"
+	fi
+}
+
+version_to_version_id()
+{
+	local version="$1"
+	local pattern='-rc[0-9]+'
+	local version_id="$version"
+	if [[ "$version" =~ $pattern ]]; then
+		version_id="$(sed -e 's/-rc/rc/' <<< "$version")" || return 1
+	fi
+	echo "$version_id"
+}
+
+panic()
+{
+	echo "ERROR: $@"
+	exit 1
+}
+
+usage()
+{
+	echo "BAD USAGE: $@"
+	cat <<- EOF
+	Usage:
+	$0 [options] -v \$version -d \$install_dir
+
+	Options
+	=======
+
+	-r
+	    Build from Subversion repository.
+	-g \$gcc_dir
+	    Set GCC directory to \$gcc_dir.
+	-D
+	    Install lldb.
+	-t
+	    Install the test suite.
+	-l
+	    Install libcxx.
+	-j \$num_jobs
+	    Allow the use of \$num_jobs siumultaneous jobs.
+	-x do not use static libstdc++
+
+	Environment Variables
+	=====================
+
+	SDE_INSTALL_CLANG_STRIPPED
+	    Install stripped executables.
+        Valid values: 0, 1
+
+	Examples
+	========
+
+	$0 -v 9.0.1 -d $HOME/local/clang
+	SDE_TMPDIR=/var/tmp CC=gcc CXX=g++ $0 -r -v master -d $HOME/local/clang
+
+	commit=\$($0 -r -v master -n)
+	SDE_TMPDIR=/var/tmp CC=gcc CXX=g++ $0 -r -v \$commit -d /tmp/clang-trunk-\$commit
+	EOF
+	exit 2
+}
+
+################################################################################
+# Parse command line options.
+################################################################################
+
+cur_dir=$(pwd) || panic "cannot get current directory"
+tmp_dir=
+
+version=
+install_dir=
+tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_clang-XXXXXXXX"
+gcc_dir=""
+use_old_host_toolchain=0
+install_libcxx=0
+from_repo=0
+install_testsuite=0
+stop_early=0
+install_lldb=0
+num_jobs=4
+cleanup=1
+use_static_libstdcxx=1
+print_commit=0
+install_flang=0
+install_libc=0
+debug_level="${SDE_DEBUG_LEVEL:-0}"
+enable_shared_libllvm=0
+
+while getopts Ctlfg:d:v:rxDj:nT:SFY opt; do
+	case "$opt" in
+	Y)
+		enable_shared_libllvm=1;;
+	x)
+		use_static_libstdcxx=0;;
+	C)
+		cleanup=0;;
+	l)
+		install_libcxx=1;;
+	t)
+		install_testsuite=1;;
+	f)
+		use_old_host_toolchain=1;;
+	d)
+		install_dir="$OPTARG";;
+	v)
+		version="$OPTARG";;
+	g)
+		gcc_dir="$OPTARG";;
+	r)
+		from_repo=1;;
+	S)
+		stop_early=1;;
+	D)
+		install_lldb=1;;
+	j)
+		num_jobs="$OPTARG";;
+	n)
+		print_commit=1;;
+	T)
+		tmp_dir_template="$OPTARG";;
+	F)
+		install_flang=1;;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ "$debug_level" -ge 10 ]; then
+	set -xv
+fi
+
+if [ "$print_commit" -ne 0 ]; then
+	if [ "$from_repo" -ne 0 ]; then
+		if [ -z "$version" ]; then
+			usage "no version specified"
+		fi
+		commit="$(git ls-remote "$git_repo_url" "$version" | \
+		  awk -v x='refs/heads/'"$version" '{if ($2 == x) {print $1;}}')" || \
+		  panic "git rev-parse failed"
+		echo "$commit" || panic "echo failed"
+	fi
+	exit 0
+fi
+
+if [ -z "$install_dir" ]; then
+	usage "no installation directory specified"
+fi
+if [ -z "$version" ]; then
+	usage "no version specified"
+fi
+
+abs_install_dir="$install_dir"
+result=$(isabspath "$abs_install_dir") || panic "absolute path test failed"
+if [ "$result" -eq 0 ]; then
+	abs_install_dir="$cur_dir/$abs_install_dir"
+fi
+
+################################################################################
+# Perform some setup.
+################################################################################
+
+start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
+tmp_dir=$(mktemp -d "$tmp_dir_template") || \
+  panic "cannot create temporary directory"
+if [ "$cleanup" -ne 0 ]; then
+	trap perform_cleanup EXIT
+fi
+
+mangled_version=$(echo "$version" | tr '/' '-') || panic
+top_dir="$tmp_dir/llvm-clang-$mangled_version"
+archive_dir="$top_dir/archives"
+src_dir="$top_dir/src"
+build_dir="$top_dir/build"
+git_dir="$top_dir/git"
+
+for dir in "$top_dir" "$archive_dir" "$src_dir" "$build_dir" "$git_dir"; do
+	if [ ! -d "$dir" ]; then
+		mkdir -p "$dir" || panic "cannot make directory $dir"
+	fi
+done
+
+llvm_base_url="http://llvm.org/releases/$version"
+github_base_url="https://github.com/llvm/llvm-project/releases/download/llvmorg-$version"
+
+cat <<- EOF
+============================================================
+Starting installation process for Clang.
+
+install directory: $abs_install_dir
+temporary directory: $tmp_dir
+version: $version
+============================================================
+EOF
+
+################################################################################
+# Download the software.
+################################################################################
+
+cat <<- EOF
+============================================================
+Downloading software.
+============================================================
+EOF
+
+download_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+echo "time: $download_start_time"
+
+projects=()
+download_names=()
+
+download_names+=(llvm)
+
+projects+=(clang)
+download_names+=(clang)
+
+projects+=(clang-tools-extra)
+download_names+=(clang-tools-extra)
+
+projects+=(compiler-rt)
+download_names+=(compiler-rt)
+
+if [ "$install_flang" -ne 0 ]; then
+	projects+=(flang)
+	download_names+=(flang)
+	projects+=(mlir)
+	download_names+=(mlir)
+fi
+
+#projects+=(debuginfo-tests) # Note: This causes configuration errors.
+#download_names+=(debuginfo-tests) # Note: This causes configuration errors.
+
+if [ "$install_libc" -ne 0 ]; then
+	projects+=(libc)
+	download_names+=(libc)
+fi
+
+if [ "$install_libcxx" -ne 0 ]; then
+	projects+=(libcxx)
+	download_names+=(libcxx)
+	projects+=(libcxxabi)
+	download_names+=(libcxxabi)
+fi
+
+projects+=(libunwind)
+download_names+=(libunwind)
+
+projects+=(lld)
+download_names+=(lld)
+
+if [ "$install_lldb" -ne 0 ]; then
+	projects+=(lldb)
+	download_names+=(lldb)
+fi
+
+projects+=(openmp)
+download_names+=(openmp)
+
+#projects+=(libclc)
+#download_names+=(libclc)
+
+projects+=(polly)
+download_names+=(polly)
+
+#projects+=(parallel-libs)
+#download_names+=(parallel-libs)
+
+#projects+=(pstl)
+#download_names+=(pstl)
+
+if [ "$install_testsuite" -ne 0 ]; then
+	download_names+=(test-suite)
+	projects+=(test-suite)
+fi
+
+if [ "$from_repo" -ne 0 ]; then
+
+	echo "Downloading from repository with URL $git_repo_url"
+
+	echo "CLONING REPOSITORY"
+	git clone --progress "$git_repo_url" "$git_dir" || \
+	  panic "cannot clone repository"
+	(cd "$git_dir" && git checkout "$version") || \
+	  panic "cannot checkout"
+	echo "RUNNING GIT LOG"
+	(cd "$git_dir" && git --no-pager log -1) || panic "git log failed"
+	src_root_dir="$git_dir/llvm"
+	commit="$(git ls-remote "$git_repo" "$version" | \
+	  awk -v x='refs/heads/'"$version" '{if ($2 == x) {print $1;}}')" || \
+	  panic "git rev-parse failed"
+	echo "$commit" || panic "echo failed"
+
+else
+
+	version_id="$(version_to_version_id "$version")" || \
+	  panic "cannot get version name"
+
+	# Note: Some LLVM Clang releases appear to be available only from GitHub.
+	# In particular, this seems to be the case for the 8.0.1 release.
+
+	# Note: As of 9.0.1, the cfe archive is renamed clang.
+	result=$(compare_versions "$version" 9.0.1) || \
+	  panic "comparison failed"
+	if [ "$result" -lt 0 ]; then
+		cfe_name="cfe"
+	else
+		cfe_name="clang"
+	fi
+
+	download_success=0
+
+	base_urls=()
+	base_urls+=("$llvm_base_url")
+	base_urls+=("$github_base_url")
+
+	for download_name in "${download_names[@]}"; do
+
+		component_name="$download_name"
+		case "$download_name" in
+		clang)
+			download_name="$cfe_name"
+			;;
+		esac
+
+		downloaded=0
+
+		for base_url in "${base_urls[@]}"; do
+	
+			echo "Downloading from release with base URL $base_url"
+
+			download_url="$base_url/$download_name-${version_id}.src.tar.xz"
+
+			echo "Attempting download of $download_name:"
+			echo "    URL: $download_url"
+			wget --output-document "$archive_dir/$download_name.tar.xz" "$download_url"
+			status=$?
+			if [ "$status" -eq 0 ]; then
+				downloaded=1
+				break
+			fi
+
+			echo "NOTE: download of $download_name failed using base URL $base_url"
+
+		done
+
+		if [ "$downloaded" -eq 0 ]; then
+			panic "download failed"
+		fi
+
+		case "$download_name" in
+		#test-suite)
+		#	component_dir="$src_dir/projects/$component_name"
+		#	;;
+		*)
+			component_dir="$src_dir/$component_name"
+			;;
+		esac
+
+		mkdir -p "$component_dir" || \
+		  panic "cannot make directory $component_dir"
+		tar -xJf "$archive_dir/$download_name.tar.xz" \
+		  -C "$component_dir" --strip-components=1 || \
+		  panic "cannot extract archive for $download_name"
+	done
+
+	echo "Download successful release with base URL $base_url"
+
+	src_root_dir="$src_dir/llvm"
+
+	commit=
+
+fi
+
+################################################################################
+# Build the software.
+################################################################################
+
+if [ "$stop_early" -ne 0 ]; then
+	cleanup=0
+	exit 0
+fi
+
+cat <<- EOF
+============================================================
+Configuring software
+============================================================
+EOF
+
+configure_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+echo "time: $configure_start_time"
+
+configure_opts=()
+
+buffer=$(tr ' ' ';' <<< "${projects[@]}") || \
+  panic "internal error"
+configure_opts+=("-DLLVM_ENABLE_PROJECTS=$buffer")
+
+configure_opts+=(-G "Unix Makefiles")
+configure_opts+=(-DCMAKE_INSTALL_PREFIX="$abs_install_dir")
+configure_opts+=(-DCMAKE_VERBOSE_MAKEFILE=true)
+configure_opts+=(-DCMAKE_BUILD_TYPE=Release)
+if [ "$use_static_libstdcxx" -ne 0 ]; then
+	configure_opts+=(-DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++")
+fi
+if [ "$use_old_host_toolchain" -ne 0 ]; then
+	configure_opts+=(-DLLVM_FORCE_USE_OLD_HOST_TOOLCHAIN=true)
+fi
+configure_opts+=("${cmake_extra_opts[@]}")
+
+if [ -n "$gcc_dir" ]; then
+	configure_opts+=(-DCMAKE_C_COMPILER="${gcc_dir}/bin/gcc")
+	configure_opts+=(-DCMAKE_CXX_COMPILER="${gcc_dir}/bin/g++")
+	configure_opts+=(-DGCC_INSTALL_PREFIX="${gcc_dir}")
+#	configure_opts+=(-DCMAKE_CXX_LINK_FLAGS="-L${gcc_dir}/lib64 -Wl,-rpath,${gcc_dir}/lib64")
+fi
+
+if [ "$enable_shared_libllvm" -ne 0 ]; then
+	configure_opts+=(-DLLVM_BUILD_LLVM_DYLIB=1)
+else
+	configure_opts+=(-DLLVM_BUILD_LLVM_DYLIB=0)
+fi
+
+echo "Running cmake -H$src_root_dir -B$build_dir ${configure_opts[@]}"
+cmake -H"$src_root_dir" -B"$build_dir" "${configure_opts[@]}" || \
+  panic "cmake failed"
+
+cat <<- EOF
+============================================================
+Building software
+============================================================
+EOF
+
+build_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+echo "time: $build_start_time"
+
+build_opts=()
+build_opts+=(-j $num_jobs)
+
+cmake --build "$build_dir" "${build_opts[@]}" || panic "build failed"
+
+cat <<- EOF
+============================================================
+Installing software
+============================================================
+EOF
+
+install_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+echo "time: $install_start_time"
+
+if [ "${SDE_INSTALL_CLANG_STRIPPED:-0}" -ne 0 ]; then
+	install_target="install/strip"
+else
+	install_target="install"
+fi
+#(cd "$build_dir" && make "$install_target") || panic "make install failed"
+cmake --build "$build_dir" --target "$install_target" || \
+  panic "make install failed"
+
+if [ "$from_repo" -ne 0 ]; then
+	echo "$commit" > "$install_dir/.version" || \
+	  panic "cannot make version file"
+fi
+
+################################################################################
+# Build the software.
+################################################################################
+
+cat <<- EOF
+============================================================
+Done.
+============================================================
+EOF
+
+end_time=$(date +%Y-%m-%d@%H:%M:%S)
+
+echo "start time ............. $start_time"
+echo "download start time .... $download_start_time"
+echo "configure start time ... $configure_start_time"
+echo "build start time ....... $build_start_time"
+echo "install start time ..... $install_start_time"
+echo "end time ............... $end_time"
+
+exit 0
