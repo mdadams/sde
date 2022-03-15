@@ -53,6 +53,17 @@ perform_cleanup()
 	fi
 }
 
+version_to_version_id()
+{
+	local version="$1"
+	local pattern='-rc[0-9]+'
+	local version_id="$version"
+	if [[ "$version" =~ $pattern ]]; then
+		version_id="$(sed -e 's/-rc/rc/' <<< "$version")" || return 1
+	fi
+	echo "$version_id"
+}
+
 panic()
 {
 	echo "ERROR: $@"
@@ -343,6 +354,9 @@ if [ "$from_repo" -ne 0 ]; then
 
 else
 
+	version_id="$(version_to_version_id "$version")" || \
+	  panic "cannot get version name"
+
 	# Note: Some LLVM Clang releases appear to be available only from GitHub.
 	# In particular, this seems to be the case for the 8.0.1 release.
 
@@ -376,7 +390,7 @@ else
 	
 			echo "Downloading from release with base URL $base_url"
 
-			download_url="$base_url/$download_name-$version.src.tar.xz"
+			download_url="$base_url/$download_name-${version_id}.src.tar.xz"
 
 			echo "Attempting download of $download_name:"
 			echo "    URL: $download_url"
