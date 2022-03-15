@@ -133,7 +133,7 @@ if [ "$enable_hack" -ne 0 ]; then
 	format_file="$tmp_dir/format"
 	cat > "$format_file" <<- EOF
 	#include <fmt/format.h>
-	#include <fmt/locale.h>
+	//#include <fmt/locale.h>
 	namespace std {
 		//using fmt::format;
 		//using fmt::format_to;

@@ -28,7 +28,7 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.22.2
+cmake_version=3.22.3
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=11.2.0
@@ -39,7 +39,7 @@ gccgo_version="$gcc_version"
 
 # LLVM: http://releases.llvm.org/download.html
 # LLVM Releases: https://github.com/llvm/llvm-project/releases
-clang_version=13.0.1
+clang_version=14.0.0-rc4
 
 # Musl: https://www.musl-libc.org/download.html
 musl_version=1.2.2
@@ -47,10 +47,10 @@ musl_version=1.2.2
 # JasPer: https://github.com/jasper-software/jasper
 # JasPer Releases: https://github.com/jasper-software/jasper/releases
 #jasper_version=version-2.0.33
-jasper_version=version-3.0.0
+jasper_version=version-3.0.3
 
 # GDB: https://www.gnu.org/software/gdb/download/
-gdb_version=11.1
+gdb_version=11.2
 
 # SPL: http://www.ece.uvic.ca/~frodo/SPL/#download
 #spl_version=version-2.0.8
@@ -93,7 +93,7 @@ catch_version=v2.13.8
 lcov_version=v1.15
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=66b56c026fa24f76f38d3bc99bd478eff9aa4be3
+vimlsp_version=bfb7541eb88eb9804287af39aca70102e60d2bf0
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 vimlsp_async_version=f20569020d65bec3249222606c073c0943045b5e
@@ -110,11 +110,12 @@ hub_version=2.14.2
 
 # GitHub CLI: https://github.com/cli/cli
 # GitHub CLI Releases: https://github.com/cli/cli/releases
-gh_version=2.5.0
+gh_version=2.5.2
 
 # GHI: https://github.com/stephencelis/ghi
 # GHI Releases: https://github.com/stephencelis/ghi/releases
-ghi_version=1.2.0
+#ghi_version=1.2.0
+ghi_version=
 
 # Fmtlib: https://github.com/fmtlib/fmt.git
 # Fmtlib Releases: https://github.com/fmtlib/fmt/releases
