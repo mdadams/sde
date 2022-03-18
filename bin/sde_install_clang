@@ -24,6 +24,17 @@
 # __END_OF_LICENSE__
 
 ################################################################################
+
+# Reference: http://llvm.org/releases/download.html
+# Reference: http://llvm.org/docs/GettingStarted.html
+# Reference: https://llvm.org/docs/GettingStarted.html#checkout
+# Reference: http://llvm.org/docs/GettingStarted.html#compiling-the-llvm-suite-source-code
+# Reference: https://github.com/llvm/llvm-project
+# Reference: https://libcxx.llvm.org/BuildingLibcxx.html
+# Reference: https://llvm.org/docs/CMake.html
+# Reference: http://clang.llvm.org/get_started.html
+
+################################################################################
 # Configuration
 ################################################################################
 
@@ -83,6 +94,8 @@ usage()
 	    Set the debug level to \$level.
 	--no-cleanup
 	    Disable cleanup of the temporary directory.
+	--enable-libc
+	    Install libc.
 	--enable-libcxx
 	    Install libcxx.
 	-d|--install-dir \$install_dir
@@ -130,10 +143,17 @@ usage()
 	commit=\$($0 -r -v master -n)
 	SDE_TMPDIR=/var/tmp CC=gcc CXX=g++ $0 -r -v \$commit -d /tmp/clang-trunk-\$commit
 
+	SDE_TMPDIR=/var/tmp \\
+	  $0 --num-jobs 4 --strip \\
+	  --no-enable-libc --enable-libcxx --enable-openmp --enable-libclc \\
+	  --enable-shared-libllvm \\
+	  -v 14.0.0-rc4 -d $HOME/local/clang-14.0.0-rc4
+
 	Perform an install without removing the temporary directory:
-	$0 --tmp-dir-template /tmp/sde_tmp-XXXX --no-cleanup \\
+	$0 --tmp-dir-template /var/tmp/sde_tmp-XXXX --no-cleanup \\
+	  --num-jobs 4 --strip \\
 	  -v 14.0.0-rc4 -d /tmp/clang-14.0.0-rc4 \\
-	  --no-enable-static-libstdcxx --enable-shared-libllvm --enable-libcxx
+	  --enable-shared-libllvm --enable-libcxx
 	EOF
 	exit 2
 }
@@ -146,25 +166,31 @@ cur_dir="$(pwd)" || panic "cannot get current directory"
 # Ensure that cur_dir is an absolute path.
 cur_dir="$(realpath "$cur_dir")" || panic "realpath failed"
 
+cmake_generator="Unix Makefiles"
 tmp_dir=
 tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_clang-XXXXXXXX"
 version=
 install_dir=
 gcc_dir=""
 use_old_host_toolchain=0
-install_libcxx=0
 from_repo=0
-install_testsuite=0
 stop_early=0
-install_lldb=0
 num_jobs=4
 cleanup=1
-use_static_libstdcxx=0
 print_commit=0
-install_flang=0
-install_libc=0
 debug_level="${SDE_DEBUG_LEVEL:-0}"
+build_as_runtimes=0
+
 enable_shared_libllvm=0
+install_flang=0
+install_lldb=0
+install_libc=0
+install_libcxx=0
+install_libclc=0
+install_openmp=1
+use_static_libstdcxx=0
+install_testsuite=0
+install_stripped="${SDE_INSTALL_CLANG_STRIPPED:-0}"
 
 while [ $# -gt 0 ]; do
 	option="$1"
@@ -182,13 +208,29 @@ while [ $# -gt 0 ]; do
 			set -xv
 		fi
 		;;
+	--cleanup)
+		shift 1
+		cleanup=1
+		;;
 	--no-cleanup|-C)
 		shift 1
 		cleanup=0
 		;;
-	--cleanup)
+	--strip)
 		shift 1
-		cleanup=1
+		install_stripped=1
+		;;
+	--no-strip)
+		shift 1
+		install_stripped=0
+		;;
+	--enable-libc)
+		shift 1
+		install_libc=1
+		;;
+	--no-enable-libc)
+		shift 1
+		install_libc=0
 		;;
 	--enable-libcxx|-l)
 		shift 1
@@ -197,6 +239,22 @@ while [ $# -gt 0 ]; do
 	--no-enable-libcxx)
 		shift 1
 		install_libcxx=0
+		;;
+	--enable-libclc)
+		shift 1
+		install_libclc=1
+		;;
+	--no-enable-libclc)
+		shift 1
+		install_libclc=0
+		;;
+	--enable-openmp)
+		shift 1
+		install_openmp=1
+		;;
+	--no-enable-openmp)
+		shift 1
+		install_openmp=0
 		;;
 	--install-dir|-d)
 		shift 1
@@ -284,6 +342,26 @@ while [ $# -gt 0 ]; do
 		shift 1
 		use_old_host_toolchain=1
 		;;
+	--cmake-generator)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		cmake_generator="$1"
+		shift 1
+		;;
+	--ninja)
+		shift 1
+		cmake_generator="Ninja"
+		;;
+
+	--as-runtimes)
+		shift 1
+		build_as_runtimes=1
+		;;
+	--no-as-runtimes)
+		shift 1
+		build_as_runtimes=0
+		;;
+
 	--*|-*)
 		usage "invalid option $option"
 		;;
@@ -361,47 +439,75 @@ archive_file="$archive_dir/$archive_filename"
 ################################################################################
 
 projects=()
+other_projects=()
+runtimes=()
+targets=()
 
 projects+=(clang)
 projects+=(clang-tools-extra)
+#other_projects+=(compiler-rt)
 projects+=(compiler-rt)
-
 if [ "$install_flang" -ne 0 ]; then
 	projects+=(flang)
 	projects+=(mlir)
 fi
-
 #projects+=(debuginfo-tests) # Note: This causes configuration errors.
-#download_names+=(debuginfo-tests) # Note: This causes configuration errors.
-
 if [ "$install_libc" -ne 0 ]; then
-	projects+=(libc)
+	other_projects+=(libc)
 fi
-
 if [ "$install_libcxx" -ne 0 ]; then
-	projects+=(libcxx)
-	projects+=(libcxxabi)
+	other_projects+=(libcxx)
+	other_projects+=(libcxxabi)
 fi
-
-projects+=(libunwind)
+other_projects+=(libunwind)
 projects+=(lld)
-
 if [ "$install_lldb" -ne 0 ]; then
 	projects+=(lldb)
 fi
-
-projects+=(openmp)
-#projects+=(libclc)
+if [ "$install_openmp" -ne 0 ]; then
+	other_projects+=(openmp)
+fi
+if [ "$install_libclc" -ne 0 ]; then
+	other_projects+=(libclc)
+fi
 projects+=(polly)
 #projects+=(parallel-libs)
 #projects+=(pstl)
-
 if [ "$install_testsuite" -ne 0 ]; then
 	projects+=(test-suite)
 fi
 
-projects_string=$(tr ' ' ';' <<< "${projects[@]}") || \
-  panic "internal error"
+if [ "$build_as_runtimes" -eq 0 ]; then
+	projects=("${projects[@]}" "${other_projects[@]}")
+else
+	projects=("${projects[@]}")
+	runtimes=("${other_projects[@]}")
+fi
+
+################################################################################
+#
+################################################################################
+
+if [ "${#projects[@]}" -gt 0 ]; then
+	projects_string=$(tr ' ' ';' <<< "${projects[@]}") || \
+	  panic "internal error"
+else
+	projects_string=
+fi
+
+if [ "${#runtimes[@]}" -gt 0 ]; then
+	runtimes_string=$(tr ' ' ';' <<< "${runtimes[@]}") || \
+	  panic "internal error"
+else
+	runtimes_string=
+fi
+
+if [ "${#targets[@]}" -gt 0 ]; then
+	targets_string=$(tr ' ' ';' <<< "${targets[@]}") || \
+	  panic "internal error"
+else
+	targets_string=
+fi
 
 ################################################################################
 # Start.
@@ -429,7 +535,7 @@ if [ 1 -ne 0 ]; then
 	archive_dir $archive_dir
 	archive_file $archive_file
 	version_id $version_id
-	github_archive_url $gitub_archive_url
+	github_archive_url $github_archive_url
 	EOF
 fi
 
@@ -502,12 +608,20 @@ echo "time: $configure_start_time"
 
 configure_options=()
 
-configure_options+=(-G "Unix Makefiles")
+configure_options+=(-G "$cmake_generator")
 configure_options+=(-DCMAKE_INSTALL_PREFIX="$abs_install_dir")
 configure_options+=(-DCMAKE_BUILD_TYPE=Release)
 configure_options+=(-DCMAKE_VERBOSE_MAKEFILE=true)
 
-configure_options+=("-DLLVM_ENABLE_PROJECTS=$projects_string")
+if [ -n "$projects_string" ]; then
+	configure_options+=("-DLLVM_ENABLE_PROJECTS=$projects_string")
+fi
+if [ -n "$runtimes_string" ]; then
+	configure_options+=("-DLLVM_ENABLE_RUNTIMES=$runtimes_string")
+fi
+if [ -n "$targets_string" ]; then
+	configure_options+=("-DLLVM_RUNTIME_TARGETS=$targets_string")
+fi
 
 if [ "$use_static_libstdcxx" -ne 0 ]; then
     configure_options+=(-DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++")
@@ -535,7 +649,7 @@ fi
 ####configure_options+=(-DLLVM_LOCAL_RPATH=1)
 ####configure_options+=(-DLLVM_BUILD_STATIC=1)
 
-echo "Running cmake -H$main_source_dir -B$build_dir ${configure_options[@]}"
+echo "RUNNING: cmake -H$main_source_dir -B$build_dir ${configure_options[*]}"
 cmake -H"$main_source_dir" -B"$build_dir" "${configure_options[@]}" || \
   panic "cmake configure failed"
 
@@ -571,7 +685,7 @@ EOF
 install_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
 echo "time: $install_start_time"
 
-if [ "${SDE_INSTALL_CLANG_STRIPPED:-0}" -ne 0 ]; then
+if [ "$install_stripped" -ne 0 ]; then
 	install_target="install/strip"
 else
 	install_target="install"
