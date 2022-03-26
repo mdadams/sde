@@ -27,6 +27,9 @@
 
 # Reference: https://valloric.github.io/YouCompleteMe
 
+self_dir="$(dirname "$0")" || exit 1
+source "$self_dir/utilities" || exit 1
+
 panic()
 {
 	echo "ERROR: $@"
@@ -71,6 +74,7 @@ install_dir=
 libclang=
 verbose=0
 cleanup=1
+python_program=
 
 while getopts Cd:v:l:V opt; do
 	case "$opt" in
@@ -98,6 +102,22 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
+if [ -z "$python_program" ]; then
+	python_program="$(type -P python3)" || python_program=
+	if [ -z "$python_program" ]; then
+		python_program="python"
+	fi
+fi
+echo "python program: $python_program"
+python_version="$("$python_program" --version | awk '{print $2;}')" || \
+  panic "cannot get python version"
+result=$(compare_versions "$python_version" 3) || \
+  panic "version comparison failed"
+if [ "$result" -lt 0 ]; then
+	panic "python 3 required"
+fi
+echo "python version: $python_version"
+
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
 # This will help to increase the likelihood that the installed software
@@ -114,7 +134,6 @@ fi
 top_dir="$tmp_dir/ycm-$version"
 
 src_dir="$install_dir/YouCompleteMe"
-#build_dir="$top_dir/build"
 build_dir="$install_dir/build"
 misc_dir="$install_dir/misc"
 
@@ -151,21 +170,31 @@ if [ ! -e "$example_file" ]; then
 	panic "example file is missing"
 fi
 
-cmake_opts=()
-cmake_opts+=(-DUSE_CLANG_COMPLETER=on)
-#cmake_opts+=(-DUSE_SYSTEM_LIBCLANG=on)
+configure_options=()
+configure_options+=(-DUSE_CLANG_COMPLETER=on)
+#configure_options+=(-DUSE_SYSTEM_LIBCLANG=on)
 if [ -n "$libclang" ]; then
 	if [ ! -f "$libclang" ]; then
 		panic "libclang does not exist $libclang"
 	fi
-	cmake_opts+=(-DEXTERNAL_LIBCLANG_PATH=$libclang)
+	configure_options+=(-DEXTERNAL_LIBCLANG_PATH="$libclang")
 fi
-(cd "$build_dir" && \
-  cmake "${cmake_opts[@]}" "$src_dir/third_party/ycmd/cpp") || \
-  panic "cmake failed"
 
-(cd "$build_dir" && cmake --build . --target ycm_core --config Release) || \
-  panic
+cmake -H"$src_dir/third_party/ycmd/cpp" -B"$build_dir" \
+  "${configure_options[@]}" || \
+  panic "cmake configure failed"
+
+cmake --build "$build_dir" --target ycm_core --config Release || \
+  panic "cmake build failed"
+
+wd_dir="$src_dir/third_party/ycmd/third_party/watchdog_deps/watchdog"
+if [ ! -d "$wd_dir" ]; then
+	panic "missing directory $wd_dir"
+fi
+(cd "$wd_dir" && \
+  "$python_program" \
+  setup.py build --build-base=build/3 --build-lib=build/lib3) || \
+  panic "watchdog python setup failed"
 
 cp "$example_file" "$misc_dir/ycm_extra_conf.py" || \
   panic "cannot copy file"

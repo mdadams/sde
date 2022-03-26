@@ -76,8 +76,9 @@ cgal_version=5.4
 aristotle_version=v3.0.38
 
 # YCM: https://github.com/Valloric/YouCompleteMe
+# YCM commits: https://github.com/ycm-core/YouCompleteMe/commits/master
 #ycm_version=4117a99861b537830d717c3113e3d584523bc573
-ycm_version=
+ycm_version=89bba25c96866662ca38c2428f73eb64b0351ba3
 
 # Vim: https://www.vim.org/download.php
 vim_version=8.2
