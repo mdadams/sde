@@ -39,7 +39,7 @@ gccgo_version="$gcc_version"
 
 # LLVM: http://releases.llvm.org/download.html
 # LLVM Releases: https://github.com/llvm/llvm-project/releases
-clang_version=14.0.0-rc4
+clang_version=14.0.0
 
 # Musl: https://www.musl-libc.org/download.html
 musl_version=1.2.2
@@ -110,7 +110,7 @@ hub_version=2.14.2
 
 # GitHub CLI: https://github.com/cli/cli
 # GitHub CLI Releases: https://github.com/cli/cli/releases
-gh_version=2.5.2
+gh_version=2.6.0
 
 # GHI: https://github.com/stephencelis/ghi
 # GHI Releases: https://github.com/stephencelis/ghi/releases
