@@ -226,6 +226,10 @@ sde_install_fmtlib="$bin_dir/sde_install_fmtlib"
 sde_install_range="$bin_dir/sde_install_range"
 sde_install_cmcstl2="$bin_dir/sde_install_cmcstl2"
 
+sde_make_cmake_toolchain_file="$bin_dir/sde_make_cmake_toolchain_file"
+sde_toolchain_template="$bin_dir/compiler_toolchain.cmake"
+sde_toolchain_dir="$sde_top_dir/toolchains"
+
 ################################################################################
 # Process command line
 ################################################################################
@@ -388,6 +392,9 @@ if [ -n "$native_clang_version" ]; then
 	fi
 fi
 
+gcc_trunk_install="${SDE_GCC_TRUNK_INSTALL:-0}"
+clang_trunk_install="${SDE_CLANG_TRUNK_INSTALL:-0}"
+
 ################################################################################
 # Perform any cleaning.
 ################################################################################
@@ -454,7 +461,7 @@ fi
 # Perform other SDE installation
 ################################################################################
 
-for dir in bin doc etc etc/environments; do
+for dir in bin doc etc etc/environments "$sde_toolchain_dir"; do
 	if [ ! -d "$sde_top_dir/$dir" ]; then
 		mkdir -p "$sde_top_dir/$dir" || \
 		  panic "cannot make directory $dir"
@@ -500,6 +507,49 @@ fi
 if [ -n "$default_environment" ]; then
 	"$sde_cmd" env -d "$sde_top_dir" "$default_environment" || \
 	  panic "cannot set default environment"
+fi
+
+################################################################################
+# Setup toolchain files for CMake.
+################################################################################
+
+cp -f "$sde_toolchain_template" "$sde_toolchain_dir" || \
+  panic "cannot copy file"
+
+if [ -n "$gcc_version" ]; then
+	"$sde_make_cmake_toolchain_file" \
+	  -f \
+	  -i "$sde_toolchain_template" -o "$sde_toolchain_dir/gcc-default.cmake" \
+	  -d "$sde_top_dir" \
+	  -n gcc -v "$gcc_version" || \
+	  panic "cannot make toolchain file"
+fi
+
+if [ "$gcc_trunk_install" -ne 0 ]; then
+	"$sde_make_cmake_toolchain_file" \
+	  -f \
+	  -i "$sde_toolchain_template" -o "$sde_toolchain_dir/gcc-trunk.cmake" \
+	  -d "$sde_top_dir" \
+	  -n gcc -v trunk || \
+	  panic "cannot make toolchain file"
+fi
+
+if [ -n "$clang_version" ]; then
+	"$sde_make_cmake_toolchain_file" \
+	  -f \
+	  -i "$sde_toolchain_template" -o "$sde_toolchain_dir/clang-default.cmake" \
+	  -d "$sde_top_dir" \
+	  -n clang -v "$clang_version" || \
+	  panic "cannot make toolchain file"
+fi
+
+if [ "$clang_trunk_install" -ne 0 ]; then
+	"$sde_make_cmake_toolchain_file" \
+	  -f \
+	  -i "$sde_toolchain_template" -o "$sde_toolchain_dir/clang-trunk.cmake" \
+	  -d "$sde_top_dir" \
+	  -n clang -v trunk || \
+	  panic "cannot make toolchain file"
 fi
 
 ################################################################################
@@ -596,7 +646,7 @@ fi
 # Install GCC Trunk
 ################################################################################
 
-if [ "${SDE_GCC_TRUNK_INSTALL:-0}" -ne 0 ]; then
+if [ "$gcc_trunk_install" -ne 0 ]; then
 	commit="$("$sde_install_gcc" -r -v master -n)" || \
 	  panic "cannot get GCC commit"
 	gcc_trunk_dir="$packages_dir/gcc-trunk-${date_stamp}-$commit"
@@ -672,7 +722,7 @@ fi
 # Install Clang Trunk
 ################################################################################
 
-if [ "${SDE_CLANG_TRUNK_INSTALL:-0}" -ne 0 ]; then
+if [ "$clang_trunk_install" -ne 0 ]; then
 	commit="$("$sde_install_clang" -r -v main -n)" || \
 	  panic "cannot get Clang commit"
 	clang_trunk_dir="$packages_dir/clang-trunk-${date_stamp}-$commit"

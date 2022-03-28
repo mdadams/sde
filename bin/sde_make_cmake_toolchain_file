@@ -1,0 +1,120 @@
+#! /usr/bin/env bash
+
+# __START_OF_LICENSE__
+# 
+# Copyright (c) 2022 Michael D. Adams
+# All rights reserved.
+# 
+# This file is part of the SDE software.
+# 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3,
+# or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this program; see the file LICENSE.  If not,
+# see <http://www.gnu.org/licenses/>.
+# 
+# __END_OF_LICENSE__
+
+panic()
+{
+	echo "ERROR: $*"
+	exit 1
+}
+
+self_dir="$(dirname "$0")" || panic
+
+example_sde_top_dir="${EXAMPLE_SDE_TOP_DIR:-/sde}"
+example_template="$self_dir/compiler_toolchain.cmake"
+
+usage()
+{
+	cat <<-EOF
+	$0 -d $example_sde_top_dir -n gcc -v 11.2.0 -i $example_template -o /tmp/gcc-default.cmake
+	$0 -d $example_sde_top_dir -n gcc -v trunk -i $example_template -o /tmp/gcc-trunk.cmake
+	$0 -d $example_sde_top_dir -n clang -v 14.0.0 -i $example_template -o /tmp/clang-default.cmake
+	$0 -d $example_sde_top_dir -n clang -v trunk -i $example_template -o /tmp/clang-trunk.cmake
+	EOF
+	exit 2
+}
+
+sde_top_dir=
+compiler_name=
+compiler_version=
+in_file=
+out_file=
+force=0
+
+while getopts d:n:v:o:i:fh opt; do
+	case "$opt" in
+	f)
+		force=1;;
+	d)
+		sde_top_dir="$OPTARG";;
+	n)
+		compiler_name="$OPTARG";;
+	v)
+		compiler_version="$OPTARG";;
+	i)
+		in_file="$OPTARG";;
+	o)
+		out_file="$OPTARG";;
+	h|\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$sde_top_dir" ]; then
+	panic "SDE top directory not specified"
+fi
+if [ -z "$compiler_name" ]; then
+	panic "compiler name not specified"
+fi
+if [ -z "$compiler_version" ]; then
+	panic "compiler version not specified"
+fi
+if [ -z "$in_file" ]; then
+	panic "input file not specified"
+fi
+if [ -z "$out_file" ]; then
+	panic "output file not specified"
+fi
+
+if [ "$force" -eq 0 -a -e "$out_file" ]; then
+	panic "output file already exists $out_file"
+fi
+
+if [ "$compiler_version" = trunk ]; then
+	trunk_value=TRUE
+else
+	trunk_value=FALSE
+fi
+
+buffer=$(cat <<EOF
+set(__SDE_TOP_DIR "$sde_top_dir")
+set(__SDE_COMPILER_NAME $compiler_name)
+set(__SDE_COMPILER_VNAME $compiler_version)
+set(__SDE_COMPILER_TRUNK $trunk_value)
+set(__SDE_USE_LIBCPP FALSE)
+set(__SDE_USE_LIBFMT TRUE)
+EOF
+)
+
+#sed -e 's/^# __SDE_INSERT_HERE$/'
+#echo "$buffer"
+
+if [ -f "$out_file" ]; then
+	rm -f "$out_file" || panic "cannot remove file $out_file"
+fi
+cp "$in_file" "$out_file" || panic "cannot copy file"
+sed -e '/^# __SDE_INSERT_HERE$/ {' -e 'r /dev/stdin' -e 'd' -e '}' \
+  -i "$out_file" <<< "$buffer" || panic "sed failed"
