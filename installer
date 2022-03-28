@@ -228,7 +228,6 @@ sde_install_cmcstl2="$bin_dir/sde_install_cmcstl2"
 
 sde_make_cmake_toolchain_file="$bin_dir/sde_make_cmake_toolchain_file"
 sde_toolchain_template="$bin_dir/compiler_toolchain.cmake"
-sde_toolchain_dir="$sde_top_dir/toolchains"
 
 ################################################################################
 # Process command line
@@ -278,6 +277,8 @@ Starting SDE Installation
 Time: $(date +"%Y-%m-%d %H:%M:%S")
 ============================================================
 EOF
+
+sde_toolchain_dir="$sde_top_dir/toolchains"
 
 #boot_dir="$sde_top_dir/bootstrap"
 packages_dir="$sde_top_dir/packages"
