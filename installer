@@ -462,7 +462,7 @@ fi
 # Perform other SDE installation
 ################################################################################
 
-for dir in bin doc etc etc/environments "$sde_toolchain_dir"; do
+for dir in bin doc etc etc/environments toolchains; do
 	if [ ! -d "$sde_top_dir/$dir" ]; then
 		mkdir -p "$sde_top_dir/$dir" || \
 		  panic "cannot make directory $dir"
