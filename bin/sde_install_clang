@@ -41,6 +41,8 @@
 git_repo_url="https://github.com/llvm/llvm-project.git"
 github_archive_base_url="https://github.com/llvm/llvm-project/releases/download"
 
+example_clang_version=14.0.0
+
 ################################################################################
 # Functions
 ################################################################################
@@ -137,23 +139,31 @@ usage()
 	Examples
 	========
 
-	$0 -v 9.0.1 -d $HOME/local/clang
-	SDE_TMPDIR=/var/tmp CC=gcc CXX=g++ $0 -r -v master -d $HOME/local/clang
+	$0 -v 9.0.1 -d /tmp/clang
+	SDE_TMPDIR=/var/tmp CC=gcc CXX=g++ $0 -r -v master -d /tmp/clang
 
+	Perform a trunk install:
 	commit=\$($0 -r -v master -n)
 	SDE_TMPDIR=/var/tmp CC=gcc CXX=g++ $0 -r -v \$commit -d /tmp/clang-trunk-\$commit
 
+	Perform basic Clang install with libc++, OpenMP, OpenCL:
 	SDE_TMPDIR=/var/tmp \\
 	  $0 --num-jobs 4 --strip \\
 	  --no-enable-libc --enable-libcxx --enable-openmp --enable-libclc \\
 	  --enable-shared-libllvm \\
-	  -v 14.0.0-rc4 -d $HOME/local/clang-14.0.0-rc4
+	  -v $example_clang_version -d /tmp/clang-$example_clang_version
 
 	Perform an install without removing the temporary directory:
 	$0 --tmp-dir-template /var/tmp/sde_tmp-XXXX --no-cleanup \\
 	  --num-jobs 4 --strip \\
-	  -v 14.0.0-rc4 -d /tmp/clang-14.0.0-rc4 \\
+	  -v $example_clang_version -d /tmp/clang-$example_clang_version \\
 	  --enable-shared-libllvm --enable-libcxx
+
+	CMAKE_TOOLCHAIN_FILE=$HOME/public/sde/toolchains/clang-default.cmake \\
+	  $0 --tmp-dir-template /var/tmp/sde_tmp-XXXX --num-jobs 4 --strip \\
+	  -v $example_clang_version -d /tmp/clang-$example_clang_version \\
+	  --enable-shared-libllvm --enable-libcxx \\
+	  --no-libcxx-enable-abi-linker-script --no-cleanup
 	EOF
 	exit 2
 }
@@ -181,6 +191,7 @@ print_commit=0
 debug_level="${SDE_DEBUG_LEVEL:-0}"
 build_as_runtimes=0
 
+libcxx_enable_abi_linker_script=
 enable_shared_libllvm=0
 install_flang=0
 install_lldb=0
@@ -353,6 +364,15 @@ while [ $# -gt 0 ]; do
 		cmake_generator="Ninja"
 		;;
 
+	--libcxx-enable-abi-linker-script)
+		shift 1
+		libcxx_enable_abi_linker_script=1
+		;;
+	--no-libcxx-enable-abi-linker-script)
+		shift 1
+		libcxx_enable_abi_linker_script=0
+		;;
+
 	--as-runtimes)
 		shift 1
 		build_as_runtimes=1
@@ -456,10 +476,10 @@ if [ "$install_libc" -ne 0 ]; then
 	other_projects+=(libc)
 fi
 if [ "$install_libcxx" -ne 0 ]; then
-	other_projects+=(libcxx)
-	other_projects+=(libcxxabi)
+	runtimes+=(libcxx)
+	runtimes+=(libcxxabi)
 fi
-other_projects+=(libunwind)
+runtimes+=(libunwind)
 projects+=(lld)
 if [ "$install_lldb" -ne 0 ]; then
 	projects+=(lldb)
@@ -477,11 +497,10 @@ if [ "$install_testsuite" -ne 0 ]; then
 	projects+=(test-suite)
 fi
 
-if [ "$build_as_runtimes" -eq 0 ]; then
-	projects=("${projects[@]}" "${other_projects[@]}")
+if [ "$build_as_runtimes" -ne 0 ]; then
+	runtimes=("${runtimes[@]}" "${other_projects[@]}")
 else
-	projects=("${projects[@]}")
-	runtimes=("${other_projects[@]}")
+	projects=("${projects[@]}" "${other_projects[@]}")
 fi
 
 ################################################################################
@@ -629,6 +648,14 @@ fi
 
 if [ "$use_old_host_toolchain" -ne 0 ]; then
     configure_options+=(-DLLVM_FORCE_USE_OLD_HOST_TOOLCHAIN=true)
+fi
+#configure_options+=(-DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=true)
+if [ -n "$libcxx_enable_abi_linker_script" ]; then
+	if [ "$libcxx_enable_abi_linker_script" -ne 0 ]; then
+		configure_options+=(-DLIBCXX_ENABLE_ABI_LINKER_SCRIPT=true)
+	else
+		configure_options+=(-DLIBCXX_ENABLE_ABI_LINKER_SCRIPT=false)
+	fi
 fi
 
 if [ -n "$gcc_dir" ]; then
