@@ -42,6 +42,7 @@ git_repo_url="https://github.com/llvm/llvm-project.git"
 github_archive_base_url="https://github.com/llvm/llvm-project/releases/download"
 
 example_clang_version=14.0.0
+example_clang_tag=2760cdc9c6e42b92d311c697c54f7d79f8d668e4
 
 ################################################################################
 # Functions
@@ -140,18 +141,29 @@ usage()
 	========
 
 	$0 -v 9.0.1 -d /tmp/clang
-	SDE_TMPDIR=/var/tmp CC=gcc CXX=g++ $0 -r -v master -d /tmp/clang
+	SDE_TMPDIR=/var/tmp CC=gcc CXX=g++ $0 -r -v main -d /tmp/clang
 
 	Perform a trunk install:
-	commit=\$($0 -r -v master -n)
+	commit=\$($0 --repo -v main -n)
 	SDE_TMPDIR=/var/tmp CC=gcc CXX=g++ $0 -r -v \$commit -d /tmp/clang-trunk-\$commit
 
-	Perform basic Clang install with libc++, OpenMP, OpenCL:
+	Print the latest commit on main branch:
+	$0 --repo -v main -n
+
+	Perform a debug-build install with libc++, OpenMP, OpenCL:
 	SDE_TMPDIR=/var/tmp \\
-	  $0 --num-jobs 4 --strip \\
+	  $0 --num-jobs 4 --build-type Debug --enable-assertions \\
 	  --no-enable-libc --enable-libcxx --enable-openmp --enable-libclc \\
-	  --enable-shared-libllvm \\
-	  -v $example_clang_version -d /tmp/clang-$example_clang_version
+	  --enable-shared-libllvm --enable-rtti \\
+	  --repo -v $example_clang_tag -d /tmp/clang-$example_clang_tag-debug
+
+	Perform a release-with-debug-information install with libc++,
+	OpenMP, OpenCL:
+	SDE_TMPDIR=/var/tmp \\
+	  $0 --num-jobs 4 --build-type RelWithDebInfo --enable-assertions \\
+	  --no-enable-libc --enable-libcxx --enable-openmp --enable-libclc \\
+	  --enable-shared-libllvm --enable-rtti \\
+	  --repo -v $example_clang_tag -d /tmp/clang-$example_clang_tag-debug
 
 	Perform an install without removing the temporary directory:
 	$0 --tmp-dir-template /var/tmp/sde_tmp-XXXX --no-cleanup \\
@@ -191,6 +203,9 @@ print_commit=0
 debug_level="${SDE_DEBUG_LEVEL:-0}"
 build_as_runtimes=0
 
+cmake_build_type=Release
+llvm_enable_rtti=
+llvm_enable_assertions=
 libcxx_enable_abi_linker_script=
 enable_shared_libllvm=0
 install_flang=0
@@ -371,6 +386,31 @@ while [ $# -gt 0 ]; do
 	--no-libcxx-enable-abi-linker-script)
 		shift 1
 		libcxx_enable_abi_linker_script=0
+		;;
+
+	--enable-assertions)
+		shift 1
+		llvm_enable_assertions=1
+		;;
+	--no-enable-assertions)
+		shift 1
+		llvm_enable_assertions=0
+		;;
+
+	--enable-rtti)
+		shift 1
+		llvm_enable_rtti=1
+		;;
+	--no-enable-rtti)
+		shift 1
+		llvm_enable_rtti=0
+		;;
+
+	--build-type)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		cmake_build_type="$1"
+		shift 1
 		;;
 
 	--as-runtimes)
@@ -588,13 +628,14 @@ if [ "$from_repo" -ne 0 ]; then
 	  panic "cannot clone repository"
 	(cd "$git_dir" && git checkout "$version") || \
 	  panic "cannot checkout"
+	commit="$(cd "$git_dir" && git rev-parse HEAD)" || \
+	  panic "cannot get commit"
+	echo "Checked out commit: $commit" || panic "echo failed"
+
 	echo "RUNNING GIT LOG"
 	(cd "$git_dir" && git --no-pager log -1) || panic "git log failed"
+
 	main_source_dir="$git_dir/llvm"
-	commit="$(git ls-remote "$git_repo" "$version" | \
-	  awk -v x='refs/heads/'"$version" '{if ($2 == x) {print $1;}}')" || \
-	  panic "git rev-parse failed"
-	echo "$commit" || panic "echo failed"
 
 else
 
@@ -629,7 +670,7 @@ configure_options=()
 
 configure_options+=(-G "$cmake_generator")
 configure_options+=(-DCMAKE_INSTALL_PREFIX="$abs_install_dir")
-configure_options+=(-DCMAKE_BUILD_TYPE=Release)
+configure_options+=(-DCMAKE_BUILD_TYPE="$cmake_build_type")
 configure_options+=(-DCMAKE_VERBOSE_MAKEFILE=true)
 
 if [ -n "$projects_string" ]; then
@@ -649,12 +690,30 @@ fi
 if [ "$use_old_host_toolchain" -ne 0 ]; then
     configure_options+=(-DLLVM_FORCE_USE_OLD_HOST_TOOLCHAIN=true)
 fi
+
 #configure_options+=(-DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=true)
+
 if [ -n "$libcxx_enable_abi_linker_script" ]; then
 	if [ "$libcxx_enable_abi_linker_script" -ne 0 ]; then
 		configure_options+=(-DLIBCXX_ENABLE_ABI_LINKER_SCRIPT=true)
 	else
 		configure_options+=(-DLIBCXX_ENABLE_ABI_LINKER_SCRIPT=false)
+	fi
+fi
+
+if [ -n "$llvm_enable_assertions" ]; then
+	if [ "$llvm_enable_assertions" -ne 0 ]; then
+		configure_options+=(-DLLVM_ENABLE_ASSERTIONS=true)
+	else
+		configure_options+=(-DLLVM_ENABLE_ASSERTIONS=false)
+	fi
+fi
+
+if [ -n "$llvm_enable_rtti" ]; then
+	if [ "$llvm_enable_rtti" -ne 0 ]; then
+		configure_options+=(-DLLVM_ENABLE_RTTI=true)
+	else
+		configure_options+=(-DLLVM_ENABLE_RTTI=false)
 	fi
 fi
 
