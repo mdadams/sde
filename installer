@@ -28,7 +28,7 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.22.3
+cmake_version=3.23.0
 
 # GCC: https://www.gnu.org/software/gcc
 gcc_version=11.2.0
@@ -42,7 +42,7 @@ gccgo_version="$gcc_version"
 clang_version=14.0.0
 
 # Musl: https://www.musl-libc.org/download.html
-musl_version=1.2.2
+musl_version=1.2.3
 
 # JasPer: https://github.com/jasper-software/jasper
 # JasPer Releases: https://github.com/jasper-software/jasper/releases
@@ -60,7 +60,7 @@ spl_version=b222bdc856ac38d04ae8857218e5a0cbdaaf2121
 ndiff_version=2.00
 
 # TeX Live: https://www.tug.org/texlive/acquire.html
-texlive_version=2021
+texlive_version=2022
 
 # Boost: https://www.boost.org/users/download
 # Note: Do not upgrade Boost until CMake catches up; otherwise build problems
@@ -78,7 +78,7 @@ aristotle_version=v3.0.38
 # YCM: https://github.com/Valloric/YouCompleteMe
 # YCM commits: https://github.com/ycm-core/YouCompleteMe/commits/master
 #ycm_version=4117a99861b537830d717c3113e3d584523bc573
-ycm_version=89bba25c96866662ca38c2428f73eb64b0351ba3
+ycm_version=a986c1d59062369d297eb465b3e51c0c45fc2feb
 
 # Vim: https://www.vim.org/download.php
 vim_version=8.2
@@ -94,10 +94,10 @@ catch_version=v2.13.8
 lcov_version=v1.15
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=bfb7541eb88eb9804287af39aca70102e60d2bf0
+vimlsp_version=edd6629f0940e37ca988620e404e79e600962a6f
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
-vimlsp_async_version=f20569020d65bec3249222606c073c0943045b5e
+vimlsp_async_version=2082d13bb195f3203d41a308b89417426a7deca1
 
 # Vim Asyncomplete: https://github.com/prabirshrestha/asyncomplete.vim.git
 vimlsp_ac_version=9c7651894c2c6d656c0dc71e87cfabbbb71b9c78
@@ -111,7 +111,7 @@ hub_version=2.14.2
 
 # GitHub CLI: https://github.com/cli/cli
 # GitHub CLI Releases: https://github.com/cli/cli/releases
-gh_version=2.6.0
+gh_version=2.7.0
 
 # GHI: https://github.com/stephencelis/ghi
 # GHI Releases: https://github.com/stephencelis/ghi/releases
