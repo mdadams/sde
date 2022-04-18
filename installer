@@ -28,20 +28,23 @@
 ################################################################################
 
 # CMake: https://cmake.org/download
-cmake_version=3.23.0
+# CMake: https://gitlab.kitware.com/cmake/cmake
+cmake_version=3.23.1
 
 # GCC: https://www.gnu.org/software/gcc
+# GCC Releases: https://ftp.gnu.org/gnu/gcc
 gcc_version=11.2.0
 
 # GCC Go
 gccgo_version="$gcc_version"
-#gccgo_version=10.3.0
+#gccgo_version=11.2.0
 
 # LLVM: http://releases.llvm.org/download.html
 # LLVM Releases: https://github.com/llvm/llvm-project/releases
-clang_version=14.0.0
+clang_version=14.0.1
 
 # Musl: https://www.musl-libc.org/download.html
+# Musl Releases: https://musl.libc.org/releases/
 musl_version=1.2.3
 
 # JasPer: https://github.com/jasper-software/jasper
@@ -53,6 +56,7 @@ jasper_version=version-3.0.3
 gdb_version=11.2
 
 # SPL: http://www.ece.uvic.ca/~frodo/SPL/#download
+# SPL: https://github.com/mdadams/SPL.git
 #spl_version=version-2.0.8
 spl_version=b222bdc856ac38d04ae8857218e5a0cbdaaf2121
 
@@ -65,6 +69,7 @@ texlive_version=2022
 # Boost: https://www.boost.org/users/download
 # Note: Do not upgrade Boost until CMake catches up; otherwise build problems
 # will likely result.
+#boost_version=1.79.0
 boost_version=1.78.0
 
 # CGAL: https://github.com/CGAL/cgal
@@ -76,8 +81,7 @@ cgal_version=5.4
 aristotle_version=v3.0.38
 
 # YCM: https://github.com/Valloric/YouCompleteMe
-# YCM commits: https://github.com/ycm-core/YouCompleteMe/commits/master
-#ycm_version=4117a99861b537830d717c3113e3d584523bc573
+# YCM Commits: https://github.com/ycm-core/YouCompleteMe/commits/master
 ycm_version=a986c1d59062369d297eb465b3e51c0c45fc2feb
 
 # Vim: https://www.vim.org/download.php
@@ -86,23 +90,28 @@ vim_version=8.2
 # GSL: https://github.com/Microsoft/GSL/releases
 gsl_version=v4.0.0
 
-# Catch2: https://github.com/catchorg/Catch2/releases
-catch_version=v2.13.8
+# Catch2: https://github.com/catchorg/Catch2
+# Catch2 Releases: https://github.com/catchorg/Catch2/releases
+catch_version=v2.13.9
 
 # Lcov: https://github.com/linux-test-project/lcov
 # Lcov Releases: https://github.com/linux-test-project/lcov/releases
 lcov_version=v1.15
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
-vimlsp_version=edd6629f0940e37ca988620e404e79e600962a6f
+# Vim LSP Commits: https://github.com/prabirshrestha/vim-lsp/commits/master
+vimlsp_version=8df4aa40191717b34f5da8d3c8e90dc0f1f62e0b
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
+# Vim Async Commits: https://github.com/prabirshrestha/async.vim/commits/master
 vimlsp_async_version=2082d13bb195f3203d41a308b89417426a7deca1
 
 # Vim Asyncomplete: https://github.com/prabirshrestha/asyncomplete.vim.git
+# Vim Asyncomplete commits: https://github.com/prabirshrestha/asyncomplete.vim/commits/master
 vimlsp_ac_version=9c7651894c2c6d656c0dc71e87cfabbbb71b9c78
 
 # Vim Asyncomplete LSP: https://github.com/prabirshrestha/asyncomplete-lsp.vim.git
+# Vim Asyncomplete LSP commits: https://github.com/prabirshrestha/asyncomplete-lsp.vim/commits/master
 vimlsp_aclsp_version=f6d6a6354ff279ba707c20292aef0dfaadc436a3
 
 # Hub: https://github.com/github/hub
@@ -111,7 +120,7 @@ hub_version=2.14.2
 
 # GitHub CLI: https://github.com/cli/cli
 # GitHub CLI Releases: https://github.com/cli/cli/releases
-gh_version=2.7.0
+gh_version=2.8.0
 
 # GHI: https://github.com/stephencelis/ghi
 # GHI Releases: https://github.com/stephencelis/ghi/releases
