@@ -135,7 +135,8 @@ fmtlib_version=8.1.1
 range_version=
 
 # cmcstl2: https://github.com/CaseyCarter/cmcstl2.git
-cmcstl2_version=684a96d527e4dc733897255c0177b784dc280980
+#cmcstl2_version=684a96d527e4dc733897255c0177b784dc280980
+cmcstl2_version=
 
 ################################################################################
 # Utility functions.
