@@ -42,7 +42,7 @@ git_repo_url="https://github.com/llvm/llvm-project.git"
 github_archive_base_url="https://github.com/llvm/llvm-project/releases/download"
 
 example_clang_version=14.0.0
-example_clang_tag=911cfcd7f591b945369de3fca37dace71ae6054d
+example_clang_tag=llvmorg-14.0.4
 
 ################################################################################
 # Functions
@@ -154,16 +154,16 @@ usage()
 	SDE_TMPDIR=/var/tmp \\
 	  $0 --num-jobs 4 --build-type Debug --keep-source --enable-assertions \\
 	  --no-enable-libc --enable-libcxx --enable-openmp --enable-libclc \\
-	  --enable-shared-libllvm --enable-rtti \\
+	  --enable-shared-libllvm --enable-rtti --enable-eh \\
 	  --repo -v $example_clang_tag -d /tmp/clang-$example_clang_tag-debug
 
 	Perform a release-with-debug-information install with libc++,
-	OpenMP, OpenCL:
+	OpenMP, OpenCL (and RTTI and EH enabled):
 	SDE_TMPDIR=/var/tmp \\
 	  $0 --num-jobs 4 \\
 	  --build-type RelWithDebInfo --keep-source --enable-assertions \\
 	  --no-enable-libc --enable-libcxx --enable-openmp --enable-libclc \\
-	  --enable-shared-libllvm --enable-rtti \\
+	  --enable-shared-libllvm --enable-rtti --enable-eh \\
 	  --repo -v $example_clang_tag \\
 	  -d /tmp/clang-$example_clang_tag-relwithdebinfo
 
@@ -208,6 +208,7 @@ build_as_runtimes=0
 keep_source=0
 cmake_build_type=Release
 llvm_enable_rtti=
+llvm_enable_eh=
 llvm_enable_assertions=
 libcxx_enable_abi_linker_script=
 enable_shared_libllvm=0
@@ -407,6 +408,15 @@ while [ $# -gt 0 ]; do
 	--no-enable-rtti)
 		shift 1
 		llvm_enable_rtti=0
+		;;
+
+	--enable-eh)
+		shift 1
+		llvm_enable_eh=1
+		;;
+	--no-enable-eh)
+		shift 1
+		llvm_enable_eh=0
 		;;
 
 	--keep-source)
@@ -732,6 +742,14 @@ if [ -n "$llvm_enable_rtti" ]; then
 		configure_options+=(-DLLVM_ENABLE_RTTI=true)
 	else
 		configure_options+=(-DLLVM_ENABLE_RTTI=false)
+	fi
+fi
+
+if [ -n "$llvm_enable_eh" ]; then
+	if [ "$llvm_enable_eh" -ne 0 ]; then
+		configure_options+=(-DLLVM_ENABLE_EH=true)
+	else
+		configure_options+=(-DLLVM_ENABLE_EH=false)
 	fi
 fi
 
