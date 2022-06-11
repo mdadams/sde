@@ -110,7 +110,11 @@ usage()
 	--stop-early
 	    Stop before building.
 	--num-jobs \$num_jobs
-	    Allow the use of \$num_jobs siumultaneous jobs.
+	    Allow the use of \$num_jobs simultaneous jobs.
+	--num-parallel-compile-jobs \$n
+	    Allow the use of \$n simultaneous compile jobs.
+	--num-parallel-link-jobs \$n
+	    Allow the use of \$n simultaneous link jobs.
 	--print-commit
 	    Print the Git repository commit and exit.
 	-v|--version \$version
@@ -160,7 +164,7 @@ usage()
 	Perform a release-with-debug-information install with libc++,
 	OpenMP, OpenCL (and RTTI and EH enabled):
 	SDE_TMPDIR=/var/tmp \\
-	  $0 --num-jobs 4 \\
+	  $0 --num-parallel-compile-jobs 4 --num-parallel-link-jobs 1 \\
 	  --build-type RelWithDebInfo --keep-source --enable-assertions \\
 	  --no-enable-libc --enable-libcxx --enable-openmp --enable-libclc \\
 	  --enable-shared-libllvm --enable-rtti --enable-eh \\
@@ -199,7 +203,9 @@ gcc_dir=""
 use_old_host_toolchain=0
 from_repo=0
 stop_early=0
-num_jobs=4
+num_jobs=
+num_compile_jobs=
+num_link_jobs=
 cleanup=1
 print_commit=0
 debug_level="${SDE_DEBUG_LEVEL:-0}"
@@ -306,12 +312,26 @@ while [ $# -gt 0 ]; do
 		shift 1
 		stop_early=1
 		;;
+
 	--num-jobs|-j)
 		shift 1
 		[ $# -gt 0 ] || usage "missing argument"
 		num_jobs="$1"
 		shift 1
 		;;
+	--num-parallel-compile-jobs)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		num_compile_jobs="$1"
+		shift 1
+		;;
+	--num-parallel-link-jobs)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		num_link_jobs="$1"
+		shift 1
+		;;
+
 	--print-commit|-n)
 		shift 1
 		print_commit=1
@@ -711,6 +731,13 @@ if [ -n "$targets_string" ]; then
 	configure_options+=("-DLLVM_RUNTIME_TARGETS=$targets_string")
 fi
 
+if [ -n "$num_compile_jobs" ]; then
+	configure_options+=("-DLLVM_PARALLEL_COMPILE_JOBS=$num_compile_jobs")
+fi
+if [ -n "$num_link_jobs" ]; then
+	configure_options+=("-DLLVM_PARALLEL_LINK_JOBS=$num_link_jobs")
+fi
+
 if [ "$use_static_libstdcxx" -ne 0 ]; then
     configure_options+=(-DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++")
 fi
@@ -789,7 +816,9 @@ build_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
 echo "time: $build_start_time"
 
 build_options=()
-build_options+=(-j $num_jobs)
+if [ -n "$num_jobs" ]; then
+	build_options+=(-j $num_jobs)
+fi
 
 cmake --build "$build_dir" "${build_options[@]}" || \
   panic "build failed"
