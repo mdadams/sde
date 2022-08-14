@@ -167,7 +167,7 @@ usage()
 	  $0 --num-parallel-compile-jobs 4 --num-parallel-link-jobs 1 \\
 	  --build-type RelWithDebInfo --keep-source --enable-assertions \\
 	  --no-enable-libc --enable-libcxx --enable-openmp --enable-libclc \\
-	  --enable-shared-libllvm --enable-rtti --enable-eh \\
+	  --enable-shared-libllvm --enable-rtti --enable-eh --no-default-pie \\
 	  --repo -v $example_clang_tag \\
 	  -d /tmp/clang-$example_clang_tag-relwithdebinfo
 
@@ -227,6 +227,7 @@ install_openmp=1
 use_static_libstdcxx=0
 install_testsuite=0
 install_stripped="${SDE_INSTALL_CLANG_STRIPPED:-0}"
+default_pie="${SDE_INSTALL_CLANG_DEFAULT_PIE}"
 
 while [ $# -gt 0 ]; do
 	option="$1"
@@ -462,6 +463,15 @@ while [ $# -gt 0 ]; do
 	--no-as-runtimes)
 		shift 1
 		build_as_runtimes=0
+		;;
+
+	--default-pie)
+		shift 1
+		default_pie=1
+		;;
+	--no-default-pie)
+		shift 1
+		default_pie=0
 		;;
 
 	--*|-*)
@@ -791,6 +801,14 @@ if [ "$enable_shared_libllvm" -ne 0 ]; then
 	configure_options+=(-DLLVM_BUILD_LLVM_DYLIB=1)
 else
 	configure_options+=(-DLLVM_BUILD_LLVM_DYLIB=0)
+fi
+
+if [ -n "$default_pie" ]; then
+	if [ "$default_pie" -ne 0 ]; then
+		configure_options+=(-DCLANG_DEFAULT_PIE_ON_LINUX=1)
+	else
+		configure_options+=(-DCLANG_DEFAULT_PIE_ON_LINUX=0)
+	fi
 fi
 
 ####configure_options+=(-DLLVM_ENABLE_LIBCXX=0)

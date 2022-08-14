@@ -145,6 +145,7 @@ from_repo=0
 # process cannot seem to handle "@" characters in pathnames.
 tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_gcc-$user-$host-XXXXXXXX"
 
+default_pie="$SDE_INSTALL_GCC_DEFAULT_PIE"
 old_abi=0
 num_jobs=4
 download_only=0
@@ -167,6 +168,10 @@ while getopts Cd:v:o:rj:xp:n opt; do
 			old_abi=1;;
 		new_abi)
 			old_abi=0;;
+		no_default_pie)
+			default_pie=0;;
+		default_pie)
+			default_pie=1;;
 		*)
 			usage;;
 		esac
@@ -369,6 +374,13 @@ echo "time: $configure_start_time"
 options=()
 if [ "$old_abi" -ne 0 ]; then
 	options+=(--with-default-libstdcxx-abi=gcc4-compatible)
+fi
+if [ -n "$default_pie" ]; then
+	if [ "$default_pie" -ne 0 ]; then
+		options+=(--enable-default-pie)
+	else
+		options+=(--enable-default-pie=no)
+	fi
 fi
 options+=(--enable-threads=posix)
 options+=(--enable-tls)
