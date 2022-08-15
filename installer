@@ -29,7 +29,7 @@
 
 # CMake: https://cmake.org/download
 # CMake: https://gitlab.kitware.com/cmake/cmake
-cmake_version=3.23.1
+cmake_version=3.24.0
 
 # GCC: https://www.gnu.org/software/gcc
 # GCC Releases: https://ftp.gnu.org/gnu/gcc
@@ -41,7 +41,7 @@ gccgo_version="$gcc_version"
 
 # LLVM: http://releases.llvm.org/download.html
 # LLVM Releases: https://github.com/llvm/llvm-project/releases
-clang_version=14.0.3
+clang_version=15.0.0-rc2
 
 # Musl: https://www.musl-libc.org/download.html
 # Musl Releases: https://musl.libc.org/releases/
@@ -50,7 +50,7 @@ musl_version=1.2.3
 # JasPer: https://github.com/jasper-software/jasper
 # JasPer Releases: https://github.com/jasper-software/jasper/releases
 #jasper_version=version-2.0.33
-jasper_version=version-3.0.3
+jasper_version=version-3.0.6
 
 # GDB: https://www.gnu.org/software/gdb/download/
 gdb_version=12.1
@@ -73,7 +73,7 @@ boost_version=1.79.0
 
 # CGAL: https://github.com/CGAL/cgal
 # CGAL Releases: https://github.com/CGAL/cgal/releases
-cgal_version=5.4
+cgal_version=5.5
 
 # Aristotle: https://github.com/mdadams/aristotle
 # Aristotle Releases: https://github.com/mdadams/aristotle/tags
@@ -81,10 +81,10 @@ aristotle_version=v3.0.40
 
 # YCM: https://github.com/Valloric/YouCompleteMe
 # YCM Commits: https://github.com/ycm-core/YouCompleteMe/commits/master
-ycm_version=a986c1d59062369d297eb465b3e51c0c45fc2feb
+ycm_version=c99f408270e8a17a2c84ec59e898afd711823fd7
 
 # Vim: https://www.vim.org/download.php
-vim_version=8.2
+vim_version=9.0
 
 # GSL: https://github.com/Microsoft/GSL/releases
 gsl_version=v4.0.0
@@ -95,11 +95,11 @@ catch_version=v2.13.9
 
 # Lcov: https://github.com/linux-test-project/lcov
 # Lcov Releases: https://github.com/linux-test-project/lcov/releases
-lcov_version=v1.15
+lcov_version=v1.16
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
 # Vim LSP Commits: https://github.com/prabirshrestha/vim-lsp/commits/master
-vimlsp_version=c075e157fcce4511e537b1f7f3385444d9c80e0d
+vimlsp_version=c99f408270e8a17a2c84ec59e898afd711823fd7
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 # Vim Async Commits: https://github.com/prabirshrestha/async.vim/commits/master
@@ -119,7 +119,7 @@ hub_version=2.14.2
 
 # GitHub CLI: https://github.com/cli/cli
 # GitHub CLI Releases: https://github.com/cli/cli/releases
-gh_version=2.10.1
+gh_version=2.14.4
 
 # GHI: https://github.com/stephencelis/ghi
 # GHI Releases: https://github.com/stephencelis/ghi/releases
@@ -128,7 +128,7 @@ ghi_version=
 
 # Fmtlib: https://github.com/fmtlib/fmt.git
 # Fmtlib Releases: https://github.com/fmtlib/fmt/releases
-fmtlib_version=8.1.1
+fmtlib_version=9.0.0
 
 # range: https://github.com/ericniebler/range-v3.git
 #range_version=0.10.0
