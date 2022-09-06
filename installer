@@ -41,7 +41,7 @@ gccgo_version="$gcc_version"
 
 # LLVM: http://releases.llvm.org/download.html
 # LLVM Releases: https://github.com/llvm/llvm-project/releases
-clang_version=15.0.0-rc3
+clang_version=15.0.0
 
 # Musl: https://www.musl-libc.org/download.html
 # Musl Releases: https://musl.libc.org/releases/
