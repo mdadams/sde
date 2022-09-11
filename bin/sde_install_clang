@@ -75,6 +75,12 @@ isabspath()
 	esac
 }
 
+disk_usage()
+{
+	local dir="$1"
+	du -sk "$dir" | awk '{print $1;}' -
+}
+
 perform_cleanup()
 {
 	if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
@@ -509,7 +515,7 @@ if [ -z "$version" ]; then
 fi
 
 abs_install_dir="$install_dir"
-result=$(isabspath "$abs_install_dir") || panic "absolute path test failed"
+result="$(isabspath "$abs_install_dir")" || panic "absolute path test failed"
 if [ "$result" -eq 0 ]; then
 	abs_install_dir="$cur_dir/$abs_install_dir"
 fi
@@ -518,7 +524,7 @@ fi
 # Perform some setup.
 ################################################################################
 
-start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+start_time="$(date +%Y-%m-%d@%H:%M:%S)" || panic "cannot get time"
 
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
@@ -526,13 +532,13 @@ start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
 # will be accessible by all users.
 umask 022
 
-tmp_dir=$(mktemp -d "$tmp_dir_template") || \
+tmp_dir="$(mktemp -d "$tmp_dir_template")" || \
   panic "cannot create temporary directory"
 if [ "$cleanup" -ne 0 ]; then
 	trap perform_cleanup EXIT
 fi
 
-mangled_version=$(echo "$version" | tr '/' '-') || panic
+mangled_version="$(echo "$version" | tr '/' '-')" || panic
 top_dir="$tmp_dir/llvm-clang-$mangled_version"
 archive_dir="$top_dir/archives"
 build_dir="$top_dir/build"
@@ -606,21 +612,21 @@ fi
 ################################################################################
 
 if [ "${#projects[@]}" -gt 0 ]; then
-	projects_string=$(tr ' ' ';' <<< "${projects[@]}") || \
+	projects_string="$(tr ' ' ';' <<< "${projects[@]}")" || \
 	  panic "internal error"
 else
 	projects_string=
 fi
 
 if [ "${#runtimes[@]}" -gt 0 ]; then
-	runtimes_string=$(tr ' ' ';' <<< "${runtimes[@]}") || \
+	runtimes_string="$(tr ' ' ';' <<< "${runtimes[@]}")" || \
 	  panic "internal error"
 else
 	runtimes_string=
 fi
 
 if [ "${#targets[@]}" -gt 0 ]; then
-	targets_string=$(tr ' ' ';' <<< "${targets[@]}") || \
+	targets_string="$(tr ' ' ';' <<< "${targets[@]}")" || \
 	  panic "internal error"
 else
 	targets_string=
@@ -674,7 +680,7 @@ Downloading software
 ============================================================
 EOF
 
-download_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+download_start_time="$(date +%Y-%m-%d@%H:%M:%S)" || panic "cannot get time"
 echo "time: $download_start_time"
 
 if [ "$from_repo" -ne 0 ]; then
@@ -721,7 +727,7 @@ Configuring software
 ============================================================
 EOF
 
-configure_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+configure_start_time="$(date +%Y-%m-%d@%H:%M:%S)" || panic "cannot get time"
 echo "time: $configure_start_time"
 
 configure_options=()
@@ -830,7 +836,7 @@ Building software
 ============================================================
 EOF
 
-build_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+build_start_time="$(date +%Y-%m-%d@%H:%M:%S)" || panic "cannot get time"
 echo "time: $build_start_time"
 
 build_options=()
@@ -851,7 +857,7 @@ Installing software
 ============================================================
 EOF
 
-install_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
+install_start_time="$(date +%Y-%m-%d@%H:%M:%S)" || panic "cannot get time"
 echo "time: $install_start_time"
 
 if [ "$install_stripped" -ne 0 ]; then
@@ -878,7 +884,8 @@ Done.
 ============================================================
 EOF
 
-end_time=$(date +%Y-%m-%d@%H:%M:%S)
+end_time="$(date +%Y-%m-%d@%H:%M:%S)" || panic "cannot get time"
+tmp_dir_space="$(disk_usage "$tmp_dir")" || tmp_dir_space="unknown"
 
 echo "start time ............. $start_time"
 echo "download start time .... $download_start_time"
@@ -886,5 +893,7 @@ echo "configure start time ... $configure_start_time"
 echo "build start time ....... $build_start_time"
 echo "install start time ..... $install_start_time"
 echo "end time ............... $end_time"
+echo
+echo "temporary directory disk usage (1 KiB blocks) ... $tmp_dir_space"
 
 exit 0
