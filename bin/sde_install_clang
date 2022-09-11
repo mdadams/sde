@@ -41,8 +41,8 @@
 git_repo_url="https://github.com/llvm/llvm-project.git"
 github_archive_base_url="https://github.com/llvm/llvm-project/releases/download"
 
-example_clang_version=14.0.6
-example_clang_tag=llvmorg-14.0.6
+example_clang_version=15.0.0
+example_clang_tag=llvmorg-15.0.0
 
 ################################################################################
 # Functions
