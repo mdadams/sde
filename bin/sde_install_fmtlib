@@ -45,13 +45,14 @@ usage()
 	    Set the installation directory to \$install_dir.
 	-v \$version
 	    Set the version to install to \$version.
-	    (e.g. 6.1.2)
+	    (e.g. 9.1.0)
 	-n name
 
 	Examples
 	========
 
-	$0 -v 6.1.2 -d /tmp/fmt
+	$0 -v 9.1.0 -d /tmp/fmt
+	$0 -x -v 9.1.0 -d /tmp/fmt
 	EOF
 	exit 2
 }
@@ -90,6 +91,10 @@ fi
 if [ -z "$version" ]; then
 	usage "no version specified"
 fi
+
+# Ensure that install_dir is an absolute pathname.
+install_dir="$(realpath "$install_dir")" || \
+  panic "cannot get realpath"
 
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
