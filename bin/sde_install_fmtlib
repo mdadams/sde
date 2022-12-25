@@ -68,8 +68,9 @@ cleanup=1
 install_dir=
 version=
 enable_hack=0
+no_test=0
 
-while getopts d:v:n:x opt; do
+while getopts d:v:n:xy opt; do
 	case "$opt" in
 	d)
 		install_dir="$OPTARG";;
@@ -77,6 +78,8 @@ while getopts d:v:n:x opt; do
 		version=("$OPTARG");;
 	x)
 		enable_hack=1;;
+	y)
+		no_test=1;;
 	\?)
 		usage
 		break;;
@@ -126,8 +129,12 @@ repo_url="https://github.com/fmtlib/fmt.git"
 #ls -al "$git_dir"
 (cd "$git_dir" && git checkout "$commit") || panic "cannot checkout"
 
+configure_options=()
+if [ "$no_test" -ne 0 ]; then
+	configure_options+=(-DFMT_TEST=FALSE)
+fi
 (cd "$git_dir" && \
-  cmake -H. -B"$build_dir" -DCMAKE_INSTALL_PREFIX="$install_dir") || \
+  cmake -H. -B"$build_dir" -DCMAKE_INSTALL_PREFIX="$install_dir" "${configure_options[@]}") || \
   panic "cannot configure"
 (cmake --build "$build_dir") || \
   panic "cannot build"
