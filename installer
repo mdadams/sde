@@ -338,20 +338,24 @@ umask 022
 ################################################################################
 ################################################################################
 
-alt_gcc_install="${SDE_GCC_TRUNK_INSTALL:-0}"
-alt_clang_install="${SDE_CLANG_TRUNK_INSTALL:-0}"
+alt_gcc_install="${SDE_ALT_GCC_INSTALL:-0}"
+alt_clang_install="${SDE_ALT_CLANG_INSTALL:-0}"
 
 generic_sdebase_dir="$packages_dir/sdebase"
 sdebase_dir="$packages_dir/sdebase-default"
 cmake_dir="$packages_dir/cmake-$cmake_version"
 
-gcc_method=$(qversion_get method "$gcc_qversion") || panic
-gcc_version=$(qversion_get version "$gcc_qversion") || panic
+gcc_method=$(qversion_get method "$gcc_qversion") || \
+  panic "cannot get method"
+gcc_version=$(qversion_get version "$gcc_qversion") || \
+  panic "cannot get version"
 gcc_dir="$packages_dir/gcc-$gcc_version"
 gcc_bin_dir="$gcc_dir/bin"
 
-clang_method=$(qversion_get method "$clang_qversion") || panic
-clang_version=$(qversion_get version "$clang_qversion") || panic
+clang_method=$(qversion_get method "$clang_qversion") || \
+  panic "cannot get method"
+clang_version=$(qversion_get version "$clang_qversion") || \
+  panic "cannot get version"
 clang_dir="$packages_dir/clang-$clang_version"
 
 boost_dir="$packages_dir/boost-$boost_version"
@@ -378,57 +382,30 @@ range_dir="$packages_dir/range-$range_version"
 cmcstl2_dir="$packages_dir/cmcstl2-$cmcstl2_version"
 gccgo_dir="$packages_dir/gccgo-$gccgo_version"
 
-install_gcc_options=()
-if [ "${SDE_GCC_USE_OLD_ABI:-0}" -ne 0 ]; then
-	install_gcc_options+=(--old-abi)
-else
-	install_gcc_options+=(--no-old-abi)
+gcc_install_options=()
+# Note: The following install-gcc options should be the last ones added
+# so that they can override others.
+if [ -n "$SDE_GCC_INSTALL_OPTIONS" ]; then
+	gcc_install_options+=($SDE_GCC_INSTALL_OPTIONS)
 fi
-if [ "${SDE_INSTALL_GCC_STRIPPED:-0}" -ne 0 ]; then
-	install_gcc_options+=(--strip)
-else
-	install_gcc_options+=(--no-strip)
-fi
-if [ "${SDE_INSTALL_GCC_DEFAULT_PIE:-0}" -ne 0 ]; then
-	install_gcc_options+=(--default-pie)
-else
-	install_gcc_options+=(--no-default-pie)
-fi
-if [ -n "$SDE_INSTALL_GCC_ENABLE_LANGUAGES" ]; then
-	install_gcc_options+=(
-	  --enable-languages "$SDE_INSTALL_GCC_ENABLE_LANGUAGES")
-fi
-# Note: These install-gcc options should be the last ones added so that 
-# they can override others.
-if [ -n "$SDE_INSTALL_GCC_OPTIONS" ]; then
-	install_gcc_options+=($SDE_INSTALL_GCC_OPTIONS)
+alt_gcc_install_options=("${gcc_install_options[@]}")
+if [ -n "$SDE_ALT_GCC_INSTALL_OPTIONS" ]; then
+	alt_gcc_install_options+=($SDE_ALT_GCC_INSTALL_OPTIONS)
 fi
 
-install_clang_options=()
-if [ "${SDE_LLVM_INSTALL_LLDB:-0}" -ne 0 ]; then
-	install_clang_options+=(--enable-lldb)
+clang_install_options=()
+clang_install_options+=(--enable-libcxx)
+clang_install_options+=(--enable-shared-libllvm)
+clang_install_options+=(--no-enable-link-shared-libllvm)
+clang_install_options+=(--enable-static-libstdcxx)
+# Note: The following install-clang options should be the last ones added
+# so that they can override others.
+if [ -n "$SDE_CLANG_INSTALL_OPTIONS" ]; then
+	clang_install_options+=($SDE_CLANG_INSTALL_OPTIONS)
 fi
-if [ "${SDE_LLVM_INSTALL_TEST_SUITE:-0}" -ne 0 ]; then
-	install_clang_options+=(--enable-test-suite)
-fi
-install_clang_options+=(--enable-libcxx)
-install_clang_options+=(--enable-shared-libllvm)
-install_clang_options+=(--no-enable-link-shared-libllvm)
-install_clang_options+=(--enable-static-libstdcxx)
-if [ "${SDE_INSTALL_CLANG_STRIPPED:-0}" -ne 0 ]; then
-	install_clang_options+=(--strip)
-else
-	install_clang_options+=(--no-strip)
-fi
-if [ "${SDE_INSTALL_CLANG_DEFAULT_PIE:-0}" -ne 0 ]; then
-	install_clang_options+=(--default-pie)
-else
-	install_clang_options+=(--no-default-pie)
-fi
-# Note: These install-clang options should be the last ones added so that 
-# they can override others.
-if [ -n "$SDE_INSTALL_CLANG_OPTIONS" ]; then
-	install_clang_options+=($SDE_INSTALL_CLANG_OPTIONS)
+alt_clang_install_options=("${clang_install_options[@]}")
+if [ -n "$SDE_ALT_CLANG_INSTALL_OPTIONS" ]; then
+	alt_clang_install_options+=($SDE_ALT_CLANG_INSTALL_OPTIONS)
 fi
 
 if [ "${SDE_VIM_INSTALL:-1}" -eq 0 ]; then
@@ -465,7 +442,8 @@ if [ -z "$gccgo_dir" ]; then
 	fi
 fi
 
-native_clang_version=$(get_clang_version) || native_clang_version=
+native_clang_version="$(get_clang_version)" || \
+  native_clang_version=
 if [ -n "$native_clang_version" ]; then
 	native_clang_major_version=$(get_version_info \
 	  "$native_clang_version" major) || \
@@ -483,8 +461,10 @@ if [ "$alt_gcc_install" -ne 0 ]; then
 	#commit="$("$sde_install_gcc" -r -v master -n)" || \
 	#  panic "cannot get GCC commit"
 	#alt_gcc_version="git:$commit"
-	alt_gcc_method="$(qversion_get method "$alt_gcc_qversion")" || panic
-	alt_gcc_version="$(qversion_get version "$alt_gcc_qversion")" || panic
+	alt_gcc_method="$(qversion_get method "$alt_gcc_qversion")" || \
+	  panic "cannot get method"
+	alt_gcc_version="$(qversion_get version "$alt_gcc_qversion")" || \
+	  panic "cannot get version"
 	alt_gcc_dir="$packages_dir/gcc-$alt_gcc_version"
 fi
 
@@ -492,8 +472,10 @@ if [ "$alt_clang_install" -ne 0 ]; then
 	#commit="$("$sde_install_clang" -r -v main -n)" || \
 	#  panic "cannot get Clang commit"
 	#alt_clang_dir="$packages_dir/clang-git:$commit"
-	alt_clang_method="$(qversion_get method "$alt_clang_version")" || panic
-	alt_clang_version="$(qversion_get version "$alt_clang_version")" || panic
+	alt_clang_method="$(qversion_get method "$alt_clang_version")" || \
+	  panic "cannot get method"
+	alt_clang_version="$(qversion_get version "$alt_clang_version")" || \
+	  panic "cannot get version"
 	alt_clang_dir="$packages_dir/clang-$alt_clang_version"
 fi
 
@@ -746,8 +728,8 @@ if [ -n "$gcc_version" -a -n "$gcc_dir" ]; then
 		  "$sde_install_gcc" \
 		  --method "$gcc_method" \
 		  --version "$gcc_version" \
-		  -d "$gcc_dir" \
-		  "${install_gcc_options[@]}" || \
+		  --install-dir "$gcc_dir" \
+		  "${gcc_install_options[@]}" || \
 		  panic "cannot install gcc"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" gcc "$gcc_version" || \
@@ -758,25 +740,24 @@ fi
 # Install Alternative Version of GCC
 ################################################################################
 
-if [ "$alt_gcc_install" -ne 0 ]; then
-	if [ -n "$alt_gcc_dir" ]; then
-		if [ ! -d "$alt_gcc_dir" ]; then
-			"$sde_shell" -s -p null -x \
-			  "$sde_install_gcc" \
-			  --method "$alt_gcc_method" \
-			  --version "$alt_gcc_version" \
-			  -d "$alt_gcc_dir" "${install_gcc_options[@]}" || \
-			  panic "cannot install gcc"
-		fi
-		#"$sde_cmd" pkg -d "$sde_top_dir" gcc "$gcc_version" || \
-		#  panic "cannot configure gcc"
-		base=$(basename "$alt_gcc_dir") || \
-		  panic "cannot get basename"
-		target="$packages_dir/gcc-alt"
-		if [ ! -e "$target" ]; then
-			ln -s "$base" "$target" || \
-			  panic "cannot create symlink"
-		fi
+if [ "$alt_gcc_install" -ne 0 -a -n "$alt_gcc_dir" ]; then
+	if [ ! -d "$alt_gcc_dir" ]; then
+		"$sde_shell" -s -p null -x \
+		  "$sde_install_gcc" \
+		  --method "$alt_gcc_method" \
+		  --version "$alt_gcc_version" \
+		  --install-dir "$alt_gcc_dir" \
+		  "${alt_gcc_install_options[@]}" || \
+		  panic "cannot install gcc"
+	fi
+	#"$sde_cmd" pkg -d "$sde_top_dir" gcc "$gcc_version" || \
+	#  panic "cannot configure gcc"
+	base=$(basename "$alt_gcc_dir") || \
+	  panic "cannot get basename"
+	target="$packages_dir/gcc-alt"
+	if [ ! -e "$target" ]; then
+		ln -s "$base" "$target" || \
+		  panic "cannot create symlink"
 	fi
 fi
 
@@ -786,24 +767,17 @@ fi
 
 if [ -n "$clang_version" -a -n "$clang_dir" ]; then
 	if [ ! -d "$clang_dir" ]; then
-		SDE_CLANG_FROM_REPO="${SDE_CLANG_FROM_REPO:-0}"
-		if [ "$SDE_CLANG_FROM_REPO" -ne 0 ]; then
-			"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
-			  env CXX="$gcc_dir/bin/g++" CC="$gcc_dir/bin/gcc" \
-			  "$sde_install_clang" "${install_clang_options[@]}" \
-			  --method "$clang_method" \
-			  --version "$clang_version" \
-			  -d "$clang_dir" -f || \
-			  panic "cannot install clang"
-		else
-			"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
-			  env CXX="$gcc_dir/bin/g++" CC="$gcc_dir/bin/gcc" \
-			  "$sde_install_clang" "${install_clang_options[@]}" \
-			  --method "$clang_method" \
-			  --version "$clang_version" \
-			  -d "$clang_dir" -f || \
-			  panic "cannot install clang"
-		fi
+		"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
+		  env \
+		  CXX="$gcc_dir/bin/g++" \
+		  CC="$gcc_dir/bin/gcc" \
+		  "$sde_install_clang" \
+		  --method "$clang_method" \
+		  --version "$clang_version" \
+		  --install-dir "$clang_dir" \
+		  --old-host-toolchain \
+		  "${clang_install_options[@]}" \
+		  || panic "cannot install clang"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" clang "$clang_version" || \
 	  panic "cannot configure clang"
@@ -813,27 +787,26 @@ fi
 # Install Alternative Version of Clang
 ################################################################################
 
-if [ "$alt_clang_install" -ne 0 ]; then
-	if [ -n "$alt_clang_dir" ]; then
-		if [ ! -d "$alt_clang_dir" ]; then
-			"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
-			  env CXX="$gcc_dir/bin/g++" CC="$gcc_dir/bin/gcc" \
-			  "$sde_install_clang" "${install_clang_options[@]}" \
-			  --method "$alt_clang_method" \
-			  --version "$alt_clang_version" \
-			  -d "$alt_clang_dir" \
-			  -f || \
-			  panic "cannot install clang"
-		fi
-		#"$sde_cmd" pkg -d "$sde_top_dir" clang "$clang_version" || \
-		#  panic "cannot configure clang"
-		base=$(basename "$alt_clang_dir") || \
-		  panic "cannot get basename"
-		target="$packages_dir/clang-alt"
-		if [ ! -e "$target" ]; then
-			ln -s "$base" "$target" || \
-			  panic "cannot create symlink"
-		fi
+if [ "$alt_clang_install" -ne 0 -a -n "$alt_clang_dir" ]; then
+	if [ ! -d "$alt_clang_dir" ]; then
+		"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
+		  env CXX="$gcc_dir/bin/g++" CC="$gcc_dir/bin/gcc" \
+		  "$sde_install_clang" \
+		  --method "$alt_clang_method" \
+		  --version "$alt_clang_version" \
+		  --install-dir "$alt_clang_dir" \
+		  --old-host-toolchain \
+		  "${alt_clang_install_options[@]}" \
+		  || panic "cannot install clang"
+	fi
+	#"$sde_cmd" pkg -d "$sde_top_dir" clang "$clang_version" || \
+	#  panic "cannot configure clang"
+	base=$(basename "$alt_clang_dir") || \
+	  panic "cannot get basename"
+	target="$packages_dir/clang-alt"
+	if [ ! -e "$target" ]; then
+		ln -s "$base" "$target" || \
+		  panic "cannot create symlink"
 	fi
 fi
 
@@ -1171,9 +1144,12 @@ fi
 
 if [ -n "$gccgo_version" -a ! -d "$gccgo_dir" ]; then
 	"$sde_shell" -s -p null -x \
-	  "$sde_install_gcc" -v "$gccgo_version" -d "$gccgo_dir" \
-	  "${install_gcc_options[@]}" --enable-languages go || \
-	  panic "cannot install gccgo"
+	  "$sde_install_gcc" \
+	  --version "$gccgo_version" \
+	  --install-dir "$gccgo_dir" \
+	  "${gcc_install_options[@]}"
+	  --enable-languages go \
+	  || panic "cannot install gccgo"
 	"$sde_cmd" pkg -d "$sde_top_dir" gccgo "$gccgo_version" || \
 	  panic "cannot configure gccgo"
 fi
