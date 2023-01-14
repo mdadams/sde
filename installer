@@ -49,7 +49,7 @@ gccgo_version="$gcc_version"
 # git:llvmorg-$VERSION
 # git:$COMMIT
 clang_qversion=web:15.0.7
-alt_clang_qversion=git:6809af1a232bc5ac71358e4b874759ddaae056a1
+alt_clang_qversion=git:bb83dc10f5e7aece86a0ad2158cfd28d1611f336
 
 # Musl: https://www.musl-libc.org/download.html
 # Musl Releases: https://musl.libc.org/releases/
@@ -127,7 +127,9 @@ hub_version=2.14.2
 
 # GitHub CLI: https://github.com/cli/cli
 # GitHub CLI Releases: https://github.com/cli/cli/releases
-gh_version=2.14.7
+# https://github.com/cli/cli/blob/trunk/docs/source.md
+# latest version requires go 1.19+
+gh_version=2.14.3 # works with go 1.16.15
 
 # GHI: https://github.com/stephencelis/ghi
 # GHI Releases: https://github.com/stephencelis/ghi/releases
@@ -145,6 +147,51 @@ range_version=
 # cmcstl2: https://github.com/CaseyCarter/cmcstl2.git
 #cmcstl2_version=684a96d527e4dc733897255c0177b784dc280980
 cmcstl2_version=
+
+################################################################################
+#
+################################################################################
+
+apply_override()
+{
+	declare -n value="$1"
+	declare -n default="$2"
+	if [ -n "$default" ]; then
+		echo "WARNING: OVERRIDING VALUE OF $1"
+		value="$default"
+	fi
+}
+
+apply_override cmake_version SDE_INSTALL_CMAKE_VERSION
+apply_override gcc_qversion SDE_INSTALL_GCC_QVERSION
+apply_override alt_gcc_qversion SDE_INSTALL_ALT_GCC_QVERSION
+apply_override gccgo_version SDE_INSTALL_GCCGO_VERSION
+apply_override clang_qversion SDE_INSTALL_CLANG_QVERSION
+apply_override alt_clang_qversion SDE_INSTALL_ALT_CLANG_QVERSION
+apply_override musl_version SDE_INSTALL_MUSL_VERSION
+apply_override jasper_version SDE_INSTALL_JASPER_VERSION
+apply_override gdb_version SDE_INSTALL_GDB_VERSION
+apply_override spl_version SDE_INSTALL_SPL_VERSION
+apply_override ndiff_version SDE_INSTALL_NDIFF_VERSION
+apply_override texlive_version SDE_INSTALL_TEXLIVE_VERSION
+apply_override boost_version SDE_INSTALL_BOOST_VERSION
+apply_override cgal_version SDE_INSTALL_CGAL_VERSION
+apply_override aristotle_version SDE_INSTALL_ARISTOTLE_VERSION
+apply_override ycm_version SDE_INSTALL_YCM_VERSION
+apply_override vim_version SDE_INSTALL_VIM_VERSION
+apply_override gsl_version SDE_INSTALL_GSL_VERSION
+apply_override catch_version SDE_INSTALL_CATCH_VERSION
+apply_override lcov_version SDE_INSTALL_LCOV_VERSION
+apply_override vimlsp_version SDE_INSTALL_VIMLSP_VERSION
+apply_override vimlsp_async_version SDE_INSTALL_VIMLSP_ASYNC_VERSION
+apply_override vimlsp_ac_version SDE_INSTALL_VIMLSP_AC_VERSION
+apply_override vimlsp_aclsp_version SDE_INSTALL_VIMLSP_ACLSP_VERSION
+apply_override hub_version SDE_INSTALL_HUB_VERSION
+apply_override gh_version SDE_INSTALL_GH_VERSION
+apply_override ghi_version SDE_INSTALL_GHI_VERSION
+apply_override fmtlib_version SDE_INSTALL_FMTLIB_VERSION
+apply_override range_version SDE_INSTALL_RANGE_VERSION
+apply_override cmcstl2_version SDE_INSTALL_CMCSTL2_VERSION
 
 ################################################################################
 # Utility functions.
