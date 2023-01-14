@@ -87,19 +87,19 @@ usage()
 	Options
 	=======
 
-	-d \$install_dir
+	--install-dir \$install_dir (alias -d)
 	    Set the installation directory to \$install_dir.
-	-v \$version
+	--version \$version (alias -v)
 	    Set the version to install to \$version.
-	-r
+	--repo (alias -r)
 	    Install from GNU GCC Subversion repository.
-	-j \$num_jobs
+	--num-jobs \$num_jobs (alias -j)
 	    Allow the use of \$num_jobs simultaneous jobs.
-	-x
+	--download-only (alias -x)
 	    Download only but do not build and install.
-	-p \$patch_file
+	--patch \$patch_file (alias -p)
 	    Apply the patch file \$patch_file before building.
-	-C
+	--no-cleanup (alias -C)
 	    Disable cleanup.
 
 	Environment Variables
@@ -108,27 +108,24 @@ usage()
 	SDE_TMPDIR
 	    Specifies the directory under which temporary files are placed
 	    (e.g., when building software prior to installation).
-	SDE_INSTALL_GCC_ENABLE_LANGUAGES
-	    A comma-separated list of language to be built.
-	SDE_INSTALL_GCC_STRIPPED
-	    Install stripped executables.
-	    Valid values: 0, 1
 
 	Examples
 	========
 
-	$0 -v 8.2.0 -d $HOME/local/gcc
-	SDE_INSTALL_GCC_ENABLE_LANGUAGES=go $0 -v 8.2.0 -d $HOME/local/gccgo
+	$0 --version 8.2.0 --install-dir $HOME/local/gcc
+	$0 --version 8.2.0 --enable-languages go --install-dir $HOME/local/gccgo
 
-	$0 -r -v releases/gcc-9.2.0 -d $HOME/local/gcc
-	$0 -r -v devel/c++-module -d $HOME/local/gcc
-	$0 -r -v master -d $HOME/local/gcc
-	SDE_TMPDIR=/var/tmp $0 -r -v master -d $HOME/local/gcc
+	$0 --method git --version releases/gcc-9.2.0 --install-dir $HOME/local/gcc
+	$0 --method git --version master --install-dir $HOME/local/gcc
+	SDE_TMPDIR=/var/tmp \\
+	  $0 --method git --version master --install-dir $HOME/local/gcc
 
-	SDE_TMPDIR=/var/tmp $0 -v 11.1.0-RC-20210420 -d $HOME/local/gcc
+	SDE_TMPDIR=/var/tmp \\
+	  $0 --version 11.1.0-RC-20210420 --install-dir $HOME/local/gcc
 
-	commit=\$($0 -r -n -v master)
-	SDE_TMPDIR=/var/tmp $0 -r -v \$commit -d /tmp/gcc-trunk-\$commit
+	commit=\$($0 --repo --print-commit --version master)
+	SDE_TMPDIR=/var/tmp \\
+	  $0 --method git --version \$commit -d /tmp/gcc-trunk-\$commit
 	EOF
 	exit 2
 }
@@ -145,7 +142,7 @@ from_repo=0
 # process cannot seem to handle "@" characters in pathnames.
 tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_gcc-$user-$host-XXXXXXXX"
 
-default_pie="$SDE_INSTALL_GCC_DEFAULT_PIE"
+default_pie=0
 old_abi=0
 num_jobs=4
 download_only=0
@@ -153,43 +150,123 @@ patch_files=()
 tmp_dir=
 cleanup=1
 print_commit=0
+install_stripped=0
+enable_languages=
+method=web
 
-while getopts Cd:v:o:rj:xp:n opt; do
-	case "$opt" in
-	C)
-		cleanup=0;;
-	d)
-		install_dir="$OPTARG";;
-	v)
-		version="$OPTARG";;
-	o)
-		case "$OPTARG" in
-		old_abi)
-			old_abi=1;;
-		new_abi)
-			old_abi=0;;
-		no_default_pie)
-			default_pie=0;;
-		default_pie)
-			default_pie=1;;
-		*)
-			usage;;
-		esac
+while [ $# -gt 0 ]; do
+	option="$1"
+	case "$option" in
+
+	--verbose)
+		shift 1
+		verbose=$((verbose + 1))
 		;;
-	r)
+	--debug-level)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		debug_level="$1"
+		shift 1
+		if [ "$debug_level" -ge 1 ]; then
+			set -xv
+		fi
+		;;
+	--cleanup)
+		shift 1
+		cleanup=1
+		;;
+	--no-cleanup|-C)
+		shift 1
+		cleanup=0
+		;;
+	--strip)
+		shift 1
+		install_stripped=1
+		;;
+	--no-strip)
+		shift 1
+		install_stripped=0
+		;;
+	--install-dir|-d)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		install_dir="$1"
+		shift 1
+		;;
+	--version|-v)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		version="$1"
+		shift 1
+		;;
+
+	--default-pie)
+		shift 1
+		default_pie=1
+		;;
+	--no-default-pie)
+		shift 1
+		default_pie=0
+		;;
+
+	--old-abi)
+		shift 1
+		old_abi=1
+		;;
+	--no-old-abi)
+		shift 1
+		old_abi=0
+		;;
+
+	--repo|-r)
+		shift 1
 		from_repo=1
 		;;
-	j)
-		num_jobs="$OPTARG";;
-	x)
-		download_only=1;;
-	p)
-		patch_files+=("$OPTARG");;
-	n)
-		print_commit=1;;
-	\?)
-		usage
-		break;;
+
+	--download-only|-x)
+		shift 1
+		download_only=1
+		;;
+	--print-commit|-n)
+		shift 1
+		print_commit=1
+		;;
+
+	--patch|-p)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		patch_files+=("$1")
+		shift 1
+		;;
+
+	--enable-languages)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		enable_languages="$1"
+		shift 1
+		;;
+
+	--num-jobs|-j)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		num_jobs="$1"
+		shift 1
+		;;
+
+	--method)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		method="$1"
+		shift 1
+		;;
+
+	--*|-*)
+		usage "invalid option $option"
+		;;
+	*)
+		break
+		;;
+
 	esac
 done
 shift $((OPTIND - 1))
@@ -214,6 +291,19 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
+cat <<- EOF
+Default PIE: $default_pie
+Old ABI: $old_abi
+Number of jobs: $num_jobs
+Download only: $download_only
+Patch files: ${patch_files[*]}
+Cleanup: $cleanup
+Strip: $install_stripped
+Languages: $enable_languages
+Method: $method
+Version: $version
+EOF
+
 #abs_install_dir=$(readlink -f "$install_dir") || \
 #  panic "cannot get absolute pathname"
 
@@ -222,6 +312,13 @@ result=$(isabspath "$abs_install_dir") || panic "absolute path test failed"
 if [ "$result" -eq 0 ]; then
 	abs_install_dir="$cur_dir/$abs_install_dir"
 fi
+
+case "$method" in
+git)
+	from_repo=1;;
+*)
+	from_repo=0;;
+esac
 
 ################################################################################
 # Perform some setup.
@@ -285,18 +382,20 @@ echo "time: $download_start_time"
 
 if [ $from_repo -ne 0 ]; then
 
-	#svn_repo="svn://gcc.gnu.org/svn/gcc/$version"
-	#svn co "$svn_repo" "$src_dir" || panic "cannot checkout source"
 	echo "CLONING REPOSITORY"
 	git clone --progress "$git_repo" "$src_dir" || \
 	  panic "cannot clone repository"
-	(cd "$src_dir" && git checkout "$version") || panic "cannot checkout"
+	(cd "$src_dir" && git checkout "$version") || \
+	  panic "cannot checkout"
+
 	echo "RUNNING GIT LOG"
-	(cd "$src_dir" && git --no-pager log -1) || panic "git log failed"
+	(cd "$src_dir" && git --no-pager log -1) || \
+	  panic "git log failed"
 	commit="$(git ls-remote "$git_repo" "$version" | \
 	  awk -v x='refs/heads/'"$version" '{if ($2 == x) {print $1;}}')" || \
 	  panic "git rev-parse failed"
-	echo "$commit" || panic "echo failed"
+	echo "$commit" || \
+	  panic "echo failed"
 
 else
 
@@ -385,9 +484,10 @@ fi
 options+=(--enable-threads=posix)
 options+=(--enable-tls)
 options+=(--disable-multilib)
-if [ -n "$SDE_INSTALL_GCC_ENABLE_LANGUAGES" ]; then
-	options+=(--enable-languages="$SDE_INSTALL_GCC_ENABLE_LANGUAGES")
+if [ -n "$enable_languages" ]; then
+	options+=(--enable-languages="$enable_languages")
 fi
+echo "CONFIGURE OPTIONS: ${options[*]}"
 (cd "$build_dir" && 
   ../src/configure --prefix="$abs_install_dir" "${options[@]}") || \
   panic "configure failed"
@@ -421,7 +521,7 @@ EOF
 install_start_time=$(date +%Y-%m-%d@%H:%M:%S) || panic "cannot get time"
 echo "time: $install_start_time"
 
-if [ "${SDE_INSTALL_GCC_STRIPPED:-0}" -ne 0 ]; then
+if [ "$install_stripped" -ne 0 ]; then
 	install_target="install-strip"
 else
 	install_target="install"

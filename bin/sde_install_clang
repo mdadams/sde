@@ -126,7 +126,9 @@ usage()
 	-v|--version \$version
 	    Set the version to be installed to \$version.
 	--enable-shared-libllvm
-	    Make libllvm shared.
+	    Make a shared monolithic LLVM library.
+	--enable-link-shared-libllvm
+	    Link applications with the shared monolithic LLVM library.
 	--enable-test-suite
 	    Install the test suite.
 	--enable-flang
@@ -162,32 +164,22 @@ usage()
 
 	Perform a debug-build install with libc++, OpenMP, OpenCL:
 	SDE_TMPDIR=/var/tmp \\
-	  $0 --num-jobs 4 --build-type Debug --keep-source --enable-assertions \\
+	  $0 --method git --version $example_clang_tag \\
+	  --num-jobs 4 --build-type Debug --keep-source --enable-assertions \\
 	  --no-enable-libc --enable-libcxx --enable-openmp --enable-libclc \\
 	  --enable-shared-libllvm --enable-rtti --enable-eh \\
-	  --repo -v $example_clang_tag -d /tmp/clang-$example_clang_tag-debug
+	  -d /tmp/clang-$example_clang_tag-debug
 
 	Perform a release-with-debug-information install with libc++,
 	OpenMP, OpenCL (and RTTI and EH enabled):
 	SDE_TMPDIR=/var/tmp \\
-	  $0 --num-parallel-compile-jobs 4 --num-parallel-link-jobs 1 \\
+	  $0 --method git --version $example_clang_tag \\
+	  --num-parallel-compile-jobs 4 --num-parallel-link-jobs 1 \\
 	  --build-type RelWithDebInfo --keep-source --enable-assertions \\
 	  --no-enable-libc --enable-libcxx --enable-openmp --enable-libclc \\
-	  --enable-shared-libllvm --enable-rtti --enable-eh --no-default-pie \\
-	  --repo -v $example_clang_tag \\
+	  --enable-shared-libllvm --no-enable-link-shared-libllvm \\
+	  --enable-rtti --enable-eh --no-default-pie \\
 	  -d /tmp/clang-$example_clang_tag-relwithdebinfo
-
-	Perform an install without removing the temporary directory:
-	$0 --tmp-dir-template /var/tmp/sde_tmp-XXXX --no-cleanup \\
-	  --num-jobs 4 --strip \\
-	  -v $example_clang_version -d /tmp/clang-$example_clang_version \\
-	  --enable-shared-libllvm --enable-libcxx
-
-	CMAKE_TOOLCHAIN_FILE=$HOME/public/sde/toolchains/clang-default.cmake \\
-	  $0 --tmp-dir-template /var/tmp/sde_tmp-XXXX --num-jobs 4 --strip \\
-	  -v $example_clang_version -d /tmp/clang-$example_clang_version \\
-	  --enable-shared-libllvm --enable-libcxx \\
-	  --no-libcxx-enable-abi-linker-script --no-cleanup
 	EOF
 	exit 2
 }
@@ -223,7 +215,8 @@ llvm_enable_rtti=
 llvm_enable_eh=
 llvm_enable_assertions=
 libcxx_enable_abi_linker_script=
-enable_shared_libllvm=0
+enable_shared_libllvm=1
+enable_link_shared_libllvm=0
 install_flang=0
 install_lldb=0
 install_libc=0
@@ -232,8 +225,9 @@ install_libclc=0
 install_openmp=1
 use_static_libstdcxx=0
 install_testsuite=0
-install_stripped="${SDE_INSTALL_CLANG_STRIPPED:-0}"
-default_pie="${SDE_INSTALL_CLANG_DEFAULT_PIE}"
+install_stripped=0
+default_pie=0
+method=web
 
 while [ $# -gt 0 ]; do
 	option="$1"
@@ -357,6 +351,15 @@ while [ $# -gt 0 ]; do
 		shift 1
 		enable_shared_libllvm=0
 		;;
+	--enable-link-shared-libllvm)
+		shift 1
+		enable_link_shared_libllvm=1
+		;;
+	--no-enable-link-shared-libllvm)
+		shift 1
+		enable_link_shared_libllvm=0
+		;;
+
 	--enable-test-suite|-t)
 		shift 1
 		install_testsuite=1
@@ -480,6 +483,13 @@ while [ $# -gt 0 ]; do
 		default_pie=0
 		;;
 
+	--method)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		method="$1"
+		shift 1
+		;;
+
 	--*|-*)
 		usage "invalid option $option"
 		;;
@@ -519,6 +529,13 @@ result="$(isabspath "$abs_install_dir")" || panic "absolute path test failed"
 if [ "$result" -eq 0 ]; then
 	abs_install_dir="$cur_dir/$abs_install_dir"
 fi
+
+case "$method" in
+git)
+	from_repo=1;;
+*)
+	from_repo=0;;
+esac
 
 ################################################################################
 # Perform some setup.
@@ -737,6 +754,9 @@ configure_options+=(-DCMAKE_INSTALL_PREFIX="$abs_install_dir")
 configure_options+=(-DCMAKE_BUILD_TYPE="$cmake_build_type")
 configure_options+=(-DCMAKE_VERBOSE_MAKEFILE=true)
 
+# Note: Never enable BUILD_SHARED_LIBS for distributions of LLVM/Clang.
+configure_options+=(-DBUILD_SHARED_LIBS=0)
+
 if [ -n "$projects_string" ]; then
 	configure_options+=("-DLLVM_ENABLE_PROJECTS=$projects_string")
 fi
@@ -762,38 +782,21 @@ if [ "$use_old_host_toolchain" -ne 0 ]; then
     configure_options+=(-DLLVM_FORCE_USE_OLD_HOST_TOOLCHAIN=true)
 fi
 
-#configure_options+=(-DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=true)
-
 if [ -n "$libcxx_enable_abi_linker_script" ]; then
-	if [ "$libcxx_enable_abi_linker_script" -ne 0 ]; then
-		configure_options+=(-DLIBCXX_ENABLE_ABI_LINKER_SCRIPT=true)
-	else
-		configure_options+=(-DLIBCXX_ENABLE_ABI_LINKER_SCRIPT=false)
-	fi
+	configure_options+=(
+	  -DLIBCXX_ENABLE_ABI_LINKER_SCRIPT="$libcxx_enable_abi_linker_script")
 fi
 
 if [ -n "$llvm_enable_assertions" ]; then
-	if [ "$llvm_enable_assertions" -ne 0 ]; then
-		configure_options+=(-DLLVM_ENABLE_ASSERTIONS=true)
-	else
-		configure_options+=(-DLLVM_ENABLE_ASSERTIONS=false)
-	fi
+	configure_options+=(-DLLVM_ENABLE_ASSERTIONS="$llvm_enable_assertions")
 fi
 
 if [ -n "$llvm_enable_rtti" ]; then
-	if [ "$llvm_enable_rtti" -ne 0 ]; then
-		configure_options+=(-DLLVM_ENABLE_RTTI=true)
-	else
-		configure_options+=(-DLLVM_ENABLE_RTTI=false)
-	fi
+	configure_options+=(-DLLVM_ENABLE_RTTI="$llvm_enable_rtti")
 fi
 
 if [ -n "$llvm_enable_eh" ]; then
-	if [ "$llvm_enable_eh" -ne 0 ]; then
-		configure_options+=(-DLLVM_ENABLE_EH=true)
-	else
-		configure_options+=(-DLLVM_ENABLE_EH=false)
-	fi
+	configure_options+=(-DLLVM_ENABLE_EH="$llvm_enable_eh")
 fi
 
 if [ -n "$gcc_dir" ]; then
@@ -803,10 +806,18 @@ if [ -n "$gcc_dir" ]; then
 #	configure_options+=(-DCMAKE_CXX_LINK_FLAGS="-L${gcc_dir}/lib64 -Wl,-rpath,${gcc_dir}/lib64")
 fi
 
-if [ "$enable_shared_libllvm" -ne 0 ]; then
-	configure_options+=(-DLLVM_BUILD_LLVM_DYLIB=1)
-else
-	configure_options+=(-DLLVM_BUILD_LLVM_DYLIB=0)
+# NOTE: Enabling LLVM_LINK_LLVM_DYLIB also enables LLVM_BUILD_LLVM_DYLIB.
+if [ -n "$enable_shared_libllvm" -a -n "$enable_link_shared_libllvm" ]; then
+	if [ "$enable_shared_libllvm" -eq 0 -a \
+	  "$enable_link_shared_libllvm" -ne 0 ]; then
+		usage "cannot choose to link with nonexistent LLVM shared library"
+	fi
+fi
+if [ -n "$enable_shared_libllvm" ]; then
+	configure_options+=(-DLLVM_BUILD_LLVM_DYLIB="$enable_shared_libllvm")
+fi
+if [ -n "$enable_link_shared_libllvm" ]; then
+	configure_options+=(-DLLVM_LINK_LLVM_DYLIB="$enable_link_shared_libllvm")
 fi
 
 if [ -n "$default_pie" ]; then
@@ -817,6 +828,7 @@ if [ -n "$default_pie" ]; then
 	fi
 fi
 
+#configure_options+=(-DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=true)
 ####configure_options+=(-DLLVM_ENABLE_LIBCXX=0)
 ####configure_options+=(-DLLVM_STATIC_LINK_CXX_STDLIB=0)
 ####configure_options+=(-DLLVM_LOCAL_RPATH=1)
