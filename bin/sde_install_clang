@@ -524,6 +524,41 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
+cat <<- EOF
+CMake generator: $cmake_generator
+Temporary directory template: $tmp_dir_template
+Install directory: $install_dir
+GCC directory: $gcc_dir
+Method: $method
+Version: $version
+Use old host toolchain: $use_old_host_toolchain
+Stop early: $stop_early
+Number of jobs: $num_jobs
+Number of compile jobs: $num_compile_jobs
+Number of link jobs: $num_link_jobs
+Cleanup: $cleanup
+Debug level: $debug_level
+Build as runtimes: $build_as_runtimes
+Keep source: $keep_source
+CMake build typle: $cmake_build_type
+Enable RTTI: $llvm_enable_rtti
+Enable EH: $llvm_enable_eh
+Enable assertions: $llvm_enable_assertions
+Enable ABI linker script: $libcxx_enable_abi_linker_script
+Enable shared (monolithic) LLVM library: $enable_shared_libllvm
+Enable linking against shared LLVM library: $enable_link_shared_libllvm
+Enable Flang: $install_flang
+Enable LLDB: $install_lldb
+Enable libc: $install_libc
+Enable libc++: $install_libcxx
+Enable libclc: $install_libclc
+Enable OpenMP: $install_openmp
+Enable static libstdc++: $use_static_libstdcxx
+Enable test suite: $install_testsuite
+Strip: $install_stripped
+Default PIE: $default_pie
+EOF
+
 abs_install_dir="$install_dir"
 result="$(isabspath "$abs_install_dir")" || panic "absolute path test failed"
 if [ "$result" -eq 0 ]; then

@@ -472,9 +472,9 @@ if [ "$alt_clang_install" -ne 0 ]; then
 	#commit="$("$sde_install_clang" -r -v main -n)" || \
 	#  panic "cannot get Clang commit"
 	#alt_clang_dir="$packages_dir/clang-git:$commit"
-	alt_clang_method="$(qversion_get method "$alt_clang_version")" || \
+	alt_clang_method="$(qversion_get method "$alt_clang_qversion")" || \
 	  panic "cannot get method"
-	alt_clang_version="$(qversion_get version "$alt_clang_version")" || \
+	alt_clang_version="$(qversion_get version "$alt_clang_qversion")" || \
 	  panic "cannot get version"
 	alt_clang_dir="$packages_dir/clang-$alt_clang_version"
 fi
