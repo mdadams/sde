@@ -99,6 +99,12 @@ fi
 install_dir="$(realpath "$install_dir")" || \
   panic "cannot get realpath"
 
+if [ "$enable_hack" -ne 0 ]; then
+	fmt_install_dir="$install_dir/lib/stdfmt"
+else
+	fmt_install_dir="$install_dir"
+fi
+
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
 # This will help to increase the likelihood that the installed software
@@ -133,25 +139,45 @@ configure_options=()
 if [ "$no_test" -ne 0 ]; then
 	configure_options+=(-DFMT_TEST=FALSE)
 fi
-(cd "$git_dir" && \
-  cmake -H. -B"$build_dir" -DCMAKE_INSTALL_PREFIX="$install_dir" "${configure_options[@]}") || \
-  panic "cannot configure"
-(cmake --build "$build_dir") || \
-  panic "cannot build"
-(cmake --build "$build_dir" --target install) || \
-  panic "cannot install"
+cmake -H"$git_dir" -B"$build_dir" \
+  -DCMAKE_INSTALL_PREFIX="$fmt_install_dir" \
+  "${configure_options[@]}" || \
+  panic "configure failed"
+cmake --build "$build_dir" || \
+  panic "build failed"
+cmake --build "$build_dir" --target install || \
+  panic "install failed"
 
 if [ "$enable_hack" -ne 0 ]; then
 	format_file="$tmp_dir/format"
 	cat > "$format_file" <<- EOF
-	#include <fmt/format.h>
-	//#include <fmt/locale.h>
+	/*
+	This header is an ugly hack so that, on platforms without the format
+	system header and std::format, one can still write std::format in code
+	(as opposed to fmt::format).
+	This is only intended as an interim measure until std::format is more
+	widely supported by C++ standard library implementations.
+	*/
+	#include <stdfmt/format.h>
 	namespace std {
-		//using fmt::format;
-		//using fmt::format_to;
 		using namespace fmt;
 	};
 	EOF
-	[ $? -eq 0 ] || panic
+	[ $? -eq 0 ] || panic "cannot create header file"
+	fmtlib_file="$(find "$fmt_install_dir" -name libfmt.a)" || panic
+	lib_dir="$(dirname "$fmtlib_file")" || panic
+	lib_dir_base="$(basename "$lib_dir")" || panic
+	#echo "LIBDIR $lib_dir_base"
+	for dir in "$install_dir/include" "$install_dir/$lib_dir_base"; do
+		if [ ! -d "$dir" ]; then
+			mkdir -p "$dir" || \
+			  panic "cannot make directory $dir"
+		fi
+	done
 	mv "$format_file" "$install_dir/include" || panic "cannot move"
+	ln -s ../lib/stdfmt/$lib_dir_base/libfmt.a \
+	  "$install_dir/$lib_dir_base/libstdfmt.a" || \
+	  panic "cannot create symlink"
+	ln -s ../lib/stdfmt/include/fmt "$install_dir/include/stdfmt" || \
+	  panic "cannot create symlink"
 fi
