@@ -694,8 +694,8 @@ fi
 # If fmtlib is installed, automatically link with it so that std::format
 # functionality is available without any special effort being required.
 if [ -n "$fmtlib_package" ]; then
-	gcc_cxx_options_suffix+=(-lfmt)
-	clang_cxx_options_suffix+=(-lfmt)
+	gcc_cxx_options_suffix+=(-lstdfmt)
+	clang_cxx_options_suffix+=(-lstdfmt)
 fi
 
 if [ "$verbose" -ge 1 ]; then

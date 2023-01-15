@@ -153,7 +153,7 @@ endif()
 if(__SDE_USE_LIBCPP)
 	if(__SDE_COMPILER_NAME STREQUAL "clang")
 		if(__SDE_COMPILER_VERSION VERSION_GREATER_EQUAL 15.0.0)
-			message(WARNING "Disabling libfmt.")
+			message(WARNING "Disabling libstdfmt.")
 			set(__SDE_USE_LIBFMT FALSE)
 		endif()
 	endif()
@@ -248,7 +248,7 @@ set(CMAKE_CXX_STANDARD_LIBRARIES "")
 set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES "")
 if(__SDE_USE_LIBFMT)
 	set(CMAKE_CXX_STANDARD_LIBRARIES ${CMAKE_CXX_STANDARD_LIBRARIES}
-	  "${__SDE_PKG_DIR}/fmtlib/lib64/libfmt.a")
+	  "${__SDE_PKG_DIR}/fmtlib/lib64/libstdfmt.a")
 	set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES
 	  ${CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES}
 	  "${__SDE_PKG_DIR}/fmtlib/include")
