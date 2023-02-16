@@ -37,7 +37,7 @@ cmake_version=3.25.2
 # web:$VERSION
 # git:$COMMIT
 gcc_qversion=web:12.2.0
-alt_gcc_qversion=git:2371d100b946ec96384e4541235fb87e0659d87b
+alt_gcc_qversion=git:4d3b7be281e73ecdaa233598db1a8390422b7770
 
 # GCC Go
 gccgo_version="$gcc_version"
@@ -48,8 +48,8 @@ gccgo_version="$gcc_version"
 # web:$VERSION
 # git:llvmorg-$VERSION
 # git:$COMMIT
-clang_qversion=web:15.0.7
-alt_clang_qversion=git:8d4b0976d5fe92a51f43ccfea50d1f10c4c77e5d
+clang_qversion=web:16.0.0-rc2
+alt_clang_qversion=git:b374423304a8d91d590d0ce5ab1b381296d6dfb2
 
 # Musl: https://www.musl-libc.org/download.html
 # Musl Releases: https://musl.libc.org/releases/
@@ -107,7 +107,7 @@ lcov_version=v1.16
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
 # Vim LSP Commits: https://github.com/prabirshrestha/vim-lsp/commits/master
-vimlsp_version=a5e06b776167375ef68cd9bc836e4e89a3a192f3
+vimlsp_version=65628c3b0affacd0f36a6e294b1c1f96c6fe2455
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 # Vim Async Commits: https://github.com/prabirshrestha/async.vim/commits/master
@@ -505,7 +505,7 @@ if [ -n "$native_clang_version" ]; then
 fi
 
 if [ "$alt_gcc_install" -ne 0 ]; then
-	#commit="$("$sde_install_gcc" -r -v master --print-commit)" || \
+	#commit="$("$sde_install_gcc" --print-commit --method git --version master)" || \
 	#  panic "cannot get GCC commit"
 	#alt_gcc_version="git:$commit"
 	alt_gcc_method="$(qversion_get method "$alt_gcc_qversion")" || \
@@ -516,7 +516,7 @@ if [ "$alt_gcc_install" -ne 0 ]; then
 fi
 
 if [ "$alt_clang_install" -ne 0 ]; then
-	#commit="$("$sde_install_clang" -r -v main --print-commit)" || \
+	#commit="$("$sde_install_clang" --print-commit --method git --version main)" || \
 	#  panic "cannot get Clang commit"
 	#alt_clang_dir="$packages_dir/clang-git:$commit"
 	alt_clang_method="$(qversion_get method "$alt_clang_qversion")" || \
