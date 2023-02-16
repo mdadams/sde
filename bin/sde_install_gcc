@@ -23,10 +23,11 @@
 # 
 # __END_OF_LICENSE__
 
-# Reference: https://www.gnu.org/software/gcc/svn.html
-# Reference: https://gcc.gnu.org/wiki/HomePage
-# Reference: https://d-meiser.github.io/2015/11/30/building-gcc-trunk.html
-# Reference: http://www.linuxfromscratch.org/blfs/view/cvs/general/gcc.html
+# References:
+# https://www.gnu.org/software/gcc/svn.html
+# https://gcc.gnu.org/wiki/HomePage
+# https://d-meiser.github.io/2015/11/30/building-gcc-trunk.html
+# http://www.linuxfromscratch.org/blfs/view/cvs/general/gcc.html
 
 # Note: The GCC build process cannot seem to handle "@" characters
 # in pathnames.
@@ -80,7 +81,8 @@ perform_cleanup()
 
 usage()
 {
-	local example_commit=a37a0cb303da35ee3b20fd25ad1592d03550ac17
+	local example_commit=4d3b7be281e73ecdaa233598db1a8390422b7770
+	local example_version=12.0.0
 
 	echo "bad usage: $@"
 	cat <<- EOF
@@ -89,12 +91,25 @@ usage()
 	Options
 	=======
 
-	--install-dir \$install_dir (alias -d)
-	    Set the installation directory to \$install_dir.
+	--verbose
+	    Increase the verbosity of output.
+	--debug-level \$level
+	    Set the debug level to \$level.
+	--method \$method
+	    Set the method for obtaining the software to \$method.
+	    Value values are: git and web.
 	--version \$version (alias -v)
 	    Set the version to install to \$version.
-	--repo (alias -r)
-	    Install from GNU GCC Subversion repository.
+	--install-dir \$install_dir (alias -d)
+	    Set the installation directory to \$install_dir.
+	--enable-languages \$languages
+	    Enable support for the languages specified by \$languages.
+	--default-pie
+	    Enable default PIE mode in the compiler to be built.
+	--old-abi
+	    Enable the old ABI mode.
+	--strip
+	    Strip executables.
 	--num-jobs \$num_jobs (alias -j)
 	    Allow the use of \$num_jobs simultaneous jobs.
 	--download-only (alias -x)
@@ -103,6 +118,8 @@ usage()
 	    Apply the patch file \$patch_file before building.
 	--no-cleanup (alias -C)
 	    Disable cleanup.
+	--print-commit
+	    Print the most recent commit on the selected branch.
 
 	Environment Variables
 	=====================
@@ -114,8 +131,9 @@ usage()
 	Examples
 	========
 
-	$0 --version 8.2.0 --install-dir $HOME/local/gcc
-	$0 --version 8.2.0 --enable-languages go --install-dir $HOME/local/gccgo
+	$0 --version $example_version --install-dir $HOME/local/gcc
+	$0 --enable-languages go \\
+	  --version $example_version --install-dir $HOME/local/gccgo
 
 	$0 --method git --version releases/gcc-9.2.0 --install-dir $HOME/local/gcc
 	$0 --method git --version master --install-dir $HOME/local/gcc
@@ -125,7 +143,7 @@ usage()
 	SDE_TMPDIR=/var/tmp \\
 	  $0 --version 11.1.0-RC-20210420 --install-dir $HOME/local/gcc
 
-	commit=\$($0 --repo --print-commit --version master)
+	commit=\$($0 --print-commit --method git --version master)
 	SDE_TMPDIR=/var/tmp \\
 	  $0 --method git --version \$commit -d /tmp/gcc-trunk-\$commit
 
@@ -226,11 +244,6 @@ while [ $# -gt 0 ]; do
 		old_abi=0
 		;;
 
-	--repo|-r)
-		shift 1
-		from_repo=1
-		;;
-
 	--download-only|-x)
 		shift 1
 		download_only=1
@@ -279,16 +292,24 @@ while [ $# -gt 0 ]; do
 done
 shift $((OPTIND - 1))
 
+case "$method" in
+git)
+	from_repo=1;;
+*)
+	from_repo=0;;
+esac
+
 if [ "$print_commit" -ne 0 ]; then
-	if [ "$from_repo" -ne 0 ]; then
-		if [ -z "$version" ]; then
-			usage "no version specified"
-		fi
-		commit="$(git ls-remote "$git_repo" "$version" | \
-		  awk -v x='refs/heads/'"$version" '{if ($2 == x) {print $1;}}')" || \
-		  panic "git rev-parse failed"
-		echo "$commit" || panic "echo failed"
+	if [ "$from_repo" -eq 0 ]; then
+		usage "printing commit requires git method"
 	fi
+	if [ -z "$version" ]; then
+		usage "no version specified"
+	fi
+	commit="$(git ls-remote "$git_repo" "$version" | \
+	  awk -v x='refs/heads/'"$version" '{if ($2 == x) {print $1;}}')" || \
+	  panic "git rev-parse failed"
+	echo "$commit" || panic "echo failed"
 	exit 0
 fi
 
@@ -320,13 +341,6 @@ result=$(isabspath "$abs_install_dir") || panic "absolute path test failed"
 if [ "$result" -eq 0 ]; then
 	abs_install_dir="$cur_dir/$abs_install_dir"
 fi
-
-case "$method" in
-git)
-	from_repo=1;;
-*)
-	from_repo=0;;
-esac
 
 ################################################################################
 # Perform some setup.
