@@ -80,6 +80,8 @@ perform_cleanup()
 
 usage()
 {
+	local example_commit=a37a0cb303da35ee3b20fd25ad1592d03550ac17
+
 	echo "bad usage: $@"
 	cat <<- EOF
 	$0 [options] -v \$version -d \$install_dir
@@ -126,6 +128,12 @@ usage()
 	commit=\$($0 --repo --print-commit --version master)
 	SDE_TMPDIR=/var/tmp \\
 	  $0 --method git --version \$commit -d /tmp/gcc-trunk-\$commit
+
+	SDE_TMPDIR=/var/tmp \\
+	  $0 --enable-languages all --no-old-abi --no-default-pie \\
+	  --num-jobs 8 --strip \\
+	  --method git --version $example_commit \\
+	  --install-dir /tmp/gcc-trunk-$example_commit
 	EOF
 	exit 2
 }
