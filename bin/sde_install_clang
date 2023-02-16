@@ -147,6 +147,13 @@ usage()
 	    -strip versus --no-strip and
         --cleanup versus --no-cleanup.
 
+	Environment Variables
+	=====================
+
+	SDE_TMPDIR
+	    Specifies the directory under which temporary files are placed
+	    (e.g., when building software prior to installation).
+
 	Examples
 	========
 
