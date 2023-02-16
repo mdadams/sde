@@ -25,14 +25,15 @@
 
 ################################################################################
 
-# Reference: http://llvm.org/releases/download.html
-# Reference: http://llvm.org/docs/GettingStarted.html
-# Reference: https://llvm.org/docs/GettingStarted.html#checkout
-# Reference: http://llvm.org/docs/GettingStarted.html#compiling-the-llvm-suite-source-code
-# Reference: https://github.com/llvm/llvm-project
-# Reference: https://libcxx.llvm.org/BuildingLibcxx.html
-# Reference: https://llvm.org/docs/CMake.html
-# Reference: http://clang.llvm.org/get_started.html
+# References:
+# http://llvm.org/releases/download.html
+# http://llvm.org/docs/GettingStarted.html
+# https://llvm.org/docs/GettingStarted.html#checkout
+# http://llvm.org/docs/GettingStarted.html#compiling-the-llvm-suite-source-code
+# https://github.com/llvm/llvm-project
+# https://libcxx.llvm.org/BuildingLibcxx.html
+# https://llvm.org/docs/CMake.html
+# http://clang.llvm.org/get_started.html
 
 ################################################################################
 # Configuration
@@ -107,12 +108,12 @@ usage()
 	    Install libc.
 	--enable-libcxx
 	    Install libcxx.
+	--strip
+	    Strip executables.
 	-d|--install-dir \$install_dir
 	    Set the install directory to \$install_dir.
 	--gcc-dir \$gcc_dir
 	    Set the GCC directory to \$gcc_dir.
-	-r|--repo
-	    Build from the Git repository.
 	--stop-early
 	    Stop before building.
 	--num-jobs \$num_jobs
@@ -142,31 +143,28 @@ usage()
 	--old-host-toolchain
 	    Use the old host toolchain.
 
-	Environment Variables
-	=====================
-
-	SDE_INSTALL_CLANG_STRIPPED
-	    Install stripped executables.
-        Valid values: 0, 1
+	Most boolean options have a "no" form.  For example:
+	    -strip versus --no-strip and
+        --cleanup versus --no-cleanup.
 
 	Examples
 	========
 
 	Perform simple install of version $example_clang_version:
-	$0 -v $example_clang_version -d /tmp/clang
+	$0 --version $example_clang_version --install-dir /tmp/clang
 
 	Perform an install from the main branch:
 	SDE_TMPDIR=/var/tmp CC=gcc CXX=g++ $0 --method git --version main \\
 	  --install-dir /tmp/clang
 
 	Perform a trunk install:
-	commit=\$($0 --repo -v main -n)
+	commit=\$($0 --method git --version main --print-commit)
 	SDE_TMPDIR=/var/tmp CC=gcc CXX=g++ $0 \\
 	  --method git --version \$commit \\
 	  --install-dir /tmp/clang-trunk-\$commit
 
-	Print the latest commit on main branch:
-	$0 --repo -v main -n
+	Print the latest commit on branch release/15.x:
+	$0 --print-commit --method git --version release/15.x
 
 	Perform a debug-build install with libc++, OpenMP, OpenCL:
 	SDE_TMPDIR=/var/tmp \\
@@ -174,7 +172,7 @@ usage()
 	  --num-jobs 4 --build-type Debug --keep-source --enable-assertions \\
 	  --no-enable-libc --enable-libcxx --enable-openmp --enable-libclc \\
 	  --enable-shared-libllvm --enable-rtti --enable-eh \\
-	  -d /tmp/clang-$example_clang_tag-debug
+	  --install-dir /tmp/clang-$example_clang_tag-debug
 
 	Perform a release-with-debug-information install with libc++,
 	OpenMP, OpenCL (and RTTI and EH enabled):
@@ -185,7 +183,7 @@ usage()
 	  --no-enable-libc --enable-libcxx --enable-openmp --enable-libclc \\
 	  --enable-shared-libllvm --no-enable-link-shared-libllvm \\
 	  --enable-rtti --enable-eh --no-default-pie \\
-	  -d /tmp/clang-$example_clang_tag-relwithdebinfo
+	  --install-dir /tmp/clang-$example_clang_tag-relwithdebinfo
 	EOF
 	exit 2
 }
@@ -311,10 +309,6 @@ while [ $# -gt 0 ]; do
 		gcc_dir="$1"
 		shift 1
 		;;
-	--repo|-r)
-		shift 1
-		from_repo=1
-		;;
 	--stop-early|-S)
 		shift 1
 		stop_early=1
@@ -339,7 +333,7 @@ while [ $# -gt 0 ]; do
 		shift 1
 		;;
 
-	--print-commit|-n)
+	--print-commit)
 		shift 1
 		print_commit=1
 		;;
@@ -510,16 +504,24 @@ if [ "$debug_level" -ge 10 ]; then
 	set -xv
 fi
 
+case "$method" in
+git)
+	from_repo=1;;
+*)
+	from_repo=0;;
+esac
+
 if [ "$print_commit" -ne 0 ]; then
-	if [ "$from_repo" -ne 0 ]; then
-		if [ -z "$version" ]; then
-			usage "no version specified"
-		fi
-		commit="$(git ls-remote "$git_repo_url" "$version" | \
-		  awk -v x='refs/heads/'"$version" '{if ($2 == x) {print $1;}}')" || \
-		  panic "git rev-parse failed"
-		echo "$commit" || panic "echo failed"
+	if [ "$from_repo" -eq 0 ]; then
+		usage "cannot print Git commit for non-Git method"
 	fi
+	if [ -z "$version" ]; then
+		usage "no version specified"
+	fi
+	commit="$(git ls-remote "$git_repo_url" "$version" | \
+	  awk -v x='refs/heads/'"$version" '{if ($2 == x) {print $1;}}')" || \
+	  panic "git rev-parse failed"
+	echo "$commit" || panic "echo failed"
 	exit 0
 fi
 
@@ -570,13 +572,6 @@ result="$(isabspath "$abs_install_dir")" || panic "absolute path test failed"
 if [ "$result" -eq 0 ]; then
 	abs_install_dir="$cur_dir/$abs_install_dir"
 fi
-
-case "$method" in
-git)
-	from_repo=1;;
-*)
-	from_repo=0;;
-esac
 
 ################################################################################
 # Perform some setup.
