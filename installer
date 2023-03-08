@@ -29,7 +29,7 @@
 
 # CMake: https://cmake.org/download
 # CMake: https://gitlab.kitware.com/cmake/cmake
-cmake_version=3.25.2
+cmake_version=3.26.0-rc5
 
 # GCC: https://www.gnu.org/software/gcc
 # GCC Releases: https://ftp.gnu.org/gnu/gcc
@@ -37,7 +37,7 @@ cmake_version=3.25.2
 # web:$VERSION
 # git:$COMMIT
 gcc_qversion=web:12.2.0
-alt_gcc_qversion=git:4d3b7be281e73ecdaa233598db1a8390422b7770
+alt_gcc_qversion=git:af320a16dd6c01f89c841864a652745c098a764a
 
 # GCC Go
 gccgo_version="$gcc_version"
@@ -48,8 +48,8 @@ gccgo_version="$gcc_version"
 # web:$VERSION
 # git:llvmorg-$VERSION
 # git:$COMMIT
-clang_qversion=web:16.0.0-rc2
-alt_clang_qversion=git:b374423304a8d91d590d0ce5ab1b381296d6dfb2
+clang_qversion=web:16.0.0-rc3
+alt_clang_qversion=git:b3283bf192c6dbd6416b58e42f90ca443e8f005d
 
 # Musl: https://www.musl-libc.org/download.html
 # Musl Releases: https://musl.libc.org/releases/
@@ -81,7 +81,7 @@ boost_version=1.81.0
 
 # CGAL: https://github.com/CGAL/cgal
 # CGAL Releases: https://github.com/CGAL/cgal/releases
-cgal_version=5.5.1
+cgal_version=5.5.2
 
 # Aristotle: https://github.com/mdadams/aristotle
 # Aristotle Releases: https://github.com/mdadams/aristotle/tags
@@ -107,7 +107,7 @@ lcov_version=v1.16
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
 # Vim LSP Commits: https://github.com/prabirshrestha/vim-lsp/commits/master
-vimlsp_version=65628c3b0affacd0f36a6e294b1c1f96c6fe2455
+vimlsp_version=80cd62f8f2c9c571aa31027b77ab7b8aac3d6346
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 # Vim Async Commits: https://github.com/prabirshrestha/async.vim/commits/master
@@ -129,6 +129,7 @@ hub_version=2.14.2
 # GitHub CLI Releases: https://github.com/cli/cli/releases
 # https://github.com/cli/cli/blob/trunk/docs/source.md
 # latest version requires go 1.19+
+#gh_version=2.23.0 # requires newer version of go
 gh_version=2.14.3 # works with go 1.16.15
 
 # GHI: https://github.com/stephencelis/ghi
