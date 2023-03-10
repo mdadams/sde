@@ -37,7 +37,7 @@ cmake_version=3.26.0-rc5
 # web:$VERSION
 # git:$COMMIT
 gcc_qversion=web:12.2.0
-alt_gcc_qversion=git:af320a16dd6c01f89c841864a652745c098a764a
+alt_gcc_qversion=git:c227508d06a63f9b8fede3fd88813accb447060e
 
 # GCC Go
 gccgo_version="$gcc_version"
@@ -48,8 +48,8 @@ gccgo_version="$gcc_version"
 # web:$VERSION
 # git:llvmorg-$VERSION
 # git:$COMMIT
-clang_qversion=web:16.0.0-rc3
-alt_clang_qversion=git:b3283bf192c6dbd6416b58e42f90ca443e8f005d
+clang_qversion=git:a9e129ed8806cc313fcda5017f25206cf73c42ea # 16.x
+alt_clang_qversion=git:de76c016f722fb27a2b966e860a99966e91c3216
 
 # Musl: https://www.musl-libc.org/download.html
 # Musl Releases: https://musl.libc.org/releases/
@@ -107,7 +107,7 @@ lcov_version=v1.16
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
 # Vim LSP Commits: https://github.com/prabirshrestha/vim-lsp/commits/master
-vimlsp_version=80cd62f8f2c9c571aa31027b77ab7b8aac3d6346
+vimlsp_version=e82e73a5ebb7df7a9661b3ee296d1b8c5934497f
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 # Vim Async Commits: https://github.com/prabirshrestha/async.vim/commits/master
