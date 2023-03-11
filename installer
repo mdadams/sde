@@ -442,7 +442,7 @@ if [ -n "$SDE_ALT_GCC_INSTALL_OPTIONS" ]; then
 fi
 
 clang_install_options=()
-clang_install_options+=(---default-projects-runtimes)
+clang_install_options+=(--default-projects-runtimes)
 clang_install_options+=(--enable-shared-libllvm)
 clang_install_options+=(--no-enable-link-shared-libllvm)
 clang_install_options+=(--enable-static-libstdcxx)
