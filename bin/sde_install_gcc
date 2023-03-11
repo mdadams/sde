@@ -81,7 +81,7 @@ perform_cleanup()
 
 usage()
 {
-	local example_commit=4d3b7be281e73ecdaa233598db1a8390422b7770
+	local example_commit=d9922e4bb5d8014ff3e4057442bbd6d2ed58cc36
 	local example_version=12.0.0
 
 	echo "bad usage: $@"
@@ -128,28 +128,34 @@ usage()
 	    Specifies the directory under which temporary files are placed
 	    (e.g., when building software prior to installation).
 
+	Download Sources
+	================
+
+	The GCC software can be downloaded via Git or HTTP.
+	Example of Git tags corresponding to releases:
+	    releases/gcc-9.2.0
+	Example of release candidate file basenames:
+	    11.1.0-RC-20210420
+
 	Examples
 	========
 
+	To build and install the GCC software with the default settings:
 	$0 --version $example_version --install-dir $HOME/local/gcc
+
+	To build and install the GCC software with support for only the Go
+	language:
 	$0 --enable-languages go \\
 	  --version $example_version --install-dir $HOME/local/gccgo
 
-	$0 --method git --version releases/gcc-9.2.0 --install-dir $HOME/local/gcc
-	$0 --method git --version master --install-dir $HOME/local/gcc
-	SDE_TMPDIR=/var/tmp \\
-	  $0 --method git --version master --install-dir $HOME/local/gcc
+	To print the most recent commit on the master branch:
+	$0 --print-commit --method git --version master
 
+	To build the software with all supported languages enabled for
+	teaching SENG 475:
 	SDE_TMPDIR=/var/tmp \\
-	  $0 --version 11.1.0-RC-20210420 --install-dir $HOME/local/gcc
-
-	commit=\$($0 --print-commit --method git --version master)
-	SDE_TMPDIR=/var/tmp \\
-	  $0 --method git --version \$commit -d /tmp/gcc-trunk-\$commit
-
-	SDE_TMPDIR=/var/tmp \\
-	  $0 --enable-languages all --no-old-abi --no-default-pie \\
-	  --num-jobs 8 --strip \\
+	  $0 --num-jobs 8 --strip \\
+	  --enable-languages all --no-old-abi --no-default-pie \\
 	  --method git --version $example_commit \\
 	  --install-dir /tmp/gcc-trunk-$example_commit
 	EOF

@@ -55,6 +55,127 @@ panic()
 	exit 1
 }
 
+# convert colon-separated list to array
+list_to_array()
+{
+	if [ $# -ne 2 ]; then
+		panic "list_to_array: invalid number of arguments"
+	fi
+	local _array_name="$1"
+	local string="$2"
+	IFS=': ' read -r -a "$_array_name" <<< "$string"
+}
+
+# print array as character-separated list
+array_to_list()
+{
+	if [ $# -lt 1 ]; then
+		panic "array_to_list: invalid number of arguments"
+	fi
+	local _array_name="$1"
+	local delimiter
+	if [ $# -ge 2 ]; then
+		delimiter="$2"
+	else
+		delimiter=":"
+	fi
+	local IFS="$delimiter"
+	eval 'echo "${'"$_array_name"'[*]}"'
+}
+
+# add single element to array
+array_add()
+{
+	if [ $# -ne 2 ]; then
+		panic "array_add: invalid number of arguments"
+	fi
+	local _array_name="$1"
+	local value="$2"
+	eval "$_array_name"'=("${'"$_array_name"'[@]}" '"$value"')'
+}
+
+# add single element to array without duplicates
+array_add_unique()
+{
+	if [ $# -ne 2 ]; then
+		panic "array_add: invalid number of arguments"
+	fi
+	local _array_name="$1"
+	local value="$2"
+	array_delete "$_array_name" "$value"
+	array_add "$_array_name" "$value"
+}
+
+# add colon-separated list of values to array without duplicates
+array_add_list_unique()
+{
+	if [ $# -ne 2 ]; then
+		panic "array_add_list: invalid number of arguments"
+	fi
+	local _array_name="$1"
+	local list="$2"
+	list_to_array items "$list"
+	local i
+	for i in "${items[@]}"; do
+		array_add_unique "$_array_name" "$i"
+	done
+}
+
+# delete value from array
+array_delete()
+{
+	if [ $# -ne 2 ]; then
+		panic "array_delete: invalid number of arguments"
+	fi
+	local _array_name="$1"
+	local value="$2"
+	local in_array
+	local out_array
+	eval 'in_array=("${'"$_array_name"'[@]}")'
+	local i
+	for i in "${in_array[@]}"; do
+		if [ "x$i" != "x$value" ]; then
+			out_array+=("$i")
+		fi
+	done
+	eval "$_array_name"'=('"${out_array[@]}"')'
+}
+
+# delete colon-separated list of values from array
+array_delete_list()
+{
+	if [ $# -ne 2 ]; then
+		panic "array_add_list: invalid number of arguments"
+	fi
+	local _array_name="$1"
+	local list="$2"
+	list_to_array items "$list"
+	local i
+	for i in "${items[@]}"; do
+		array_delete "$_array_name" "$i"
+	done
+}
+
+# for testing only
+print_array()
+{
+	if [ $# -ne 1 ]; then
+		panic "print_array: invalid number of arguments"
+	fi
+	local _array_name="$1"
+	local i
+	local dquote='"'
+	eval local _array=('${'"$_array_name"'[@]}')
+	echo "array: $_array_name has size ${#_array[@]}"
+	for i in "${!_array[@]}"; do
+	echo "[$i]=$dquote${_array[i]}$dquote"
+	done
+}
+
+################################################################################
+# Functions
+################################################################################
+
 version_to_version_id()
 {
 	local version="$1"
@@ -104,14 +225,19 @@ usage()
 	    Set the debug level to \$level.
 	--no-cleanup
 	    Disable cleanup of the temporary directory.
-	--enable-libc
-	    Install libc.
-	--enable-libcxx
-	    Install libcxx.
 	--strip
 	    Strip executables.
 	-d|--install-dir \$install_dir
 	    Set the install directory to \$install_dir.
+	--project \$project_spec
+	    Add the projects specified by \$project_spec to the list of projects.
+	    (The value \$project_spec is a colon-separated list.)
+	--runtime \$runtime_spec
+	    Add the runtimes specified by \$runtime_spec to the list of runtimes.
+	    (The value \$runtime_spec is a colon-separated list.)
+	--target \$target_spec
+	    Add the targets specified by \$runtime_spec to the list of targets.
+	    (The value \$target_spec is a colon-separated list.)
 	--gcc-dir \$gcc_dir
 	    Set the GCC directory to \$gcc_dir.
 	--stop-early
@@ -132,10 +258,6 @@ usage()
 	    Link applications with the shared monolithic LLVM library.
 	--enable-test-suite
 	    Install the test suite.
-	--enable-flang
-	    Install flang (i.e., Fortran compiler).
-	--enable-lldb
-	    Install lldb.
 	--tmp-dir-templates \$template_path
 	    Set the temporary directory template pathname \$template_path.
 	--enable-static-libstdcxx
@@ -161,8 +283,9 @@ usage()
 	$0 --version $example_clang_version --install-dir /tmp/clang
 
 	Perform an install from the main branch:
-	SDE_TMPDIR=/var/tmp CC=gcc CXX=g++ $0 --method git --version main \\
-	  --install-dir /tmp/clang
+	SDE_TMPDIR=/var/tmp CC=gcc CXX=g++ $0 \\
+	  --method git --version main \\
+	  --default-projects-runtimes --install-dir /tmp/clang
 
 	Perform a trunk install:
 	commit=\$($0 --method git --version main --print-commit)
@@ -170,27 +293,44 @@ usage()
 	  --method git --version \$commit \\
 	  --install-dir /tmp/clang-trunk-\$commit
 
-	Print the latest commit on branch release/15.x:
-	$0 --print-commit --method git --version release/15.x
+	Print the latest commit on branch release/16.x:
+	$0 --print-commit --method git --version release/16.x
 
 	Perform a debug-build install with libc++, OpenMP, OpenCL:
 	SDE_TMPDIR=/var/tmp \\
 	  $0 --method git --version $example_clang_tag \\
-	  --num-jobs 4 --build-type Debug --keep-source --enable-assertions \\
-	  --no-enable-libc --enable-libcxx --enable-openmp --enable-libclc \\
-	  --enable-shared-libllvm --enable-rtti --enable-eh \\
+	  --project "clang:clang-tools-extra" \\
+	  --project "compiler-rt:lld:libclc:polly:openmp" \\
+	  --runtime "libcxx:libcxxabi:libunwind" \\
+	  --build-type Debug --build-docs --keep-source \\
+	  --num-jobs 4 --num-parallel-compile-jobs 4 --num-parallel-link-jobs 1 \\
+	  --enable-assertions --enable-shared-libllvm --enable-rtti --enable-eh \\
 	  --install-dir /tmp/clang-$example_clang_tag-debug
 
 	Perform a release-with-debug-information install with libc++,
 	OpenMP, OpenCL (and RTTI and EH enabled):
 	SDE_TMPDIR=/var/tmp \\
 	  $0 --method git --version $example_clang_tag \\
-	  --num-parallel-compile-jobs 4 --num-parallel-link-jobs 1 \\
-	  --build-type RelWithDebInfo --keep-source --enable-assertions \\
-	  --no-enable-libc --enable-libcxx --enable-openmp --enable-libclc \\
+	  --project "clang:clang-tools-extra" \\
+	  --project "compiler-rt:lld:libclc:polly:openmp" \\
+	  --runtime "libcxx:libcxxabi:libunwind" \\
+	  --num-jobs 8 --num-parallel-compile-jobs 8 --num-parallel-link-jobs 1 \\
+	  --build-type RelWithDebInfo --build-docs --keep-source \
+	  --enable-assertions \\
 	  --enable-shared-libllvm --no-enable-link-shared-libllvm \\
 	  --enable-rtti --enable-eh --no-default-pie \\
 	  --install-dir /tmp/clang-$example_clang_tag-relwithdebinfo
+
+	Perform a release install intended for using Clang as a compiler:
+	SDE_TMPDIR=/var/tmp \\
+	  $0 --method web --version 16.0.0-rc3 \\
+	  --default-projects-runtimes --default-targets \\
+	  --build-type Release \\
+	  --num-jobs 8 --num-parallel-compile-jobs 8 --num-parallel-link-jobs 1 \\
+	  --no-enable-static-libstdcxx --no-default-pie \\
+	  --enable-shared-libllvm --no-enable-link-shared-libllvm \\
+	  --install-dir /tmp/clang
+
 	EOF
 	exit 2
 }
@@ -202,6 +342,32 @@ usage()
 cur_dir="$(pwd)" || panic "cannot get current directory"
 # Ensure that cur_dir is an absolute path.
 cur_dir="$(realpath "$cur_dir")" || panic "realpath failed"
+
+# test-suite
+# debuginfo-tests # Note: This causes configuration errors.
+# parallel-libs
+# pstl
+
+default_projects=(
+	clang
+	clang-tools-extra
+	compiler-rt
+	lld
+	libclc
+	polly
+	openmp
+	# flang mlir # NOTE: I think that flang requires mlir
+)
+default_runtimes=(
+	libc
+	libcxx
+	libcxxabi
+	libunwind
+)
+default_targets=(
+	X86
+	WebAssembly
+)
 
 cmake_generator="Unix Makefiles"
 tmp_dir=
@@ -218,8 +384,12 @@ num_link_jobs=
 cleanup=1
 print_commit=0
 debug_level="${SDE_DEBUG_LEVEL:-0}"
-build_as_runtimes=0
 
+projects=()
+runtimes=()
+targets=()
+
+build_docs=
 keep_source=0
 cmake_build_type=Release
 llvm_enable_rtti=
@@ -228,12 +398,6 @@ llvm_enable_assertions=
 libcxx_enable_abi_linker_script=
 enable_shared_libllvm=1
 enable_link_shared_libllvm=0
-install_flang=0
-install_lldb=0
-install_libc=0
-install_libcxx=0
-install_libclc=0
-install_openmp=1
 use_static_libstdcxx=0
 install_testsuite=0
 install_stripped=0
@@ -271,38 +435,6 @@ while [ $# -gt 0 ]; do
 	--no-strip)
 		shift 1
 		install_stripped=0
-		;;
-	--enable-libc)
-		shift 1
-		install_libc=1
-		;;
-	--no-enable-libc)
-		shift 1
-		install_libc=0
-		;;
-	--enable-libcxx|-l)
-		shift 1
-		install_libcxx=1
-		;;
-	--no-enable-libcxx)
-		shift 1
-		install_libcxx=0
-		;;
-	--enable-libclc)
-		shift 1
-		install_libclc=1
-		;;
-	--no-enable-libclc)
-		shift 1
-		install_libclc=0
-		;;
-	--enable-openmp)
-		shift 1
-		install_openmp=1
-		;;
-	--no-enable-openmp)
-		shift 1
-		install_openmp=0
 		;;
 	--install-dir|-d)
 		shift 1
@@ -367,6 +499,15 @@ while [ $# -gt 0 ]; do
 		enable_link_shared_libllvm=0
 		;;
 
+	--build-docs)
+		shift 1
+		build_docs=1
+		;;
+	--no-build-docs)
+		shift 1
+		build_docs=0
+		;;
+
 	--enable-test-suite|-t)
 		shift 1
 		install_testsuite=1
@@ -374,22 +515,6 @@ while [ $# -gt 0 ]; do
 	--no-enable-test-suite)
 		shift 1
 		install_testsuite=0
-		;;
-	--enable-flang|-F)
-		shift 1
-		install_flang=1
-		;;
-	--no-enable-flang)
-		shift 1
-		install_flang=0
-		;;
-	--enable-lldb|-D)
-		shift 1
-		install_lldb=1
-		;;
-	--no-enable-lldb)
-		shift 1
-		install_lldb=0
 		;;
 	--tmp-dir-template|-T)
 		shift 1
@@ -472,13 +597,60 @@ while [ $# -gt 0 ]; do
 		shift 1
 		;;
 
-	--as-runtimes)
+	--default-projects-runtimes)
 		shift 1
-		build_as_runtimes=1
+		projects=("${default_projects[@]}")
+		runtimes=("${default_runtimes[@]}")
 		;;
-	--no-as-runtimes)
+	--clear-projects-runtimes)
 		shift 1
-		build_as_runtimes=0
+		projects=()
+		runtimes=()
+		;;
+	--default-targets)
+		shift 1
+		targets=("${default_targets[@]}")
+		;;
+	--clear-targets)
+		shift 1
+		targets=()
+		;;
+	--project)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		array_add_list_unique projects "$1"
+		shift 1
+		;;
+	--no-project)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		array_delete_list projects "$1"
+		shift 1
+		;;
+	--runtime)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		array_add_list_unique runtimes "$1"
+		shift 1
+		;;
+	--no-runtime)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		array_delete_list runtimes "$1"
+		shift 1
+		;;
+
+	--target)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		array_add_list_unique targets "$1"
+		shift 1
+		;;
+	--no-target)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		array_delete_list targets "$1"
+		shift 1
 		;;
 
 	--default-pie)
@@ -539,6 +711,12 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
+if [ -n "$num_compile_jobs" -o -n "$num_link_jobs" ]; then
+	if [ -z "$num_jobs" ]; then
+		usage "number of link jobs not specified"
+	fi
+fi
+
 cat <<- EOF
 CMake generator: $cmake_generator
 Temporary directory template: $tmp_dir_template
@@ -553,7 +731,6 @@ Number of compile jobs: $num_compile_jobs
 Number of link jobs: $num_link_jobs
 Cleanup: $cleanup
 Debug level: $debug_level
-Build as runtimes: $build_as_runtimes
 Keep source: $keep_source
 CMake build typle: $cmake_build_type
 Enable RTTI: $llvm_enable_rtti
@@ -562,17 +739,17 @@ Enable assertions: $llvm_enable_assertions
 Enable ABI linker script: $libcxx_enable_abi_linker_script
 Enable shared (monolithic) LLVM library: $enable_shared_libllvm
 Enable linking against shared LLVM library: $enable_link_shared_libllvm
-Enable Flang: $install_flang
-Enable LLDB: $install_lldb
-Enable libc: $install_libc
-Enable libc++: $install_libcxx
-Enable libclc: $install_libclc
-Enable OpenMP: $install_openmp
 Enable static libstdc++: $use_static_libstdcxx
 Enable test suite: $install_testsuite
 Strip: $install_stripped
 Default PIE: $default_pie
+Projects: $(array_to_list projects)
+Runtimes: $(array_to_list runtimes)
+Targets: $(array_to_list targets)
 EOF
+
+# For testing.
+#exit 0
 
 abs_install_dir="$install_dir"
 result="$(isabspath "$abs_install_dir")" || panic "absolute path test failed"
@@ -622,74 +799,14 @@ archive_file="$archive_dir/$archive_filename"
 # Select the projects to build and install.
 ################################################################################
 
-projects=()
-other_projects=()
-runtimes=()
-targets=()
-
-projects+=(clang)
-projects+=(clang-tools-extra)
-#other_projects+=(compiler-rt)
-projects+=(compiler-rt)
-if [ "$install_flang" -ne 0 ]; then
-	projects+=(flang)
-	projects+=(mlir)
+if [ -n "$projects_spec" ]; then
+	projects_spec="$default_projects_spec"
 fi
-#projects+=(debuginfo-tests) # Note: This causes configuration errors.
-if [ "$install_libc" -ne 0 ]; then
-	other_projects+=(libc)
+if [ -n "$runtimes_spec" ]; then
+	runtimes_spec="$default_runtimes_spec"
 fi
-if [ "$install_libcxx" -ne 0 ]; then
-	runtimes+=(libcxx)
-	runtimes+=(libcxxabi)
-fi
-runtimes+=(libunwind)
-projects+=(lld)
-if [ "$install_lldb" -ne 0 ]; then
-	projects+=(lldb)
-fi
-if [ "$install_openmp" -ne 0 ]; then
-	other_projects+=(openmp)
-fi
-if [ "$install_libclc" -ne 0 ]; then
-	other_projects+=(libclc)
-fi
-projects+=(polly)
-#projects+=(parallel-libs)
-#projects+=(pstl)
-if [ "$install_testsuite" -ne 0 ]; then
-	projects+=(test-suite)
-fi
-
-if [ "$build_as_runtimes" -ne 0 ]; then
-	runtimes=("${runtimes[@]}" "${other_projects[@]}")
-else
-	projects=("${projects[@]}" "${other_projects[@]}")
-fi
-
-################################################################################
-#
-################################################################################
-
-if [ "${#projects[@]}" -gt 0 ]; then
-	projects_string="$(tr ' ' ';' <<< "${projects[@]}")" || \
-	  panic "internal error"
-else
-	projects_string=
-fi
-
-if [ "${#runtimes[@]}" -gt 0 ]; then
-	runtimes_string="$(tr ' ' ';' <<< "${runtimes[@]}")" || \
-	  panic "internal error"
-else
-	runtimes_string=
-fi
-
-if [ "${#targets[@]}" -gt 0 ]; then
-	targets_string="$(tr ' ' ';' <<< "${targets[@]}")" || \
-	  panic "internal error"
-else
-	targets_string=
+if [ -n "$targets_spec" ]; then
+	targets_spec="$default_targets_spec"
 fi
 
 ################################################################################
@@ -800,14 +917,22 @@ configure_options+=(-DCMAKE_VERBOSE_MAKEFILE=true)
 # Note: Never enable BUILD_SHARED_LIBS for distributions of LLVM/Clang.
 configure_options+=(-DBUILD_SHARED_LIBS=0)
 
-if [ -n "$projects_string" ]; then
-	configure_options+=("-DLLVM_ENABLE_PROJECTS=$projects_string")
+if [ "${#projects[@]}" -ne 0 ]; then
+	projects_spec="$(array_to_list projects ";")"
+	configure_options+=("-DLLVM_ENABLE_PROJECTS=$projects_spec")
 fi
-if [ -n "$runtimes_string" ]; then
-	configure_options+=("-DLLVM_ENABLE_RUNTIMES=$runtimes_string")
+if [ "${#runtimes[@]}" -ne 0 ]; then
+	runtimes_spec="$(array_to_list runtimes ";")"
+	configure_options+=("-DLLVM_ENABLE_RUNTIMES=$runtimes_spec")
 fi
-if [ -n "$targets_string" ]; then
-	configure_options+=("-DLLVM_RUNTIME_TARGETS=$targets_string")
+if [ "${#targets[@]}" -ne 0 ]; then
+	targets_spec="$(array_to_list targets ";")"
+	configure_options+=("-DLLVM_TARGETS_TO_BUILD=$targets_spec")
+fi
+
+if [ -n "$build_docs" ]; then
+	configure_options+=("-DLLVM_BUILD_DOCS=$build_docs")
+	configure_options+=("-DLLVM_ENABLE_DOXYGEN=$build_docs")
 fi
 
 if [ -n "$num_compile_jobs" ]; then
