@@ -36,8 +36,13 @@ git_repo="git://gcc.gnu.org/git/gcc.git"
 
 panic()
 {
-	echo "ERROR: $@"
+	echo "FATAL ERROR: $*" 1>&2
 	exit 1
+}
+
+eecho()
+{
+	echo "$*" 1>&2
 }
 
 isabspath()
@@ -69,6 +74,45 @@ validate_url()
 	*)
 		return 2;;
 	esac
+}
+
+# Get the pathname of the default spec file for GCC.
+get_spec_file()
+{
+	if [ $# -ne 1 ]; then
+		eecho "missing argument"
+		return 1
+	fi
+	local gcc_program="$1"
+	local libgcc_file="$("$gcc_program" -print-libgcc-file-name)"
+	if [ $? -ne 0 ]; then
+		eecho "cannot get libgcc file name"
+		return 1
+	fi
+	local libgcc_dir="$(dirname "$libgcc_file")"
+	if [ $? -ne 0 ]; then
+		eecho "dirname failed"
+		return 1
+	fi
+	local spec_file="$libgcc_dir/specs"
+	echo "$spec_file"
+}
+
+# Always add the library directory to the rpath for linking.
+adjust_specs()
+{
+	local install_prefix="$1"
+	local specs="$2"
+	awk -v prefix="$install_prefix" '
+		/^\*link:/ {
+			print;
+			getline;
+			print "-rpath="prefix"/lib64", $0; next
+		}
+		{
+			print
+		}
+	' <<< "$specs"
 }
 
 perform_cleanup()
@@ -185,6 +229,7 @@ print_commit=0
 install_stripped=0
 enable_languages=
 method=web
+lib_rpath=1
 
 while [ $# -gt 0 ]; do
 	option="$1"
@@ -230,6 +275,15 @@ while [ $# -gt 0 ]; do
 		[ $# -gt 0 ] || usage "missing argument"
 		version="$1"
 		shift 1
+		;;
+
+	--lib-rpath)
+		shift 1
+		lib_rpath=1
+		;;
+	--no-lib-rpath)
+		shift 1
+		lib_rpath=0
 		;;
 
 	--default-pie)
@@ -558,8 +612,19 @@ fi
   panic "make install failed"
 
 if [ "$from_repo" -ne 0 ]; then
-	echo "$commit" > "$install_dir/.version" || \
+	echo "$commit" > "$abs_install_dir/.version" || \
 	  panic "cannot make version file"
+fi
+
+if [ "$lib_rpath" -ne 0 ]; then
+	gcc_program="$abs_install_dir/bin/g++"
+	spec_file="$(get_spec_file "$gcc_program")" || \
+	  panic "cannot get name of spec file"
+	builtin_specs="$("$gcc_program" -dumpspecs)" || \
+	  panic "cannot get builtin specs"
+	adjusted_specs="$(adjust_specs "$abs_install_dir" "$builtin_specs")" || \
+	  panic "cannot adjust specs"
+	echo "$adjusted_specs" > "$spec_file"
 fi
 
 ################################################################################
