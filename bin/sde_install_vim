@@ -50,12 +50,13 @@ usage()
 	usage: $0 -v \$version -d \$install_dir
 
 	Options:
+	-m \$method
+	    Method by which to obtain the software.
+	    Valid values are: git and ftp.
 	-v \$version
 	    Set the version of the software for installation to \$version.
 	-d \$install_dir
 	    Set the installation directory to \$install_dir.
-	-r
-	    Install from Git repository.
 	EOF
 	exit 2
 }
@@ -70,7 +71,7 @@ user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
 
-use_repo=0
+method=ftp
 version=
 install_dir=
 
@@ -78,7 +79,7 @@ tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_vim-$user@$host-XXXXXXXX"
 tmp_dir=
 cleanup=1
 
-while getopts d:v:rC opt; do
+while getopts d:v:Cm: opt; do
 	case "$opt" in
 	C)
 		cleanup=0;;
@@ -86,8 +87,8 @@ while getopts d:v:rC opt; do
 		install_dir="$OPTARG";;
 	v)
 		version="$OPTARG";;
-	r)
-		use_repo=1;;
+	m)
+		method="$OPTARG";;
 	\?)
 		usage
 		break;;
@@ -101,6 +102,13 @@ fi
 if [ -z "$version" ]; then
 	usage "no version specified"
 fi
+
+case "$method" in
+git)
+	use_repo=1;;
+*)
+	use_repo=0;;
+esac
 
 abs_install_dir="$install_dir"
 result=$(isabspath "$abs_install_dir") || panic "absolute path test failed"

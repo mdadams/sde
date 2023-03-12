@@ -92,7 +92,8 @@ aristotle_version=v3.0.40
 ycm_version=0b158e059e15fbe92b44222df2439144272a8782
 
 # Vim: https://www.vim.org/download.php
-vim_version=9.0
+# Vim Release Tags: https://github.com/vim/vim/tags
+vim_qversion=git::v9.0.1402
 
 # GSL: https://github.com/Microsoft/GSL/releases
 gsl_version=v4.0.0
@@ -179,7 +180,7 @@ apply_override boost_version SDE_INSTALL_BOOST_VERSION
 apply_override cgal_version SDE_INSTALL_CGAL_VERSION
 apply_override aristotle_version SDE_INSTALL_ARISTOTLE_VERSION
 apply_override ycm_version SDE_INSTALL_YCM_VERSION
-apply_override vim_version SDE_INSTALL_VIM_VERSION
+apply_override vim_qversion SDE_INSTALL_VIM_QVERSION
 apply_override gsl_version SDE_INSTALL_GSL_VERSION
 apply_override catch_version SDE_INSTALL_CATCH_VERSION
 apply_override lcov_version SDE_INSTALL_LCOV_VERSION
@@ -415,7 +416,17 @@ spl_dir="$packages_dir/SPL-$spl_version"
 ndiff_dir="$packages_dir/ndiff-$ndiff_version"
 aristotle_dir="$packages_dir/aristotle-$aristotle_version"
 ycm_dir="$packages_dir/ycm-$ycm_version"
-vim_dir="$packages_dir/vim-$vim_version"
+
+if [ -n "$vim_qversion" ]; then
+	vim_method=$(qversion_get method "$vim_qversion") || \
+	  panic "cannot get method"
+	vim_version=$(qversion_get version "$vim_qversion") || \
+	  panic "cannot get version"
+	vim_dir="$packages_dir/vim-$vim_version"
+else
+	vim_dir=
+fi
+
 gsl_dir="$packages_dir/gsl-$gsl_version"
 catch_dir="$packages_dir/catch-$catch_version"
 lcov_dir="$packages_dir/lcov-$lcov_version"
@@ -1131,7 +1142,8 @@ fi
 if [ -n "$vim_version" -a -n "$vim_dir" ]; then
 	if [ ! -d "$vim_dir" ]; then
 		"$sde_shell" -s -x \
-		  "$sde_install_vim" -v "$vim_version" -d "$vim_dir" || \
+		  "$sde_install_vim" \
+		  -m "$vim_method" -v "$vim_version" -d "$vim_dir" || \
 		  panic "cannot install vim"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" vim "$vim_version" || \
