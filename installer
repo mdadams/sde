@@ -93,7 +93,7 @@ ycm_version=0b158e059e15fbe92b44222df2439144272a8782
 
 # Vim: https://www.vim.org/download.php
 # Vim Release Tags: https://github.com/vim/vim/tags
-vim_qversion=git::v9.0.1402
+vim_qversion=git:v9.0.1402
 
 # GSL: https://github.com/Microsoft/GSL/releases
 gsl_version=v4.0.0
