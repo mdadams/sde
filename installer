@@ -463,9 +463,12 @@ fi
 
 clang_install_options=()
 clang_install_options+=(--default-projects-runtimes)
+clang_install_options+=(--default-targets)
 clang_install_options+=(--enable-shared-libllvm)
 clang_install_options+=(--no-enable-link-shared-libllvm)
-clang_install_options+=(--old-host-toolchain)
+#clang_install_options+=(--old-host-toolchain)
+# Note: Due to libgcc_s shared library, there is no point to
+# static linking of libstdc++.
 #clang_install_options+=(--enable-static-libstdcxx)
 # Note: The following install-clang options should be the last ones added
 # so that they can override others.
@@ -836,20 +839,22 @@ fi
 
 if [ -n "$clang_version" -a -n "$clang_dir" ]; then
 	if [ ! -d "$clang_dir" ]; then
+		# Note: The "gcc-*" in the -p option might not be necessary.
 		"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
-		  env \
-		  CXX="$gcc_dir/bin/g++" \
-		  CC="$gcc_dir/bin/gcc" \
 		  "$sde_install_clang" \
 		  --method "$clang_method" \
 		  --version "$clang_version" \
 		  --install-dir "$clang_dir" \
+		  --gcc-dir "$gcc_dir" \
 		  "${clang_install_options[@]}" \
 		  || panic "cannot install clang"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" clang "$clang_version" || \
 	  panic "cannot configure clang"
 fi
+#		  env \
+#		  CXX="$gcc_dir/bin/g++" \
+#		  CC="$gcc_dir/bin/gcc" \
 
 ################################################################################
 # Install Alternative Version of Clang
@@ -857,15 +862,17 @@ fi
 
 if [ "$alt_clang_install" -ne 0 -a -n "$alt_clang_dir" ]; then
 	if [ ! -d "$alt_clang_dir" ]; then
+		# Note: The "gcc-*" in the -p option might not be necessary.
 		"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
-		  env CXX="$gcc_dir/bin/g++" CC="$gcc_dir/bin/gcc" \
 		  "$sde_install_clang" \
 		  --method "$alt_clang_method" \
 		  --version "$alt_clang_version" \
 		  --install-dir "$alt_clang_dir" \
+		  --gcc-dir "$gcc_dir" \
 		  "${alt_clang_install_options[@]}" \
 		  || panic "cannot install clang"
 	fi
+#env CXX="$gcc_dir/bin/g++" CC="$gcc_dir/bin/gcc" \
 	#"$sde_cmd" pkg -d "$sde_top_dir" clang "$clang_version" || \
 	#  panic "cannot configure clang"
 	base=$(basename "$alt_clang_dir") || \

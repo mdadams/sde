@@ -321,7 +321,8 @@ usage()
 	  --enable-rtti --enable-eh --no-default-pie \\
 	  --install-dir /tmp/clang-$example_clang_tag-relwithdebinfo
 
-	Perform a release install intended for using Clang as a compiler:
+	Perform a release install intended for using Clang as a compiler
+	(static libstd++):
 	SDE_TMPDIR=/var/tmp \\
 	  $0 --method web --version 16.0.0-rc4 \\
 	  --default-projects-runtimes --default-targets \\
@@ -331,6 +332,16 @@ usage()
 	  --enable-shared-libllvm --no-enable-link-shared-libllvm \\
 	  --gcc-dir /usr/local --install-dir /tmp/clang
 
+	Perform a release install intended for using Clang as a compiler
+	(no static libstd++):
+	SDE_TMPDIR=/var/tmp \\
+	  $0 --method web --version 16.0.0-rc4 \\
+	  --default-projects-runtimes --default-targets \\
+	  --build-type Release \\
+	  --num-jobs 8 --num-parallel-compile-jobs 8 --num-parallel-link-jobs 1 \\
+	  --no-enable-static-libstdcxx --no-default-pie \\
+	  --enable-shared-libllvm --no-enable-link-shared-libllvm \\
+	  --install-dir /tmp/clang
 	EOF
 	exit 2
 }
@@ -460,10 +471,44 @@ while [ $# -gt 0 ]; do
 		install_dir="$1"
 		shift 1
 		;;
+
+	--cmake-c-compiler)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		cmake_c_compiler="$1"
+		shift 1
+		;;
+	--no-cmake-c-compiler)
+		shift 1
+		cmake_c_compiler=
+		;;
+	--cmake-cxx-compiler)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		cmake_cxx_compiler="$1"
+		shift 1
+		;;
+	--no-cmake-cxx-compiler)
+		shift 1
+		cmake_cxx_compiler=
+		;;
+	--gcc-install-prefix)
+		shift 1
+		[ $# -gt 0 ] || usage "missing argument"
+		gcc_install_prefix="$1"
+		shift 1
+		;;
+	--no-gcc-install-prefix)
+		shift 1
+		gcc_install_prefix=
+		;;
 	--gcc-dir|-g)
 		shift 1
 		[ $# -gt 0 ] || usage "missing argument"
 		gcc_dir="$1"
+		cmake_c_compiler="$gcc_dir/bin/gcc"
+		cmake_cxx_compiler="$gcc_dir/bin/g++"
+		gcc_install_prefix="$gcc_dir"
 		shift 1
 		;;
 	--stop-early|-S)
@@ -544,13 +589,17 @@ while [ $# -gt 0 ]; do
 		shift 1
 		use_static_libstdcxx=1
 		;;
-	--no-enable-static-libstdcxx|-x)
+	--no-enable-static-libstdcxx)
 		shift 1
 		use_static_libstdcxx=0
 		;;
-	--old-host-toolchain|-f)
+	--old-host-toolchain)
 		shift 1
 		use_old_host_toolchain=1
+		;;
+	--no-old-host-toolchain)
+		shift 1
+		use_old_host_toolchain=0
 		;;
 	--cmake-generator)
 		shift 1
@@ -1004,7 +1053,10 @@ if [ "$use_static_libstdcxx" -ne 0 ]; then
 fi
 
 if [ "$use_old_host_toolchain" -ne 0 ]; then
-    configure_options+=(-DLLVM_FORCE_USE_OLD_HOST_TOOLCHAIN=true)
+	# newly added
+	configure_options+=(-DLLVM_FORCE_USE_OLD_TOOLCHAIN=1)
+	# old
+	configure_options+=(-DLLVM_FORCE_USE_OLD_HOST_TOOLCHAIN=1)
 fi
 
 if [ -n "$libcxx_enable_exceptions" ]; then
@@ -1073,12 +1125,16 @@ fi
 #	configure_options+=(-DLIBCXX_HAS_GCC_S_LIB=0)
 #	configure_options+=(-DCOMPILER_RT_HAS_GCC_S_LIB=0)
 
-if [ -n "$gcc_dir" ]; then
-	configure_options+=(-DCMAKE_C_COMPILER="${gcc_dir}/bin/gcc")
-	configure_options+=(-DCMAKE_CXX_COMPILER="${gcc_dir}/bin/g++")
-	configure_options+=(-DGCC_INSTALL_PREFIX="${gcc_dir}")
-#	configure_options+=(-DCMAKE_CXX_LINK_FLAGS="-L${gcc_dir}/lib64 -Wl,-rpath,${gcc_dir}/lib64")
+if [ -n "$cmake_c_compiler" ]; then
+	configure_options+=(-DCMAKE_C_COMPILER="$cmake_c_compiler")
 fi
+if [ -n "$cmake_cxx_compiler" ]; then
+	configure_options+=(-DCMAKE_CXX_COMPILER="$cmake_cxx_compiler")
+fi
+if [ -n "$gcc_install_prefix" ]; then
+	configure_options+=(-DGCC_INSTALL_PREFIX="$gcc_install_prefix")
+fi
+#	configure_options+=(-DCMAKE_CXX_LINK_FLAGS="-L${gcc_dir}/lib64 -Wl,-rpath,${gcc_dir}/lib64")
 
 # NOTE: Enabling LLVM_LINK_LLVM_DYLIB also enables LLVM_BUILD_LLVM_DYLIB.
 if [ -n "$enable_shared_libllvm" -a -n "$enable_link_shared_libllvm" ]; then
