@@ -465,7 +465,7 @@ clang_install_options=()
 clang_install_options+=(--default-projects-runtimes)
 clang_install_options+=(--enable-shared-libllvm)
 clang_install_options+=(--no-enable-link-shared-libllvm)
-clang_install_options+=(--enable-static-libstdcxx)
+#clang_install_options+=(--enable-static-libstdcxx)
 # Note: The following install-clang options should be the last ones added
 # so that they can override others.
 if [ -n "$SDE_CLANG_INSTALL_OPTIONS" ]; then
