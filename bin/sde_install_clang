@@ -323,13 +323,13 @@ usage()
 
 	Perform a release install intended for using Clang as a compiler:
 	SDE_TMPDIR=/var/tmp \\
-	  $0 --method web --version 16.0.0-rc3 \\
+	  $0 --method web --version 16.0.0-rc4 \\
 	  --default-projects-runtimes --default-targets \\
 	  --build-type Release \\
 	  --num-jobs 8 --num-parallel-compile-jobs 8 --num-parallel-link-jobs 1 \\
-	  --no-enable-static-libstdcxx --no-default-pie \\
+	  --enable-static-libstdcxx --no-default-pie \\
 	  --enable-shared-libllvm --no-enable-link-shared-libllvm \\
-	  --install-dir /tmp/clang
+	  --gcc-dir /usr/local --install-dir /tmp/clang
 
 	EOF
 	exit 2
@@ -343,30 +343,31 @@ cur_dir="$(pwd)" || panic "cannot get current directory"
 # Ensure that cur_dir is an absolute path.
 cur_dir="$(realpath "$cur_dir")" || panic "realpath failed"
 
-# test-suite
 # debuginfo-tests # Note: This causes configuration errors.
-# parallel-libs
-# pstl
 
 default_projects=(
 	clang
 	clang-tools-extra
+	#cross-project-tests
 	compiler-rt
 	lld
+	#lldb
 	libclc
 	polly
+	# pstl
 	openmp
 	# flang mlir # NOTE: I think that flang requires mlir
+	# test-suite
 )
 default_runtimes=(
-	libc
+	#libc
 	libcxx
 	libcxxabi
 	libunwind
 )
 default_targets=(
-	X86
-	WebAssembly
+	#X86
+	#WebAssembly
 )
 
 cmake_generator="Unix Makefiles"
@@ -374,7 +375,7 @@ tmp_dir=
 tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_clang-XXXXXXXX"
 version=
 install_dir=
-gcc_dir=""
+gcc_dir=
 use_old_host_toolchain=0
 from_repo=0
 stop_early=0
@@ -691,20 +692,20 @@ while [ $# -gt 0 ]; do
 		##########
 		libcxx_enable_exceptions=1
 		libcxx_enable_rtti=1
-		#libcxx_enable_abi_linker_script=
-		libcxx_enable_shared=0
-		libcxx_enable_static=1
-		libcxx_use_compiler_rt=1
-		libcxx_cxx_abi=libcxxabi
-		libcxx_enable_static_abi_library=1
-		libcxxabi_use_compiler_rt=1
-		libcxxabi_enable_shared=0
-		libcxxabi_enable_static=1
-		libcxxabi_use_llvm_unwinder=1
-		libcxxabi_enable_static_unwinder=1
-		libunwind_use_compiler_rt=1
-		libunwind_enable_shared=0
-		libunwind_enable_static=1
+		###libcxx_enable_abi_linker_script=
+		#libcxx_enable_shared=0
+		#libcxx_enable_static=1
+		#libcxx_use_compiler_rt=1
+		#libcxx_cxx_abi=libcxxabi
+		#libcxx_enable_static_abi_library=1
+		#libcxxabi_use_compiler_rt=1
+		#libcxxabi_enable_shared=0
+		#libcxxabi_enable_static=1
+		#libcxxabi_use_llvm_unwinder=1
+		#libcxxabi_enable_static_unwinder=1
+		#libunwind_use_compiler_rt=1
+		#libunwind_enable_shared=0
+		#libunwind_enable_static=1
 		##########
 		array_delete_list projects compiler-rt
 		array_add_list_unique runtimes compiler-rt
@@ -844,15 +845,15 @@ archive_file="$archive_dir/$archive_filename"
 # Select the projects to build and install.
 ################################################################################
 
-if [ -n "$projects_spec" ]; then
-	projects_spec="$default_projects_spec"
-fi
-if [ -n "$runtimes_spec" ]; then
-	runtimes_spec="$default_runtimes_spec"
-fi
-if [ -n "$targets_spec" ]; then
-	targets_spec="$default_targets_spec"
-fi
+#if [ -n "$projects_spec" ]; then
+#	projects_spec="$default_projects_spec"
+#fi
+#if [ -n "$runtimes_spec" ]; then
+#	runtimes_spec="$default_runtimes_spec"
+#fi
+#if [ -n "$targets_spec" ]; then
+#	targets_spec="$default_targets_spec"
+#fi
 
 ################################################################################
 # Start.
@@ -977,6 +978,7 @@ fi
 
 if [ -n "$build_docs" ]; then
 	configure_options+=("-DLLVM_BUILD_DOCS=$build_docs")
+	configure_options+=("-DLLVM_INCLUDE_DOCS=$build_docs")
 	configure_options+=("-DLLVM_ENABLE_DOXYGEN=$build_docs")
 fi
 
