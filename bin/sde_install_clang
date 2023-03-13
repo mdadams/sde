@@ -404,6 +404,23 @@ install_stripped=0
 default_pie=0
 method=web
 
+libcxx_enable_exceptions=
+libcxx_enable_rtti=
+libcxx_enable_abi_linker_script=
+libcxx_enable_shared=
+libcxx_enable_static=
+libcxx_use_compiler_rt=
+libcxx_cxx_abi=
+libcxx_enable_static_abi_library=
+libcxxabi_use_compiler_rt=
+libcxxabi_enable_shared=
+libcxxabi_enable_static=
+libcxxabi_use_llvm_unwinder=
+libcxxabi_enable_static_unwinder=
+libunwind_use_compiler_rt=
+libunwind_enable_shared=
+libunwind_enable_static=
+
 while [ $# -gt 0 ]; do
 	option="$1"
 	case "$option" in
@@ -667,6 +684,34 @@ while [ $# -gt 0 ]; do
 		[ $# -gt 0 ] || usage "missing argument"
 		method="$1"
 		shift 1
+		;;
+
+	--special)
+		shift 1
+		##########
+		libcxx_enable_exceptions=1
+		libcxx_enable_rtti=1
+		#libcxx_enable_abi_linker_script=
+		libcxx_enable_shared=0
+		libcxx_enable_static=1
+		libcxx_use_compiler_rt=1
+		libcxx_cxx_abi=libcxxabi
+		libcxx_enable_static_abi_library=1
+		libcxxabi_use_compiler_rt=1
+		libcxxabi_enable_shared=0
+		libcxxabi_enable_static=1
+		libcxxabi_use_llvm_unwinder=1
+		libcxxabi_enable_static_unwinder=1
+		libunwind_use_compiler_rt=1
+		libunwind_enable_shared=0
+		libunwind_enable_static=1
+		##########
+		array_delete_list projects compiler-rt
+		array_add_list_unique runtimes compiler-rt
+		#array_delete_list projects libunwind
+		#array_delete_list runtimes libunwind
+		array_delete_list projects libc
+		array_delete_list runtimes libc
 		;;
 
 	--*|-*)
@@ -942,6 +987,16 @@ if [ -n "$num_link_jobs" ]; then
 	configure_options+=("-DLLVM_PARALLEL_LINK_JOBS=$num_link_jobs")
 fi
 
+if [ -n "$llvm_enable_assertions" ]; then
+	configure_options+=(-DLLVM_ENABLE_ASSERTIONS="$llvm_enable_assertions")
+fi
+if [ -n "$llvm_enable_rtti" ]; then
+	configure_options+=(-DLLVM_ENABLE_RTTI="$llvm_enable_rtti")
+fi
+if [ -n "$llvm_enable_eh" ]; then
+	configure_options+=(-DLLVM_ENABLE_EH="$llvm_enable_eh")
+fi
+
 if [ "$use_static_libstdcxx" -ne 0 ]; then
     configure_options+=(-DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++")
 fi
@@ -950,22 +1005,71 @@ if [ "$use_old_host_toolchain" -ne 0 ]; then
     configure_options+=(-DLLVM_FORCE_USE_OLD_HOST_TOOLCHAIN=true)
 fi
 
+if [ -n "$libcxx_enable_exceptions" ]; then
+	configure_options+=(-DLIBCXX_ENABLE_EXCEPTIONS="$libcxx_enable_exceptions")
+fi
+if [ -n "$libcxx_enable_rtti" ]; then
+	configure_options+=(-DLIBCXX_ENABLE_RTTI="$libcxx_enable_rtti")
+fi
 if [ -n "$libcxx_enable_abi_linker_script" ]; then
 	configure_options+=(
 	  -DLIBCXX_ENABLE_ABI_LINKER_SCRIPT="$libcxx_enable_abi_linker_script")
 fi
-
-if [ -n "$llvm_enable_assertions" ]; then
-	configure_options+=(-DLLVM_ENABLE_ASSERTIONS="$llvm_enable_assertions")
+if [ -n "$libcxx_enable_shared" ]; then
+	configure_options+=(-DLIBCXX_ENABLE_SHARED="$libcxx_enable_shared")
+fi
+if [ -n "$libcxx_enable_static" ]; then
+	configure_options+=(-DLIBCXX_ENABLE_STATIC="$libcxx_enable_static")
+fi
+if [ -n "$libcxx_use_compiler_rt" ]; then
+	configure_options+=(-DLIBCXX_USE_COMPILER_RT="$libcxx_use_compiler_rt")
+fi
+if [ -n "$libcxx_cxx_abi" ]; then
+	configure_options+=(-DLIBCXX_CXX_ABI="$libcxx_cxx_abi")
+fi
+if [ -n "$libcxx_enable_static_abi_library" ]; then
+	configure_options+=(
+	  -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY="$libcxx_enable_static_abi_library")
 fi
 
-if [ -n "$llvm_enable_rtti" ]; then
-	configure_options+=(-DLLVM_ENABLE_RTTI="$llvm_enable_rtti")
+if [ -n "$libcxxabi_use_compiler_rt" ]; then
+	configure_options+=(
+	  -DLIBCXXABI_USE_COMPILER_RT="$libcxxabi_use_compiler_rt")
+fi
+if [ -n "$libcxxabi_enable_shared" ]; then
+	configure_options+=(
+	  -DLIBCXXABI_ENABLE_SHARED="$libcxxabi_enable_shared")
+fi
+if [ -n "$libcxxabi_enable_static" ]; then
+	configure_options+=(
+	  -DLIBCXXABI_ENABLE_STATIC="$libcxxabi_enable_static")
+fi
+if [ -n "$libcxxabi_use_llvm_unwinder" ]; then
+	configure_options+=(
+	  -DLIBCXXABI_USE_LLVM_UNWINDER="$libcxxabi_use_llvm_unwinder")
+fi
+if [ -n "$libcxxabi_enable_static_unwinder" ]; then
+	configure_options+=(
+	  -DLIBCXXABI_ENABLE_STATIC_UNWINDER="$libcxxabi_enable_static_unwinder")
 fi
 
-if [ -n "$llvm_enable_eh" ]; then
-	configure_options+=(-DLLVM_ENABLE_EH="$llvm_enable_eh")
+if [ -n "$libunwind_use_compiler_rt" ]; then
+	configure_options+=(
+	  -DLIBUNWIND_USE_COMPILER_RT="$libunwind_use_compiler_rt")
 fi
+if [ -n "$libunwind_enable_shared" ]; then
+	configure_options+=(
+	  -DLIBUNWIND_ENABLE_SHARED="$libunwind_enable_shared")
+fi
+if [ -n "$libunwind_enable_static" ]; then
+	configure_options+=(
+	  -DLIBUNWIND_ENABLE_STATIC="$libunwind_enable_static")
+fi
+
+#	configure_options+=(-DLIBCXX_HAS_ATOMIC_LIB=0)
+#	configure_options+=(-DLIBCXX_HAS_GCC_LIB=0)
+#	configure_options+=(-DLIBCXX_HAS_GCC_S_LIB=0)
+#	configure_options+=(-DCOMPILER_RT_HAS_GCC_S_LIB=0)
 
 if [ -n "$gcc_dir" ]; then
 	configure_options+=(-DCMAKE_C_COMPILER="${gcc_dir}/bin/gcc")
@@ -996,7 +1100,6 @@ if [ -n "$default_pie" ]; then
 	fi
 fi
 
-#configure_options+=(-DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=true)
 ####configure_options+=(-DLLVM_ENABLE_LIBCXX=0)
 ####configure_options+=(-DLLVM_STATIC_LINK_CXX_STDLIB=0)
 ####configure_options+=(-DLLVM_LOCAL_RPATH=1)
