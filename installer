@@ -40,8 +40,8 @@ gcc_qversion=web:12.2.0
 alt_gcc_qversion=git:d9922e4bb5d8014ff3e4057442bbd6d2ed58cc36
 
 # GCC Go
-gccgo_version="$gcc_version"
-#gccgo_version=11.2.0
+gccgo_qversion="$gcc_qversion"
+#gccgo_qversion=web:11.2.0
 
 # LLVM: http://releases.llvm.org/download.html
 # LLVM Releases: https://github.com/llvm/llvm-project/releases
@@ -167,7 +167,7 @@ apply_override()
 apply_override cmake_version SDE_INSTALL_CMAKE_VERSION
 apply_override gcc_qversion SDE_INSTALL_GCC_QVERSION
 apply_override alt_gcc_qversion SDE_INSTALL_ALT_GCC_QVERSION
-apply_override gccgo_version SDE_INSTALL_GCCGO_VERSION
+apply_override gccgo_qversion SDE_INSTALL_GCCGO_QVERSION
 apply_override clang_qversion SDE_INSTALL_CLANG_QVERSION
 apply_override alt_clang_qversion SDE_INSTALL_ALT_CLANG_QVERSION
 apply_override musl_version SDE_INSTALL_MUSL_VERSION
@@ -439,7 +439,16 @@ musl_dir="$packages_dir/musl-$musl_version"
 fmtlib_dir="$packages_dir/fmtlib-$fmtlib_version"
 range_dir="$packages_dir/range-$range_version"
 cmcstl2_dir="$packages_dir/cmcstl2-$cmcstl2_version"
-gccgo_dir="$packages_dir/gccgo-$gccgo_version"
+
+if [ -n "$gccgo_qversion" ]; then
+	gccgo_method=$(qversion_get method "$gccgo_qversion") || \
+	  panic "cannot get method"
+	gccgo_version=$(qversion_get version "$gccgo_qversion") || \
+	  panic "cannot get version"
+	gccgo_dir="$packages_dir/gccgo-$gccgo_version"
+else
+	gccgo_dir=
+fi
 
 gcc_install_options=()
 # Note: The following install-gcc options should be the last ones added
@@ -1205,6 +1214,7 @@ fi
 if [ -n "$gccgo_version" -a ! -d "$gccgo_dir" ]; then
 	"$sde_shell" -s -p null -x \
 	  "$sde_install_gcc" \
+	  --method "$gccgo_method" \
 	  --version "$gccgo_version" \
 	  --install-dir "$gccgo_dir" \
 	  "${gcc_install_options[@]}"
