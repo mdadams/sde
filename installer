@@ -465,6 +465,7 @@ clang_install_options=()
 clang_install_options+=(--default-projects-runtimes)
 clang_install_options+=(--enable-shared-libllvm)
 clang_install_options+=(--no-enable-link-shared-libllvm)
+clang_install_options+=(--old-host-toolchain)
 #clang_install_options+=(--enable-static-libstdcxx)
 # Note: The following install-clang options should be the last ones added
 # so that they can override others.
@@ -835,7 +836,6 @@ fi
 
 if [ -n "$clang_version" -a -n "$clang_dir" ]; then
 	if [ ! -d "$clang_dir" ]; then
-		# Note: omitted --old-host-toolchain
 		"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
 		  env \
 		  CXX="$gcc_dir/bin/g++" \
@@ -857,7 +857,6 @@ fi
 
 if [ "$alt_clang_install" -ne 0 -a -n "$alt_clang_dir" ]; then
 	if [ ! -d "$alt_clang_dir" ]; then
-		# Note: omitted --old-host-toolchain
 		"$sde_shell" -s -p cmake:gcc-$gcc_version -x \
 		  env CXX="$gcc_dir/bin/g++" CC="$gcc_dir/bin/gcc" \
 		  "$sde_install_clang" \
