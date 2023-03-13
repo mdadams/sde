@@ -1217,7 +1217,7 @@ if [ -n "$gccgo_version" -a ! -d "$gccgo_dir" ]; then
 	  --method "$gccgo_method" \
 	  --version "$gccgo_version" \
 	  --install-dir "$gccgo_dir" \
-	  "${gcc_install_options[@]}"
+	  "${gcc_install_options[@]}" \
 	  --enable-languages go \
 	  || panic "cannot install gccgo"
 	"$sde_cmd" pkg -d "$sde_top_dir" gccgo "$gccgo_version" || \
