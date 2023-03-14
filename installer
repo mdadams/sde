@@ -504,6 +504,9 @@ fi
 if [ "${SDE_GCCGO_INSTALL:-1}" -eq 0 ]; then
 	gccgo_dir=
 fi
+if [ "${SDE_YCM_INSTALL:-1}" -eq 0 ]; then
+	ycm_dir=
+fi
 
 if [ -z "$gccgo_dir" ]; then
 	if [ -n "$gh_dir" ]; then
