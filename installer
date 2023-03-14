@@ -48,7 +48,7 @@ gccgo_qversion="$gcc_qversion"
 # web:$VERSION
 # git:llvmorg-$VERSION
 # git:$COMMIT
-clang_qversion=git:a9e129ed8806cc313fcda5017f25206cf73c42ea # 16.x
+clang_qversion=web:16.0.0-rc4
 alt_clang_qversion=git:de76c016f722fb27a2b966e860a99966e91c3216
 
 # Musl: https://www.musl-libc.org/download.html
@@ -466,6 +466,9 @@ clang_install_options+=(--default-projects-runtimes)
 clang_install_options+=(--default-targets)
 clang_install_options+=(--enable-shared-libllvm)
 clang_install_options+=(--no-enable-link-shared-libllvm)
+clang_install_options+=(--strip)
+clang_install_options+=(--no-default-pie)
+clang_install_options+=(--no-enable-test-suite)
 #clang_install_options+=(--old-host-toolchain)
 # Note: Due to libgcc_s shared library, there is no point to
 # static linking of libstdc++.

@@ -34,6 +34,7 @@
 # https://libcxx.llvm.org/BuildingLibcxx.html
 # https://llvm.org/docs/CMake.html
 # http://clang.llvm.org/get_started.html
+# https://discourse.llvm.org/t/how-to-build-libc-libunwind-independent-of-libgcc-s-so-use-compiler-rt-builtins-atomics/63141
 
 ################################################################################
 # Configuration
