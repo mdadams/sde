@@ -29,10 +29,10 @@
 
 # CMake: https://cmake.org/download
 # CMake: https://gitlab.kitware.com/cmake/cmake
-#cmake_version=3.26.0-rc6
-cmake_version=3.24.3
+cmake_version=3.26.0
+#cmake_version=3.24.3
 # CMake 3.25+ appears to have a bug that prevents libunwind in LLVM/Clang from
-# building correctly.
+# building correctly.  This bug is still present in 3.26.0-rc6.
 # https://gitlab.kitware.com/cmake/cmake/-/issues/24561
 
 # Ninja:
