@@ -3,6 +3,7 @@ gcc
 gccgo
 clang
 #musl
+ninja
 
 #libcxx
 boost
