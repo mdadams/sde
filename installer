@@ -35,6 +35,9 @@ cmake_version=3.24.3
 # building correctly.
 # https://gitlab.kitware.com/cmake/cmake/-/issues/24561
 
+# Ninja:
+ninja_version=v1.11.1
+
 # GCC: https://www.gnu.org/software/gcc
 # GCC Releases: https://ftp.gnu.org/gnu/gcc
 # https://gcc.gnu.org/git/?p=gcc.git;a=shortlog;h=refs/heads/master
@@ -169,6 +172,7 @@ apply_override()
 }
 
 apply_override cmake_version SDE_INSTALL_CMAKE_VERSION
+apply_override ninja_version SDE_INSTALL_NINJA_VERSION
 apply_override gcc_qversion SDE_INSTALL_GCC_QVERSION
 apply_override alt_gcc_qversion SDE_INSTALL_ALT_GCC_QVERSION
 apply_override gccgo_qversion SDE_INSTALL_GCCGO_QVERSION
@@ -294,6 +298,7 @@ bin_dir="$cmd_dir/bin"
 sde_cmd="$bin_dir/sde"
 sde_relpath="$bin_dir/sde_relpath"
 sde_install_cmake="$bin_dir/sde_install_cmake"
+sde_install_ninja="$bin_dir/sde_install_ninja"
 sde_install_gcc="$bin_dir/sde_install_gcc"
 sde_install_clang="$bin_dir/sde_install_clang"
 sde_install_boost="$bin_dir/sde_install_boost"
@@ -397,6 +402,7 @@ alt_clang_install="${SDE_ALT_CLANG_INSTALL:-0}"
 generic_sdebase_dir="$packages_dir/sdebase"
 sdebase_dir="$packages_dir/sdebase-default"
 cmake_dir="$packages_dir/cmake-$cmake_version"
+ninja_dir="$packages_dir/ninja-$ninja_version"
 
 gcc_method=$(qversion_get method "$gcc_qversion") || \
   panic "cannot get method"
@@ -513,6 +519,9 @@ if [ "${SDE_GCCGO_INSTALL:-1}" -eq 0 ]; then
 fi
 if [ "${SDE_YCM_INSTALL:-1}" -eq 0 ]; then
 	ycm_dir=
+fi
+if [ "${SDE_NINJA_INSTALL:-1}" -eq 0 ]; then
+	ninja_dir=
 fi
 
 if [ -z "$gccgo_dir" ]; then
@@ -767,24 +776,22 @@ if [ -n "$cmake_version" -a -n "$cmake_dir" ]; then
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" cmake "$cmake_version" || \
 	  panic "cannot configure cmake"
-
-#	if [ ! -d "$boot_dir" ]; then
-#		mkdir -p "$boot_dir" || panic "cannot make directory $boot_dir"
-#	fi
-#	target_file="$boot_dir/cmake"
-#	if [ -L "$target_file" -o -e "$target_file" ]; then
-#		rm -f "$target_file" || panic "cannot remove file $target_file"
-#	fi
-#	ln -s ../packages/cmake-$cmake_version/bin/cmake "$target_file" || \
-#	  panic "cannot make symbolic link for cmake"
 fi
 
 ################################################################################
-# Add boot directory to path.
+# Install Ninja
 ################################################################################
 
-#path="$boot_dir:$PATH"
-#export PATH="$path"
+# TODO/NOTE: This should probably be moved until after GCC is installed.
+if [ -n "$ninja_version" -a -n "$ninja_dir" ]; then
+	if [ ! -d "$ninja_dir" ]; then
+		"$sde_shell" -s -p cmake -x \
+		  "$sde_install_ninja" -v "$ninja_version" -d "$ninja_dir" || \
+		  panic "cannot install ninja"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" ninja "$ninja_version" || \
+	  panic "cannot configure ninja"
+fi
 
 ################################################################################
 # Install GHI
