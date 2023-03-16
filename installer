@@ -30,12 +30,9 @@
 # CMake: https://cmake.org/download
 # CMake: https://gitlab.kitware.com/cmake/cmake
 cmake_version=3.26.0
-#cmake_version=3.24.3
-# CMake 3.25+ appears to have a bug that prevents libunwind in LLVM/Clang from
-# building correctly.  This bug is still present in 3.26.0-rc6.
-# https://gitlab.kitware.com/cmake/cmake/-/issues/24561
 
-# Ninja:
+# Ninja: https://github.com/ninja-build/ninja
+# Ninja Releases: https://github.com/ninja-build/ninja/releases
 ninja_version=v1.11.1
 
 # GCC: https://www.gnu.org/software/gcc
@@ -44,7 +41,7 @@ ninja_version=v1.11.1
 # web:$VERSION
 # git:$COMMIT
 gcc_qversion=web:12.2.0
-alt_gcc_qversion=git:d9922e4bb5d8014ff3e4057442bbd6d2ed58cc36
+alt_gcc_qversion=git:57052c6ed59c1a2ee4a67982f960e08593956955
 
 # GCC Go
 gccgo_qversion="$gcc_qversion"
