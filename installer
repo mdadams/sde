@@ -23,6 +23,11 @@
 # 
 # __END_OF_LICENSE__
 
+debug_level="${SDE_INSTALLER_DEBUG_LEVEL:-0}"
+if [ "$debug_level" -ge 1 ]; then
+	set -xv
+fi
+
 ################################################################################
 # Specify the versions of various software packages to be installed.
 ################################################################################
@@ -406,7 +411,6 @@ gcc_method=$(qversion_get method "$gcc_qversion") || \
 gcc_version=$(qversion_get version "$gcc_qversion") || \
   panic "cannot get version"
 gcc_dir="$packages_dir/gcc-$gcc_version"
-gcc_bin_dir="$gcc_dir/bin"
 
 clang_method=$(qversion_get method "$clang_qversion") || \
   panic "cannot get method"
@@ -992,7 +996,13 @@ fi
 
 if [ -n "$gdb_version" -a -n "$gdb_dir" ]; then
 	if [ ! -d "$gdb_dir" ]; then
-		"$sde_shell" -s -x \
+		# NOTE: It appears that adding linker options in the compiler wrapper
+		# script causes a compiler/linker error.
+		#"$sde_shell" -s -x \
+		#"$sde_shell" -s -p cmake:gcc-$gcc_version:clang-$clang_version -x \
+		PATH="$gcc_bin/bin:$PATH" \
+		  CC="$gcc_dir/bin/gcc" \
+		  CXX="$gcc_dir/bin/g++" \
 		  "$sde_install_gdb" -v "$gdb_version" -d "$gdb_dir" || \
 		  panic "cannot install gdb"
 	fi
@@ -1019,7 +1029,8 @@ fi
 ################################################################################
 
 if [ "$enable_texlive_install" -ne 0 ]; then
-	if [ 1 -ne 0 ]; then
+	texlive_install_from_iso=1
+	if [ "$texlive_install_from_iso" -ne 0 ]; then
 		if [ ! -d "$texlive_iso_dir" ]; then
 			"$sde_shell" -s -x \
 			  "$sde_download_texlive_iso" -v "$texlive_version" \
@@ -1094,7 +1105,6 @@ if [ -n "$spl_version" -a -n "$spl_dir" ]; then
 			options+=(-o no_build_doc)
 			path_string=""
 		fi
-#		PATH="$gcc_bin_dir:${path_string}$PATH" \
 		"$sde_shell" -s -x \
 		  "$sde_install_spl" -r -v "$spl_version" -d "$spl_dir" \
 		  "${options[@]}" || \
@@ -1110,7 +1120,6 @@ fi
 
 if [ -n "$gsl_version" -a -n "$gsl_dir" ]; then
 	if [ ! -d "$gsl_dir" ]; then
-#		PATH="$gcc_bin_dir:$PATH" \
 		"$sde_shell" -s -x \
 		  "$sde_install_gsl" -v "$gsl_version" -d "$gsl_dir" || \
 		  panic "cannot install GSL"
