@@ -46,7 +46,7 @@ ninja_version=v1.11.1
 # web:$VERSION
 # git:$COMMIT
 gcc_qversion=web:12.2.0
-alt_gcc_qversion=git:655689f6be8606991f8a3359eadf017af7238a88
+alt_gcc_qversion=git:cffa72fde8ce9c767e20c058892929d9c9b33ae7
 
 # GCC Go
 gccgo_qversion="$gcc_qversion"
