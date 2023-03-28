@@ -32,7 +32,8 @@
 # Note: The GCC build process cannot seem to handle "@" characters
 # in pathnames.
 
-git_repo="git://gcc.gnu.org/git/gcc.git"
+#git_repo="git://gcc.gnu.org/git/gcc.git"
+git_repo="https://gcc.gnu.org/git/gcc.git"
 
 panic()
 {
