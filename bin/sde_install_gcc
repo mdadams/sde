@@ -126,7 +126,7 @@ perform_cleanup()
 
 usage()
 {
-	local example_commit=cffa72fde8ce9c767e20c058892929d9c9b33ae7
+	local example_commit=a37783de23c067d6a26374ff29c014e49604035c
 	local example_version=12.2.0
 
 	echo "bad usage: $@"

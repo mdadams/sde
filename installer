@@ -34,7 +34,7 @@ fi
 
 # CMake: https://cmake.org/download
 # CMake: https://gitlab.kitware.com/cmake/cmake
-cmake_version=3.26.0
+cmake_version=3.26.3
 
 # Ninja: https://github.com/ninja-build/ninja
 # Ninja Releases: https://github.com/ninja-build/ninja/releases
@@ -46,7 +46,7 @@ ninja_version=v1.11.1
 # web:$VERSION
 # git:$COMMIT
 gcc_qversion=web:12.2.0
-alt_gcc_qversion=git:cffa72fde8ce9c767e20c058892929d9c9b33ae7
+alt_gcc_qversion=git:a37783de23c067d6a26374ff29c014e49604035c
 
 # GCC Go
 gccgo_qversion="$gcc_qversion"
@@ -57,7 +57,7 @@ gccgo_qversion="$gcc_qversion"
 # web:$VERSION
 # git:llvmorg-$VERSION
 # git:$COMMIT
-clang_qversion=web:16.0.0
+clang_qversion=web:16.0.1
 alt_clang_qversion=git:de76c016f722fb27a2b966e860a99966e91c3216
 
 # Musl: https://www.musl-libc.org/download.html
@@ -102,7 +102,7 @@ ycm_version=0b158e059e15fbe92b44222df2439144272a8782
 
 # Vim: https://www.vim.org/download.php
 # Vim Release Tags: https://github.com/vim/vim/tags
-vim_qversion=git:v9.0.1414
+vim_qversion=git:v9.0.1447
 
 # GSL: https://github.com/Microsoft/GSL/releases
 gsl_version=v4.0.0
@@ -117,7 +117,7 @@ lcov_version=v1.16
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
 # Vim LSP Commits: https://github.com/prabirshrestha/vim-lsp/commits/master
-vimlsp_version=e82e73a5ebb7df7a9661b3ee296d1b8c5934497f
+vimlsp_version=80644e108b71d8735ab4c03dbc53db5ec6598d9b
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 # Vim Async Commits: https://github.com/prabirshrestha/async.vim/commits/master
