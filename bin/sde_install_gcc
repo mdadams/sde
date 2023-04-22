@@ -128,6 +128,7 @@ usage()
 {
 	local example_commit=a37783de23c067d6a26374ff29c014e49604035c
 	local example_version=12.2.0
+	local example_snapshot=13.1.0-RC2-20230419
 
 	echo "bad usage: $@"
 	cat <<- EOF
@@ -195,6 +196,13 @@ usage()
 
 	To print the most recent commit on the master branch:
 	$0 --print-commit --method git --version master
+
+	To build from a snapshot:
+	SDE_TMPDIR=/var/tmp \\
+	  $0 --num-jobs 8 --strip \\
+	  --enable-languages all --no-old-abi --no-default-pie \\
+	  --method web --version $example_snapshot \\
+	  --install-dir /tmp/gcc-trunk-$example_snapshot
 
 	To build the software with all supported languages enabled for
 	teaching SENG 475:

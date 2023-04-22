@@ -43,8 +43,14 @@
 git_repo_url="https://github.com/llvm/llvm-project.git"
 github_archive_base_url="https://github.com/llvm/llvm-project/releases/download"
 
-example_clang_version=15.0.7
-example_clang_tag=llvmorg-15.0.7
+example_main_method=web
+example_main_version=16.0.2
+
+example_lib_method=git
+example_lib_version=llvmorg-15.0.7
+
+example_dev_method=git
+example_dev_version=5894eec874e37d63d8b4dd3087469374fa1ff211
 
 ################################################################################
 # Functions
@@ -297,52 +303,38 @@ usage()
 	Print the latest commit on branch release/16.x:
 	$0 --print-commit --method git --version release/16.x
 
-	Perform a debug-build install with libc++, OpenMP, OpenCL:
-	SDE_TMPDIR=/var/tmp \\
-	  $0 --method git --version $example_clang_tag \\
-	  --project "clang:clang-tools-extra" \\
-	  --project "compiler-rt:lld:libclc:polly:openmp" \\
-	  --runtime "libcxx:libcxxabi:libunwind" \\
-	  --build-type Debug --build-docs --keep-source \\
-	  --num-jobs 4 --num-parallel-compile-jobs 4 --num-parallel-link-jobs 1 \\
-	  --enable-assertions --enable-shared-libllvm --enable-rtti --enable-eh \\
-	  --install-dir /tmp/clang-$example_clang_tag-debug
-
 	Perform a release-with-debug-information install with libc++,
-	OpenMP, OpenCL (and RTTI and EH enabled):
-	SDE_TMPDIR=/var/tmp \\
-	  $0 --method git --version $example_clang_tag \\
+	OpenMP, OpenCL (and RTTI and EH enabled) intended for using Clang as
+	a library:
+	  $0 --method $example_lib_method --version $example_lib_version \\
 	  --project "clang:clang-tools-extra" \\
 	  --project "compiler-rt:lld:libclc:polly:openmp" \\
 	  --runtime "libcxx:libcxxabi:libunwind" \\
+	  --build-type RelWithDebInfo --build-docs --keep-source \\
 	  --num-jobs 8 --num-parallel-compile-jobs 8 --num-parallel-link-jobs 1 \\
-	  --build-type RelWithDebInfo --build-docs --keep-source \
-	  --enable-assertions \\
+	  --enable-assertions --enable-rtti --enable-eh --no-default-pie \\
 	  --enable-shared-libllvm --no-enable-link-shared-libllvm \\
-	  --enable-rtti --enable-eh --no-default-pie \\
-	  --install-dir /tmp/clang-$example_clang_tag-relwithdebinfo
+	  --no-enable-static-libstdcxx \\
+	  --install-dir /tmp/clang-$example_lib_version-relwithdebinfo
 
-	Perform a release install intended for using Clang as a compiler
-	(static libstd++):
+	Perform a release-with-debug-info install intended for using Clang as
+	a compiler:
 	SDE_TMPDIR=/var/tmp \\
-	  $0 --method web --version 16.0.0-rc4 \\
+	  $0 --method $example_dev_method --version $example_dev_version \\
 	  --default-projects-runtimes --default-targets \\
-	  --build-type Release \\
+	  --build-type RelWithDebInfo \\
 	  --num-jobs 8 --num-parallel-compile-jobs 8 --num-parallel-link-jobs 1 \\
-	  --enable-static-libstdcxx --no-default-pie \\
-	  --enable-shared-libllvm --no-enable-link-shared-libllvm \\
-	  --gcc-dir /usr/local --install-dir /tmp/clang
+	  --install-dir /tmp/clang-$example_dev_version
 
 	Perform a release install intended for using Clang as a compiler
 	(no static libstd++):
 	SDE_TMPDIR=/var/tmp \\
-	  $0 --method web --version 16.0.0-rc4 \\
+	  $0 --method $example_main_method --version $example_main_version \\
 	  --default-projects-runtimes --default-targets \\
 	  --build-type Release \\
 	  --num-jobs 8 --num-parallel-compile-jobs 8 --num-parallel-link-jobs 1 \\
-	  --no-enable-static-libstdcxx --no-default-pie \\
-	  --enable-shared-libllvm --no-enable-link-shared-libllvm \\
-	  --install-dir /tmp/clang
+	  --install-dir /tmp/clang-$example_main_version
+
 	EOF
 	exit 2
 }
