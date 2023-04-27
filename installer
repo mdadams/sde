@@ -46,9 +46,8 @@ ninja_version=v1.11.1
 # https://gcc.gnu.org/pub/gcc/snapshots
 # web:$VERSION
 # git:$COMMIT
-gcc_qversion=web:12.2.0
-#alt_gcc_qversion=git:a37783de23c067d6a26374ff29c014e49604035c
-alt_gcc_qversion=web:13.1.0-RC2-20230419
+gcc_qversion=web:13.1.0
+alt_gcc_qversion=web:12.2.0
 
 # GCC Go
 gccgo_qversion="$gcc_qversion"
@@ -60,7 +59,7 @@ gccgo_qversion="$gcc_qversion"
 # git:llvmorg-$VERSION
 # git:$COMMIT
 clang_qversion=web:16.0.2
-alt_clang_qversion=git:5894eec874e37d63d8b4dd3087469374fa1ff211
+alt_clang_qversion=web:15.0.7
 
 # Musl: https://www.musl-libc.org/download.html
 # Musl Releases: https://musl.libc.org/releases/
@@ -104,7 +103,7 @@ ycm_version=0b158e059e15fbe92b44222df2439144272a8782
 
 # Vim: https://www.vim.org/download.php
 # Vim Release Tags: https://github.com/vim/vim/tags
-vim_qversion=git:v9.0.1474
+vim_qversion=git:v9.0.1491
 
 # GSL: https://github.com/Microsoft/GSL/releases
 gsl_version=v4.0.0
