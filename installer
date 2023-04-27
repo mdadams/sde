@@ -150,7 +150,8 @@ ghi_version=
 
 # Fmtlib: https://github.com/fmtlib/fmt.git
 # Fmtlib Releases: https://github.com/fmtlib/fmt/releases
-fmtlib_version=9.1.0
+#fmtlib_version=9.1.0
+fmtlib_version=
 
 # range: https://github.com/ericniebler/range-v3.git
 #range_version=0.10.0
