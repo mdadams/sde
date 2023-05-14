@@ -175,6 +175,16 @@ if [ "$enable_hack" -ne 0 ]; then
 		fi
 	done
 	mv "$format_file" "$install_dir/include" || panic "cannot move"
+	remove_list=(
+		"$install_dir/$lib_dir_base/libstdfmt.a"
+		"$install_dir/include/stdfmt"
+	)
+	for target in "${remove_list[@]}"; do
+		if [ -e "$target" ]; then
+			rm -f "$target" || \
+			  panic "cannot remove $target"
+		fi
+	done
 	ln -s ../lib/stdfmt/$lib_dir_base/libfmt.a \
 	  "$install_dir/$lib_dir_base/libstdfmt.a" || \
 	  panic "cannot create symlink"
