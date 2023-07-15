@@ -34,7 +34,7 @@ fi
 
 # CMake: https://cmake.org/download
 # CMake: https://gitlab.kitware.com/cmake/cmake
-cmake_version=3.26.3
+cmake_version=3.26.4
 
 # Ninja: https://github.com/ninja-build/ninja
 # Ninja Releases: https://github.com/ninja-build/ninja/releases
@@ -47,7 +47,7 @@ ninja_version=v1.11.1
 # web:$VERSION
 # git:$COMMIT
 gcc_qversion=web:13.1.0
-alt_gcc_qversion=web:12.2.0
+alt_gcc_qversion=git:0de651db45c758f54e9ed917069795a3835499de
 
 # GCC Go
 gccgo_qversion="$gcc_qversion"
@@ -58,12 +58,12 @@ gccgo_qversion="$gcc_qversion"
 # web:$VERSION
 # git:llvmorg-$VERSION
 # git:$COMMIT
-clang_qversion=web:16.0.2
+clang_qversion=web:16.0.6
 alt_clang_qversion=web:15.0.7
 
 # Musl: https://www.musl-libc.org/download.html
 # Musl Releases: https://musl.libc.org/releases/
-musl_version=1.2.3
+musl_version=1.2.4
 
 # JasPer: https://github.com/jasper-software/jasper
 # JasPer Releases: https://github.com/jasper-software/jasper/releases
@@ -71,7 +71,7 @@ musl_version=1.2.3
 jasper_version=version-4.0.0
 
 # GDB: https://www.gnu.org/software/gdb/download/
-gdb_version=13.1
+gdb_version=13.2
 
 # SPL: http://www.ece.uvic.ca/~frodo/SPL/#download
 # SPL: https://github.com/mdadams/SPL.git
@@ -82,7 +82,7 @@ spl_version=b222bdc856ac38d04ae8857218e5a0cbdaaf2121
 ndiff_version=2.00
 
 # TeX Live: https://www.tug.org/texlive/acquire.html
-texlive_version=2022
+texlive_version=2023
 
 # Boost: https://www.boost.org/users/download
 # Note: Do not upgrade Boost until CMake catches up; otherwise build problems
@@ -103,7 +103,7 @@ ycm_version=0b158e059e15fbe92b44222df2439144272a8782
 
 # Vim: https://www.vim.org/download.php
 # Vim Release Tags: https://github.com/vim/vim/tags
-vim_qversion=git:v9.0.1491
+vim_qversion=git:v9.0.1677
 
 # GSL: https://github.com/Microsoft/GSL/releases
 gsl_version=v4.0.0
@@ -114,11 +114,11 @@ catch_version=v2.13.10
 
 # Lcov: https://github.com/linux-test-project/lcov
 # Lcov Releases: https://github.com/linux-test-project/lcov/releases
-lcov_version=v1.16
+lcov_version=v2.0
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
 # Vim LSP Commits: https://github.com/prabirshrestha/vim-lsp/commits/master
-vimlsp_version=80644e108b71d8735ab4c03dbc53db5ec6598d9b
+vimlsp_version=39bad0b67eeba88bf2f0477327693c8e552044fa
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 # Vim Async Commits: https://github.com/prabirshrestha/async.vim/commits/master

@@ -126,7 +126,7 @@ perform_cleanup()
 
 usage()
 {
-	local example_commit=a37783de23c067d6a26374ff29c014e49604035c
+	local example_commit=0de651db45c758f54e9ed917069795a3835499de
 	local example_version=12.2.0
 	local example_snapshot=13.1.0-RC2-20230419
 
