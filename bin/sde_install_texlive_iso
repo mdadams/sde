@@ -25,7 +25,7 @@
 
 panic()
 {
-	echo "ERROR: $@"
+	echo "ERROR: $*"
 	exit 1
 }
 
@@ -57,6 +57,8 @@ usage()
 	exit 2
 }
 
+texlive_2023_hack="${TEXLIVE_2023_HACK:-0}"
+
 user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
 cur_dir=$(pwd) || panic "cannot get current directory"
@@ -65,8 +67,9 @@ iso_file=
 install_dir=
 tmp_dir="/tmp/sde_install_texlive_iso-$user@$host-$$"
 cleanup=1
+paper_size=letter
 
-while getopts Cd:i: opt; do
+while getopts Cd:i:p: opt; do
 	case "$opt" in
 	C)
 		cleanup=0;;
@@ -74,6 +77,8 @@ while getopts Cd:i: opt; do
 		iso_file="$OPTARG";;
 	d)
 		install_dir="$OPTARG";;
+	p)
+		paper_size="$OPTARG";;
 	\?)
 		usage
 		break;;
@@ -130,7 +135,6 @@ TEXMFVAR ~/.texlive/texmf-var
 binary_x86_64-linux 1
 instopt_adjustpath 0
 instopt_adjustrepo 1
-instopt_letter 1
 instopt_portable 0
 instopt_write18_restricted 1
 tlpdbopt_autobackup 1
@@ -144,6 +148,7 @@ tlpdbopt_install_srcfiles 1
 tlpdbopt_post_code 1
 tlpdbopt_w32_multi_user 0
 EOF
+#instopt_letter 1
 #TEXDIR $abs_install_dir/$version
 #TEXMFCONFIG ~/.texlive$version/texmf-config
 #TEXMFSYSCONFIG $abs_install_dir/$version/texmf-config
@@ -152,10 +157,26 @@ EOF
 #tlpdbopt_sys_bin /usr/local/bin
 #tlpdbopt_sys_info /usr/local/share/info
 #tlpdbopt_sys_man /usr/local/share/man
+if [ "$texlive_2023_hack" -eq 0 ]; then
+	if [ -n "$paper_size" ]; then
+		case "$paper_size" in
+		a4)
+			instopt_letter=0;;
+		letter)
+			instopt_letter=1;;
+		*)
+			panic "unexpected paper size";;
+		esac
+		echo "instopt_letter $instopt_letter" >> "$profile" || \
+		  panic "cannot modify profile"
+	fi
+fi
 
-echo "============================================================"
-cat "$profile"
-echo "============================================================"
+cat <<- EOF
+========== START OF PROFILE ==========
+$(cat "$profile")
+========== END OF PROFILE ==========
+EOF
 
 mkdir -p "$abs_install_dir" || \
   panic "cannot make directory $install_dir"
@@ -212,5 +233,16 @@ texlive_arch_dir="$texlive_bin_dir/x86_64-linux"
 if [ ! -d "$texlive_arch_dir" ]; then
 	panic "expected bin directory is missing"
 fi
+
 (cd "$texlive_bin_dir" && ln -s x86_64-linux/* .) || \
   panic "cannot link files"
+
+tlmgr="$texlive_arch_dir/tlmgr"
+if [ -n "$paper_size" ]; then
+	if [ "$texlive_2023_hack" -ne 0 -a "$paper_size" = letter ]; then
+		echo "updating tlmgr"
+		"$tlmgr" update --self || panic "cannot update tlmgr"
+		echo "setting paper size"
+		"$tlmgr" paper letter || panic "cannot set paper size"
+	fi
+fi
