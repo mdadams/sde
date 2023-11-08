@@ -43,8 +43,8 @@
 git_repo_url="https://github.com/llvm/llvm-project.git"
 github_archive_base_url="https://github.com/llvm/llvm-project/releases/download"
 
-example_main_method=web
-example_main_version=16.0.2
+example_main_method=git
+example_main_version=llvmorg-17.0.0-rc1
 
 example_lib_method=git
 example_lib_version=llvmorg-15.0.7
