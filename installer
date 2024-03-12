@@ -34,7 +34,7 @@ fi
 
 # CMake: https://cmake.org/download
 # CMake: https://gitlab.kitware.com/cmake/cmake
-cmake_version=3.28.2
+cmake_version=3.28.3
 
 # Ninja: https://github.com/ninja-build/ninja
 # Ninja Releases: https://github.com/ninja-build/ninja/releases
@@ -47,7 +47,7 @@ ninja_version=v1.11.1
 # web:$VERSION
 # git:$COMMIT
 gcc_qversion=web:13.2.0
-alt_gcc_qversion=git:f07068197df6d4d7c63be209f4fb5a7ec99100dc
+alt_gcc_qversion=git:06289168022f7c8dba00058c92cdf3fbd64919da
 
 # GCC Go
 gccgo_qversion="$gcc_qversion"
@@ -58,19 +58,19 @@ gccgo_qversion="$gcc_qversion"
 # web:$VERSION
 # git:llvmorg-$VERSION
 # git:$COMMIT
-clang_qversion=web:17.0.6
-alt_clang_qversion=web:18.1.0-rc1
+clang_qversion=web:18.1.1
+alt_clang_qversion=web:17.0.6
 
 # Musl: https://www.musl-libc.org/download.html
-# Musl Releases: https://musl.libc.org/releases/
-musl_version=1.2.4
+# Musl Releases: https://musl.libc.org/releases.html
+musl_version=1.2.5
 
 # JasPer: https://github.com/jasper-software/jasper
 # JasPer Releases: https://github.com/jasper-software/jasper/releases
-jasper_version=version-4.1.2
+jasper_version=version-4.2.2
 
 # GDB: https://www.gnu.org/software/gdb/download/
-gdb_version=14.1
+gdb_version=14.2
 
 # SPL: http://www.ece.uvic.ca/~frodo/SPL/#download
 # SPL: https://github.com/mdadams/SPL.git
@@ -90,7 +90,7 @@ boost_version=1.84.0
 
 # CGAL: https://github.com/CGAL/cgal
 # CGAL Releases: https://github.com/CGAL/cgal/releases
-cgal_version=5.6
+cgal_version=5.6.1
 
 # Aristotle: https://github.com/mdadams/aristotle
 # Aristotle Releases: https://github.com/mdadams/aristotle/tags
@@ -102,7 +102,7 @@ ycm_version=0b158e059e15fbe92b44222df2439144272a8782
 
 # Vim: https://www.vim.org/download.php
 # Vim Release Tags: https://github.com/vim/vim/tags
-vim_qversion=git:v9.1.0065
+vim_qversion=git:v9.1.0168
 
 # GSL: https://github.com/Microsoft/GSL/releases
 gsl_version=v4.0.0
@@ -117,7 +117,7 @@ lcov_version=v2.0
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
 # Vim LSP Commits: https://github.com/prabirshrestha/vim-lsp/commits/master
-vimlsp_version=c20c6650d32a85e09ae6c7a9747aef7ded3677fb
+vimlsp_version=f7ccf006df1aefd327c0e2c55cc8632a2db577c1
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 # Vim Async Commits: https://github.com/prabirshrestha/async.vim/commits/master
