@@ -129,6 +129,13 @@ for historic_archive in "${historic_archives[@]}"; do
 	urls+=("$historic_archive/systems/texlive/$version")
 done
 
+out_dir="$(dirname "$out_file")" || \
+  panic "cannot get directory of output file"
+if [ ! -d "$out_dir" ]; then
+	mkdir -p "$out_dir" || \
+	  panic "cannot make directory $out_dir"
+fi
+
 success=0
 for url in "${urls[@]}"; do
 	for iso_file_name in "${iso_file_names[@]}"; do
