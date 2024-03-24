@@ -74,17 +74,16 @@ while getopts co:v:h option; do
 	c)
 		historic=0;;
 	*)
-		usage "bad option $option"
-		;;
+		usage "bad option $option";;
 	esac
 done
 shift $((OPTIND - 1))
 
 if [ -z "$version" ]; then
-	panic "no version specified"
+	usage "no version specified"
 fi
 if [ -z "$out_file" ]; then
-	panic "no output file specified"
+	usage "no output file specified"
 fi
 
 iso_file_names=(
