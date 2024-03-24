@@ -59,11 +59,6 @@ usage()
 	exit 2
 }
 
-user=$(whoami) || panic "cannot get user name"
-host=$(hostname) || panic "cannot get host name"
-tmp_dir="/tmp/sde_download_texlive_iso-$user@$host-$$"
-#tmp_dir="/tmp/sde_download_texlive_iso"
-
 version=
 out_file=
 historic=1
@@ -79,7 +74,7 @@ while getopts co:v:h option; do
 	c)
 		historic=0;;
 	*)
-		panic "bad option $option"
+		usage "bad option $option"
 		;;
 	esac
 done
@@ -92,63 +87,54 @@ if [ -z "$out_file" ]; then
 	panic "no output file specified"
 fi
 
-tmp_dir="${out_file}.tmp"
-if [ -d "$tmp_dir" ]; then
-	panic "temporary directory exists"
-fi
-
 iso_file_names=(
 	texlive$version.iso
 )
 #	texlive.iso
 
-mirrors=()
+# See: https://ctan.org/mirrors
+mirrors=(
+
+	# https
+	https://ftp.muug.ca/mirror/ctan
+	https://tug.ctan.org/
+	https://mirror.csclub.uwaterloo.ca/CTAN/
+	https://mirror.its.dal.ca/ctan/
+	https://ctan.math.illinois.edu/
+	https://ctan.math.utah.edu/ctan/tex-archive/
+	https://ctan.math.washington.edu/tex-archive/
+	https://ctan.math.washington.edu/tex-archive/
+
+	# ftp
+	ftp://tug.ctan.org/tex-archive
+	ftp://ctan.math.utah.edu/tex-archive
+
+)
+
+# See: https://tug.org/historic/
+historic_archives=(
+	https://ftp.tu-chemnitz.de/pub/tug/historic
+	https://pi.kwarc.info/historic
+	https://ftp.math.utah.edu/pub/tex/historic
+)
+
 if [ "$historic" -ne 0 ]; then
-	mirrors+=(HISTORIC)
+	for historic_archive in "${historic_archives[@]}"; do
+		urls+=("$historic_archive/systems/texlive/$version")
+	done
 fi
-mirrors+=("ftp://tug.ctan.org/tex-archive")
-#mirrors+=("ftp://ftp.muug.ca/mirror/ctan")
-mirrors+=("ftp://ctan.math.ca/tex-archive")
-mirrors+=("ftp://ctan.math.utah.edu/tex-archive")
-mirrors+=("ftp://mirror.its.dal.ca/ctan")
-mirrors+=("ftp://ctan.mirror.rafal.ca/pub/CTAN")
-mirrors+=("ftp://mirror.utexas.edu/pub/ctan")
-mirrors+=("ftp://mirrors.rit.edu/CTAN")
-#mirrors+=("http://ctan.mirror.colo-serv.net")
-#mirrors+=("http://ctan.forsale.plus")
-mirrors+=("http://ctan.math.washington.edu/tex-archive")
-mirrors+=("http://ctan.math.ca/tex-archive")
-mirrors+=("http://ctan.mirror.rafal.ca")
-mirrors+=("http://mirror.its.dal.ca/ctan")
-mirrors+=("http://muug.ca/mirror/ctan")
-mirrors+=("http://ctan.math.utah.edu/ctan/tex-archive")
-#mirrors+=("http://ctan.math.illinois.edu")
-mirrors+=("http://ftp.math.purdue.edu/mirrors/ctan.org")
-#mirrors+=("http://mirrors.ibiblio.org/pub/mirrors/CTAN")
-#mirrors+=("http://mirror.hmc.edu/ctan")
-mirrors+=("http://mirror.las.iastate.edu/tex-archive")
-#mirrors+=("http://mirrors.concertpass.com/tex-archive")
-#mirrors+=("http://ctan.mirrors.hoobly.com")
-mirrors+=("http://mirrors.rit.edu/CTAN")
-mirrors+=(HISTORIC)
-
-historic_url="ftp://tug.org/historic/systems/texlive/$version"
-
-if [ ! -d "$tmp_dir" ]; then
-	mkdir -p "$tmp_dir" || panic "cannot make directory $tmp_dir"
-fi
-
-iso_file="$tmp_dir/texlive.iso"
+for mirror in "${mirrors[@]}"; do
+	urls+=("$mirror/systems/texlive/Images")
+done
+for historic_archive in "${historic_archives[@]}"; do
+	urls+=("$historic_archive/systems/texlive/$version")
+done
 
 success=0
-for mirror in "${mirrors[@]}"; do
-	if [ "$mirror" = HISTORIC ]; then
-		url="$historic_url"
-	else
-		url="$mirror/systems/texlive/Images"
-	fi
+for url in "${urls[@]}"; do
 	for iso_file_name in "${iso_file_names[@]}"; do
 		target="$url/$iso_file_name"
+		echo "Checking for existence of $target"
 		validate_url "$target"
 		status=$?
 		if [ "$status" -ne 0 ]; then
@@ -160,7 +146,6 @@ for mirror in "${mirrors[@]}"; do
 		Attempting download from:
 		$target
 		EOF
-		#echo "Trying to download $target"
 		wget_options=()
 		#wget_options+=(--quiet)
 		#wget_options+=(--no-verbose)
@@ -169,7 +154,8 @@ for mirror in "${mirrors[@]}"; do
 		##wget_options+=(--no-http-keep-alive)
 		##wget_options+=(--ignore-length)
 
-		(cd "$tmp_dir" && wget "${wget_options[@]}" "$target")
+		#(cd "$tmp_dir" && wget "${wget_options[@]}" "$target")
+		wget "${wget_options[@]}" -O "$out_file" "$target"
 		status=$?
 		echo "wget exit status: $status"
 		if [ "$status" -eq 0 ]; then
@@ -183,10 +169,3 @@ for mirror in "${mirrors[@]}"; do
 		break
 	fi
 done
-
-echo "$iso_file_name"
-mv -i "$tmp_dir/$iso_file_name" "$out_file" || \
-  panic "cannot move file"
-
-rmdir "$tmp_dir"
-
