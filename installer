@@ -34,7 +34,7 @@ fi
 
 # CMake: https://cmake.org/download
 # CMake: https://gitlab.kitware.com/cmake/cmake
-cmake_version=3.28.3
+cmake_version=3.29.0
 
 # Ninja: https://github.com/ninja-build/ninja
 # Ninja Releases: https://github.com/ninja-build/ninja/releases
@@ -47,7 +47,7 @@ ninja_version=v1.11.1
 # web:$VERSION
 # git:$COMMIT
 gcc_qversion=web:13.2.0
-alt_gcc_qversion=git:06289168022f7c8dba00058c92cdf3fbd64919da
+alt_gcc_qversion=git:e8985864a385992aa26e7c8373faa190e2ced17d
 
 # GCC Go
 gccgo_qversion="$gcc_qversion"
@@ -58,7 +58,7 @@ gccgo_qversion="$gcc_qversion"
 # web:$VERSION
 # git:llvmorg-$VERSION
 # git:$COMMIT
-clang_qversion=web:18.1.1
+clang_qversion=web:18.1.2
 alt_clang_qversion=web:17.0.6
 
 # Musl: https://www.musl-libc.org/download.html
@@ -102,7 +102,7 @@ ycm_version=0b158e059e15fbe92b44222df2439144272a8782
 
 # Vim: https://www.vim.org/download.php
 # Vim Release Tags: https://github.com/vim/vim/tags
-vim_qversion=git:v9.1.0168
+vim_qversion=git:v9.1.0199
 
 # GSL: https://github.com/Microsoft/GSL/releases
 gsl_version=v4.0.0
