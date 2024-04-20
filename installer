@@ -34,11 +34,11 @@ fi
 
 # CMake: https://cmake.org/download
 # CMake: https://gitlab.kitware.com/cmake/cmake
-cmake_version=3.29.0
+cmake_version=3.29.2
 
 # Ninja: https://github.com/ninja-build/ninja
 # Ninja Releases: https://github.com/ninja-build/ninja/releases
-ninja_version=v1.11.1
+ninja_version=v1.12.0
 
 # GCC: https://www.gnu.org/software/gcc
 # GCC Releases: https://ftp.gnu.org/gnu/gcc
@@ -47,7 +47,7 @@ ninja_version=v1.11.1
 # web:$VERSION
 # git:$COMMIT
 gcc_qversion=web:13.2.0
-alt_gcc_qversion=git:e8985864a385992aa26e7c8373faa190e2ced17d
+alt_gcc_qversion=git:90ded7512e1c02058f21498daf58566844d1ac9f
 
 # GCC Go
 gccgo_qversion="$gcc_qversion"
@@ -58,7 +58,7 @@ gccgo_qversion="$gcc_qversion"
 # web:$VERSION
 # git:llvmorg-$VERSION
 # git:$COMMIT
-clang_qversion=web:18.1.2
+clang_qversion=web:18.1.4
 alt_clang_qversion=web:17.0.6
 
 # Musl: https://www.musl-libc.org/download.html
@@ -67,7 +67,7 @@ musl_version=1.2.5
 
 # JasPer: https://github.com/jasper-software/jasper
 # JasPer Releases: https://github.com/jasper-software/jasper/releases
-jasper_version=version-4.2.2
+jasper_version=version-4.2.3
 
 # GDB: https://www.gnu.org/software/gdb/download/
 gdb_version=14.2
@@ -94,7 +94,7 @@ cgal_version=5.6.1
 
 # Aristotle: https://github.com/mdadams/aristotle
 # Aristotle Releases: https://github.com/mdadams/aristotle/tags
-aristotle_version=v3.0.40
+aristotle_version=v3.0.41
 
 # YCM: https://github.com/Valloric/YouCompleteMe
 # YCM Commits: https://github.com/ycm-core/YouCompleteMe/commits/master
@@ -102,7 +102,7 @@ ycm_version=0b158e059e15fbe92b44222df2439144272a8782
 
 # Vim: https://www.vim.org/download.php
 # Vim Release Tags: https://github.com/vim/vim/tags
-vim_qversion=git:v9.1.0199
+vim_qversion=git:v9.1.0356
 
 # GSL: https://github.com/Microsoft/GSL/releases
 gsl_version=v4.0.0
@@ -110,10 +110,11 @@ gsl_version=v4.0.0
 # Catch2: https://github.com/catchorg/Catch2
 # Catch2 Releases: https://github.com/catchorg/Catch2/releases
 catch_version=v2.13.10
+alt_catch_version=v3.5.4
 
 # Lcov: https://github.com/linux-test-project/lcov
 # Lcov Releases: https://github.com/linux-test-project/lcov/releases
-lcov_version=v2.0
+lcov_version=v2.1
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
 # Vim LSP Commits: https://github.com/prabirshrestha/vim-lsp/commits/master
@@ -139,7 +140,7 @@ hub_version=2.14.2
 # GitHub CLI Releases: https://github.com/cli/cli/releases
 # https://github.com/cli/cli/blob/trunk/docs/source.md
 # latest version requires go 1.19+
-#gh_version=2.23.0 # requires newer version of go
+#gh_version=2.48.0 # requires newer version of go
 gh_version=2.14.3 # works with go 1.16.15
 
 # GHI: https://github.com/stephencelis/ghi
@@ -194,6 +195,7 @@ apply_override ycm_version SDE_INSTALL_YCM_VERSION
 apply_override vim_qversion SDE_INSTALL_VIM_QVERSION
 apply_override gsl_version SDE_INSTALL_GSL_VERSION
 apply_override catch_version SDE_INSTALL_CATCH_VERSION
+apply_override alt_catch_version SDE_INSTALL_ALT_CATCH_VERSION
 apply_override lcov_version SDE_INSTALL_LCOV_VERSION
 apply_override vimlsp_version SDE_INSTALL_VIMLSP_VERSION
 apply_override vimlsp_async_version SDE_INSTALL_VIMLSP_ASYNC_VERSION
@@ -441,6 +443,7 @@ fi
 
 gsl_dir="$packages_dir/gsl-$gsl_version"
 catch_dir="$packages_dir/catch-$catch_version"
+alt_catch_dir="$packages_dir/catch-$alt_catch_version"
 lcov_dir="$packages_dir/lcov-$lcov_version"
 vimlsp_dir="$packages_dir/vimlsp-$vimlsp_version"
 cgal_dir="$packages_dir/CGAL-$cgal_version"
@@ -1142,6 +1145,23 @@ if [ -n "$catch_version" -a -n "$catch_dir" ]; then
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" catch "$catch_version" || \
 	  panic "cannot configure Catch"
+fi
+
+if [ -n "$alt_catch_version" -a -n "$alt_catch_dir" ]; then
+	if [ ! -d "$alt_catch_dir" ]; then
+		"$sde_shell" -s -x \
+		  "$sde_install_catch" -v "$alt_catch_version" -d "$alt_catch_dir" || \
+		  panic "cannot install catch"
+	fi
+	#"$sde_cmd" pkg -d "$sde_top_dir" catch "$catch_version" || \
+	#  panic "cannot configure Catch"
+	base="$(basename "$alt_catch_dir")" || \
+	  panic "cannot get basename"
+	target="$packages_dir/catch-alt"
+	if [ ! -e "$target" ]; then
+		ln -s "$base" "$target" || \
+		  panic "cannot create symlink"
+	fi
 fi
 
 ################################################################################

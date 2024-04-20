@@ -8,6 +8,7 @@ ninja
 #libcxx
 boost
 catch
+catch-alt
 gsl
 CGAL
 SPL
