@@ -94,7 +94,7 @@ cgal_version=5.6.1
 
 # Aristotle: https://github.com/mdadams/aristotle
 # Aristotle Releases: https://github.com/mdadams/aristotle/tags
-aristotle_version=v3.0.41
+aristotle_version=v3.0.42
 
 # YCM: https://github.com/Valloric/YouCompleteMe
 # YCM Commits: https://github.com/ycm-core/YouCompleteMe/commits/master
