@@ -114,7 +114,8 @@ alt_catch_version=v3.5.4
 
 # Lcov: https://github.com/linux-test-project/lcov
 # Lcov Releases: https://github.com/linux-test-project/lcov/releases
-lcov_version=v2.1
+#lcov_version=v2.1 # Note: This has problems with missing dependencies.
+lcov_version=v1.16
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
 # Vim LSP Commits: https://github.com/prabirshrestha/vim-lsp/commits/master
