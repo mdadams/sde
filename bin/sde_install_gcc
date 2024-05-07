@@ -62,21 +62,6 @@ disk_usage()
 	du -sk "$dir" | awk '{print $1;}' -
 }
 
-validate_url()
-{
-	local url="$1"
-	case "$url" in
-	http*)
-		wget -S --spider "$url" 2>&1 | grep -q "HTTP/1.1 200 OK"
-		;;
-	ftp*)
-		wget -S --spider "$url" 2>&1 | grep -q -i "exists"
-		;;
-	*)
-		return 2;;
-	esac
-}
-
 # Get the pathname of the default spec file for GCC.
 get_spec_file()
 {
@@ -214,6 +199,10 @@ usage()
 	EOF
 	exit 2
 }
+
+self_path="$(realpath "$0")" || panic "cannot get program path"
+self_dir="$(dirname "$self_path")" || panic "cannot get program directory"
+sde_validate_url="$self_dir/sde_validate_url"
 
 user=$(whoami) || panic "cannot get user name"
 host=$(hostname) || panic "cannot get host name"
@@ -498,7 +487,7 @@ else
 	urls+=("https://gcc.gnu.org/pub/gcc/snapshots/$version/gcc-$version.tar.gz")
 	url=
 	for i in "${urls[@]}"; do
-		validate_url "$i"
+		"$sde_validate_url" "$i"
 		status=$?
 		if [ "$status" -eq 0 ]; then
 			url="$i"

@@ -1,0 +1,60 @@
+#! /usr/bin/env bash
+
+# Reference:
+# https://askubuntu.com/questions/867105/how-to-determine-the-http-status-without-downloading-the-complete-page
+
+usage()
+{
+	cat <<- EOF
+	$0 https://ftp.gnu.org/gnu/gcc/gcc-13.2.0/gcc-13.2.0.tar.xz
+	$0 https://github.com/CGAL/cgal/releases/download/v5.6.1/CGAL-5.6.1.tar.xz
+	$0 https::/github.com/this/is/a/bogus/url
+	EOF
+	if [ $# -ne 0 ]; then
+		echo "BAD USAGE: $*"
+		exit 2
+	fi
+	exit 0
+}
+
+verbose=0
+
+while getopts :hv option; do
+	case "$option" in
+	v)
+		verbose=$((verbose + 1));;
+	h)
+		usage;;
+	*)
+		usage "invalid option $option";;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ $# -ne 1 ]; then
+	usage "no URL specified"
+fi
+
+url="$1"
+
+case "$url" in
+http*)
+	curl -I "$url" 2> /dev/null | \
+	  grep -q -E "HTTP/([0-9]+|[0-9]+.[0-9]+) (200|302)"
+	validate_status=$?
+	;;
+ftp*)
+	curl -I "$url" 2> /dev/null | \
+	  grep -q -i "exists"
+	validate_status=$?
+	;;
+*)
+	validate_status=1
+	;;
+esac
+
+if [ "$verbose" -ge 1 ]; then
+	echo "$validate_status"
+fi
+
+exit "$validate_status"
