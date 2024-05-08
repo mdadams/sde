@@ -39,7 +39,7 @@ url="$1"
 
 case "$url" in
 http*)
-	curl -I "$url" 2> /dev/null | \
+	curl -I -L "$url" 2> /dev/null | \
 	  grep -q -E "HTTP/([0-9]+|[0-9]+.[0-9]+) (200|302)"
 	validate_status=$?
 	;;
