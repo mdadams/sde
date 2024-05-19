@@ -34,11 +34,11 @@ fi
 
 # CMake: https://cmake.org/download
 # CMake: https://gitlab.kitware.com/cmake/cmake
-cmake_version=3.29.2
+cmake_version=3.29.3
 
 # Ninja: https://github.com/ninja-build/ninja
 # Ninja Releases: https://github.com/ninja-build/ninja/releases
-ninja_version=v1.12.0
+ninja_version=v1.12.1
 
 # GCC: https://www.gnu.org/software/gcc
 # GCC Releases: https://ftp.gnu.org/gnu/gcc
@@ -46,8 +46,8 @@ ninja_version=v1.12.0
 # https://gcc.gnu.org/pub/gcc/snapshots
 # web:$VERSION
 # git:$COMMIT
-gcc_qversion=web:13.2.0
-alt_gcc_qversion=git:90ded7512e1c02058f21498daf58566844d1ac9f
+gcc_qversion=web:14.1.0
+alt_gcc_qversion=git:25456c0e6d18ecc40215a2ad945502edbab39e88
 
 # GCC Go
 gccgo_qversion="$gcc_qversion"
@@ -58,8 +58,8 @@ gccgo_qversion="$gcc_qversion"
 # web:$VERSION
 # git:llvmorg-$VERSION
 # git:$COMMIT
-clang_qversion=web:18.1.4
-alt_clang_qversion=web:17.0.6
+clang_qversion=web:18.1.6
+alt_clang_qversion=git:b050048d35f6580fb427e6de9063444aa85625c6
 
 # Musl: https://www.musl-libc.org/download.html
 # Musl Releases: https://musl.libc.org/releases.html
@@ -67,7 +67,7 @@ musl_version=1.2.5
 
 # JasPer: https://github.com/jasper-software/jasper
 # JasPer Releases: https://github.com/jasper-software/jasper/releases
-jasper_version=version-4.2.3
+jasper_version=version-4.2.4
 
 # GDB: https://www.gnu.org/software/gdb/download/
 gdb_version=14.2
@@ -86,7 +86,7 @@ texlive_version=2024
 # Boost: https://www.boost.org/users/download
 # Note: Do not upgrade Boost until CMake catches up; otherwise build problems
 # will likely result.
-boost_version=1.84.0
+boost_version=1.85.0
 
 # CGAL: https://github.com/CGAL/cgal
 # CGAL Releases: https://github.com/CGAL/cgal/releases
@@ -102,7 +102,7 @@ ycm_version=0b158e059e15fbe92b44222df2439144272a8782
 
 # Vim: https://www.vim.org/download.php
 # Vim Release Tags: https://github.com/vim/vim/tags
-vim_qversion=git:v9.1.0356
+vim_qversion=git:v9.1.0421
 
 # GSL: https://github.com/Microsoft/GSL/releases
 gsl_version=v4.0.0
@@ -110,7 +110,7 @@ gsl_version=v4.0.0
 # Catch2: https://github.com/catchorg/Catch2
 # Catch2 Releases: https://github.com/catchorg/Catch2/releases
 catch_version=v2.13.10
-alt_catch_version=v3.5.4
+alt_catch_version=v3.6.0
 
 # Lcov: https://github.com/linux-test-project/lcov
 # Lcov Releases: https://github.com/linux-test-project/lcov/releases
