@@ -251,7 +251,9 @@ bash_setup()
 	  return 1
 
 	if [ -n "$boost_root" ]; then
-		echo 'export BOOST_ROOT='\""$boost_root"\"';' || \
+		#echo 'export BOOST_ROOT='\""$boost_root"\"';' || \
+		#  return 1
+		echo 'export Boost_ROOT='\""$boost_root"\"';' || \
 		  return 1
 	fi
 }
