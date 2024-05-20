@@ -1171,7 +1171,8 @@ fi
 
 if [ -n "$ndiff_version" -a -n "$ndiff_dir" ]; then
 	if [ ! -d "$ndiff_dir" ]; then
-		"$sde_shell" -s -x \
+		env SDE_INSTALL_NDIFF_CFLAGS="-Wno-implicit-int" \
+		  "$sde_shell" -s -x \
 		  "$sde_install_ndiff" -v "$ndiff_version" -d "$ndiff_dir" || \
 		  panic "cannot install ndiff"
 	fi

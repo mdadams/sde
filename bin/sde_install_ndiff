@@ -71,6 +71,11 @@ if [ -z "$version" ]; then
 	usage "no version specified"
 fi
 
+configure_env=()
+if [ -n "$SDE_INSTALL_NDIFF_CFLAGS" ]; then
+	configure_env+=(CFLAGS="$SDE_INSTALL_NDIFF_CFLAGS")
+fi
+
 abs_install_dir=$(readlink -f "$install_dir") || \
   panic "cannot get absolute pathname"
 
@@ -82,7 +87,7 @@ umask 022
 
 tmp_dir="/tmp/sde_install_ndiff-$user@$host-$$"
 src_dir="$tmp_dir/src"
-url="http://www.ece.uvic.ca/~mdadams/ndiff/ndiff-$version.tar.gz"
+url="https://www.ece.uvic.ca/~mdadams/ndiff/ndiff-$version.tar.gz"
 
 make_opts="-j4"
 
@@ -91,7 +96,18 @@ for dir in "$tmp_dir" "$src_dir"; do
 	  panic "cannot make directory $dir"
 done
 
-(cd "$tmp_dir" && wget "$url") || \
+wget --no-hpkp >& /dev/null
+if [ $? -eq 2 ]; then
+	has_hpkp=0
+else
+	has_hpkp=1
+fi
+
+wget_options=()
+if [ "$has_hpkp" -ne 0 ]; then
+	wget_options+=(--no-hpkp)
+fi
+(cd "$tmp_dir" && wget "${wget_options[@]}" "$url") || \
   panic "cannot download archive"
 
 archive=$(basename "$url") || \
@@ -100,7 +116,8 @@ archive=$(basename "$url") || \
 (cd "$tmp_dir" && tar -xzf "$archive" -C "$src_dir" --strip-components=1) || \
   panic "cannot extract archive"
 
-(cd "$src_dir" &&
+(cd "$src_dir" && \
+  env "${configure_env[@]}" \
   ./configure --prefix="$abs_install_dir") || \
   panic "configure failed"
 
