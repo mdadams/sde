@@ -489,23 +489,23 @@ while [ $# -gt 0 ]; do
 		shift 1
 		cmake_cxx_compiler=
 		;;
-	--gcc-install-prefix)
-		shift 1
-		[ $# -gt 0 ] || usage "missing argument"
-		gcc_install_prefix="$1"
-		shift 1
-		;;
-	--no-gcc-install-prefix)
-		shift 1
-		gcc_install_prefix=
-		;;
+	#--gcc-install-prefix)
+	#	shift 1
+	#	[ $# -gt 0 ] || usage "missing argument"
+	#	gcc_install_prefix="$1"
+	#	shift 1
+	#	;;
+	#--no-gcc-install-prefix)
+	#	shift 1
+	#	gcc_install_prefix=
+	#	;;
 	--gcc-dir|-g)
 		shift 1
 		[ $# -gt 0 ] || usage "missing argument"
 		gcc_dir="$1"
 		cmake_c_compiler="$gcc_dir/bin/gcc"
 		cmake_cxx_compiler="$gcc_dir/bin/g++"
-		gcc_install_prefix="$gcc_dir"
+		#gcc_install_prefix="$gcc_dir"
 		shift 1
 		;;
 	--stop-early|-S)
@@ -1139,9 +1139,10 @@ fi
 if [ -n "$cmake_cxx_compiler" ]; then
 	configure_options+=(-DCMAKE_CXX_COMPILER="$cmake_cxx_compiler")
 fi
-if [ -n "$gcc_install_prefix" ]; then
-	configure_options+=(-DGCC_INSTALL_PREFIX="$gcc_install_prefix")
-fi
+# Note: GCC_INSTALL_PREFIX has been deprecated.
+#if [ -n "$gcc_install_prefix" ]; then
+#	configure_options+=(-DGCC_INSTALL_PREFIX="$gcc_install_prefix")
+#fi
 #	configure_options+=(-DCMAKE_CXX_LINK_FLAGS="-L${gcc_dir}/lib64 -Wl,-rpath,${gcc_dir}/lib64")
 
 # NOTE: Enabling LLVM_LINK_LLVM_DYLIB also enables LLVM_BUILD_LLVM_DYLIB.
