@@ -928,7 +928,7 @@ fi
 
 if [ -n "$boost_version" -a -n "$boost_dir" ]; then
 	install_boost_options=()
-	install_boost_options+=(-c)
+	#install_boost_options+=(-c)
 	if [ ! -d "$boost_dir" ]; then
 		"$sde_shell" -s -p cmake:gcc-$gcc_version:clang-$clang_version -x \
 		  "$sde_install_boost" -v "$boost_version" -d "$boost_dir" \
