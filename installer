@@ -672,7 +672,11 @@ if [ "$sdebase_installed" -ne 0 ]; then
 		  panic "cannot link"
 	done
 
-	for file in c++ g++ clang++ cc gcc clang gccgo go cmake ctest cpack gdb; do
+	file_list=(c++ g++ clang++ cc gcc clang cmake ctest cpack gdb)
+	if [ -n "$gccgo_dir" ]; then
+		file_list+=(gccgo go)
+	fi
+	for file in "${file_list[@]}"; do
 		target_file="$sde_top_dir/bin/$file"
 		if [ -L "$target_file" -o -e "$target_file" ]; then
 			rm -f "$target_file" || panic "cannot remove file $target_file"
