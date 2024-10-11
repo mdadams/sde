@@ -140,8 +140,8 @@ hub_version=2.14.2
 # GitHub CLI: https://github.com/cli/cli
 # GitHub CLI Releases: https://github.com/cli/cli/releases
 # https://github.com/cli/cli/blob/trunk/docs/source.md
-# latest version requires go 1.19+
-gh_version=2.58.0 # requires newer version of go
+# 2.58.0 version requires go 1.22.5
+gh_version=2.45.0 # 2.45.0+ (to at least 2.58.0) have build failures
 #gh_version=2.14.3 # works with go 1.16.15
 
 # GHI: https://github.com/stephencelis/ghi
