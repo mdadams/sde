@@ -28,6 +28,14 @@ if [ "$debug_level" -ge 1 ]; then
 	set -xv
 fi
 
+function join_by
+{
+	local d=${1-} f=${2-}
+	if shift 2; then
+		printf %s "$f" "${@/#/$d}"
+	fi
+}
+
 ################################################################################
 # Specify the versions of various software packages to be installed.
 ################################################################################
@@ -531,14 +539,14 @@ if [ "${SDE_NINJA_INSTALL:-1}" -eq 0 ]; then
 	ninja_dir=
 fi
 
-if [ -z "$gccgo_dir" ]; then
-	if [ -n "$gh_dir" ]; then
-		panic "cannot install gh without gccgo"
-	fi
-	if [ -n "$hub_dir" ]; then
-		panic "cannot install hub without gccgo"
-	fi
-fi
+#if [ -z "$gccgo_dir" ]; then
+#	if [ -n "$gh_dir" ]; then
+#		panic "cannot install gh without gccgo"
+#	fi
+#	if [ -n "$hub_dir" ]; then
+#		panic "cannot install hub without gccgo"
+#	fi
+#fi
 
 native_clang_version="$(get_clang_version)" || \
   native_clang_version=
@@ -1287,7 +1295,11 @@ fi
 
 if [ -n "$hub_version" -a -n "$hub_dir" ]; then
 	if [ ! -d "$hub_dir" ]; then
-		"$sde_shell" -s -p "cmake:gccgo-$gccgo_version" -x \
+		package_list=(cmake)
+		if [ -n "$gccgo_dir" ]; then
+			package_list+=(gccgo-$gccgo_version)
+		fi
+		"$sde_shell" -s -p "$(join_by : "${package_list[@]}")" -x \
 		  "$sde_install_hub" -v "$hub_version" -d "$hub_dir" || \
 		  panic "cannot install hub"
 	fi
@@ -1301,7 +1313,11 @@ fi
 
 if [ -n "$gh_version" -a -n "$gh_dir" ]; then
 	if [ ! -d "$gh_dir" ]; then
-		"$sde_shell" -s -p "cmake:gccgo-$gccgo_version" -x \
+		package_list=(cmake)
+		if [ -n "$gccgo_dir" ]; then
+			package_list+=(gccgo-$gccgo_version)
+		fi
+		"$sde_shell" -s -p "$(join_by : "${package_list[@]}")" -x \
 		  "$sde_install_gh" -v "$gh_version" -d "$gh_dir" || \
 		  panic "cannot install gh"
 	fi
