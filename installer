@@ -1276,15 +1276,17 @@ fi
 # GCC Go
 ################################################################################
 
-if [ -n "$gccgo_version" -a ! -d "$gccgo_dir" ]; then
-	"$sde_shell" -s -p null -x \
-	  "$sde_install_gcc" \
-	  --method "$gccgo_method" \
-	  --version "$gccgo_version" \
-	  --install-dir "$gccgo_dir" \
-	  "${gcc_install_options[@]}" \
-	  --enable-languages go \
-	  || panic "cannot install gccgo"
+if [ -n "$gccgo_version" -a -n "$gccgo_dir" ]; then
+	if [ ! -d "$gccgo_dir" ]; then
+		"$sde_shell" -s -p null -x \
+		  "$sde_install_gcc" \
+		  --method "$gccgo_method" \
+		  --version "$gccgo_version" \
+		  --install-dir "$gccgo_dir" \
+		  "${gcc_install_options[@]}" \
+		  --enable-languages go \
+		  || panic "cannot install gccgo"
+	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" gccgo "$gccgo_version" || \
 	  panic "cannot configure gccgo"
 fi
