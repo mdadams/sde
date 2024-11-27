@@ -177,10 +177,11 @@ cmcstl2_version=
 apply_override()
 {
 	declare -n value="$1"
-	declare -n default="$2"
-	if [ -n "$default" ]; then
+	#declare -n default="$2"
+	local default="$2"
+	if [ -n "${!default+x}" ]; then
 		echo "WARNING: OVERRIDING VALUE OF $1"
-		value="$default"
+		value="${!default}"
 	fi
 }
 
