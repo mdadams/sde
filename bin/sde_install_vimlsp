@@ -73,14 +73,17 @@ git_download()
 {
 	local url="$1"
 	local version="$2"
-	local out_dir="$(pwd)/$(basename "$url" .git)"
+	local out_dir="$(pwd)/$(basename "$url" .git)" || return 1
 	git clone "$url" "$out_dir" || return 1
 	(cd "$out_dir" && git checkout "$version") || return 1
 }
 
-user=$(whoami) || panic "cannot get user name"
-host=$(hostname) || panic "cannot get host name"
-cur_dir=$(pwd) || panic "cannot get current directory"
+user=$(whoami) || \
+  panic "cannot get user name"
+host=$(hostname) || \
+  panic "cannot get host name"
+cur_dir=$(pwd) || \
+  panic "cannot get current directory"
 
 vimlsp_version="master"
 async_version="master"
@@ -161,7 +164,8 @@ misc_dir="$install_dir/misc"
 
 for dir in "$src_dir" "$misc_dir"; do
 	if [ ! -d "$dir" ]; then
-		mkdir -p "$dir" || panic "cannot make directory $dir"
+		mkdir -p "$dir" || \
+		  panic "cannot make directory $dir"
 	fi
 done
 
@@ -170,10 +174,14 @@ async_url="https://github.com/prabirshrestha/async.vim.git"
 ac_url="https://github.com/prabirshrestha/asyncomplete.vim.git"
 aclsp_url="https://github.com/prabirshrestha/asyncomplete-lsp.vim.git"
 
-(cd "$src_dir" && git_download "$vimlsp_url" "$vimlsp_version") || panic
-(cd "$src_dir" && git_download "$async_url" "$async_version") || panic
-(cd "$src_dir" && git_download "$ac_url" "$ac_version") || panic
-(cd "$src_dir" && git_download "$aclsp_url" "$aclsp_version") || panic
+(cd "$src_dir" && git_download "$vimlsp_url" "$vimlsp_version") || \
+  panic "git download failed vimlsp $vimlsp_url $vimlsp_version"
+(cd "$src_dir" && git_download "$async_url" "$async_version") || \
+  panic "git download failed async $async_url $async_version"
+(cd "$src_dir" && git_download "$ac_url" "$ac_version") || \
+  panic "git download failed ac $ac_url $ac_version"
+(cd "$src_dir" && git_download "$aclsp_url" "$aclsp_version") || \
+  panic "git download failed aclsp $aclsp_url $aclsp_version"
 
 #cat > "$misc_dir/vim-lsp.vim" <<- EOF
 #if exists(':LspDefinition')
@@ -198,5 +206,7 @@ if executable('clangd')
     augroup end
 endif
 EOF
-[ $? -eq 0 ] || panic
+[ $? -eq 0 ] || \
+  panic "cannot create vim-lsp.vim"
 
+exit 0
