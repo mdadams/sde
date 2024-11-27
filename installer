@@ -131,11 +131,11 @@ vimlsp_version=04428c920002ac7cfacbecacb070a8af57b455d0
 
 # Vim Async: https://github.com/prabirshrestha/async.vim.git
 # Vim Async Commits: https://github.com/prabirshrestha/async.vim/commits/master
-vimlsp_async_version=b3fbac1930be2c9cdf956f4a0346c1dd0e9abd44
+vimlsp_async_version=2082d13bb195f3203d41a308b89417426a7deca1
 
 # Vim Asyncomplete: https://github.com/prabirshrestha/asyncomplete.vim.git
 # Vim Asyncomplete commits: https://github.com/prabirshrestha/asyncomplete.vim/commits/master
-vimlsp_ac_version=b3fbac1930be2c9cdf956f4a0346c1dd0e9abd44
+vimlsp_ac_version=016590d2ca73cefe45712430e319a0ef004e2215
 
 # Vim Asyncomplete LSP: https://github.com/prabirshrestha/asyncomplete-lsp.vim.git
 # Vim Asyncomplete LSP commits: https://github.com/prabirshrestha/asyncomplete-lsp.vim/commits/master
@@ -1345,7 +1345,8 @@ if [ -n "$vimlsp_version" -a -n "$vimlsp_dir" ]; then
 		  -v "vim-lsp:$vimlsp_version" \
 		  -v "async.vim:$vimlsp_async_version" \
 		  -v "asyncomplete.vim:$vimlsp_ac_version" \
-		  -v "asyncomplete-lsp.vim:$vimlsp_aclsp_version"
+		  -v "asyncomplete-lsp.vim:$vimlsp_aclsp_version" || \
+		  panic "cannot install vimlsp"
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" vimlsp "$vimlsp_version" || \
 	  panic "cannot configure vim-lsp"
