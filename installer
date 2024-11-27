@@ -66,8 +66,8 @@ gccgo_qversion="$gcc_qversion"
 # web:$VERSION
 # git:llvmorg-$VERSION
 # git:$COMMIT
-clang_qversion=web:19.1.1
-alt_clang_qversion=git:18d655fdcce4d17080e6cb2721f93f6db856277e
+clang_qversion=web:19.1.4
+alt_clang_qversion=git:2d90af59084d842a343f9acf6ae7c1e61991873c
 
 # Musl: https://www.musl-libc.org/download.html
 # Musl Releases: https://musl.libc.org/releases.html
@@ -123,7 +123,7 @@ alt_catch_version=v3.7.1
 # Lcov: https://github.com/linux-test-project/lcov
 # Lcov Releases: https://github.com/linux-test-project/lcov/releases
 #lcov_version=v2.1 # Note: This has problems with missing dependencies.
-lcov_version=v2.1
+lcov_version=v2.2
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
 # Vim LSP Commits: https://github.com/prabirshrestha/vim-lsp/commits/master
@@ -418,17 +418,25 @@ sdebase_dir="$packages_dir/sdebase-default"
 cmake_dir="$packages_dir/cmake-$cmake_version"
 ninja_dir="$packages_dir/ninja-$ninja_version"
 
-gcc_method=$(qversion_get method "$gcc_qversion") || \
-  panic "cannot get method"
-gcc_version=$(qversion_get version "$gcc_qversion") || \
-  panic "cannot get version"
-gcc_dir="$packages_dir/gcc-$gcc_version"
+if [ -n "$gcc_qversion" ]; then
+	gcc_method=$(qversion_get method "$gcc_qversion") || \
+	  panic "cannot get method"
+	gcc_version=$(qversion_get version "$gcc_qversion") || \
+	  panic "cannot get version"
+	gcc_dir="$packages_dir/gcc-$gcc_version"
+else
+	gcc_dir=
+fi
 
-clang_method=$(qversion_get method "$clang_qversion") || \
-  panic "cannot get method"
-clang_version=$(qversion_get version "$clang_qversion") || \
-  panic "cannot get version"
-clang_dir="$packages_dir/clang-$clang_version"
+if [ -n "$clang_qversion" ]; then
+	clang_method=$(qversion_get method "$clang_qversion") || \
+	  panic "cannot get method"
+	clang_version=$(qversion_get version "$clang_qversion") || \
+	  panic "cannot get version"
+	clang_dir="$packages_dir/clang-$clang_version"
+else
+	clang_dir=
+fi
 
 boost_dir="$packages_dir/boost-$boost_version"
 texlive_dir="$packages_dir/texlive-$texlive_version"
@@ -548,18 +556,20 @@ fi
 #	fi
 #fi
 
-native_clang_version="$(get_clang_version)" || \
-  native_clang_version=
-if [ -n "$native_clang_version" ]; then
-	native_clang_major_version=$(get_version_info \
-	  "$native_clang_version" major) || \
-	  panic "cannot get version information"
-	clang_major_version=$(get_version_info "$clang_version" major) || \
-	  panic "cannot get version information"
-	if [ "$native_clang_major_version" = "$clang_major_version" ]; then
-		echo "clang $clang_major_version is already installed"
-		echo "skipping clang install to avoid possible shared library conflicts"
-		clang_version=
+if [ -n "$clang_qversion" ]; then
+	native_clang_version="$(get_clang_version)" || \
+	  native_clang_version=
+	if [ -n "$native_clang_version" ]; then
+		native_clang_major_version=$(get_version_info \
+		  "$native_clang_version" major) || \
+		  panic "cannot get version information"
+		clang_major_version=$(get_version_info "$clang_version" major) || \
+		  panic "cannot get version information"
+		if [ "$native_clang_major_version" = "$clang_major_version" ]; then
+			echo "clang $clang_major_version is already installed"
+			echo "skipping clang install to avoid possible shared library conflicts"
+			clang_version=
+		fi
 	fi
 fi
 
@@ -680,7 +690,17 @@ if [ "$sdebase_installed" -ne 0 ]; then
 		  panic "cannot link"
 	done
 
-	file_list=(c++ g++ clang++ cc gcc clang cmake ctest cpack gdb)
+	file_list=(cmake ctest cpack gdb)
+	if [ -n "$gcc_dir" -o -n "$alt_gcc_dir" ]; then
+		file_list+=(gcc g++)
+	fi
+	if [ -n "$clang_dir" -o -n "$alt_clang_dir" ]; then
+		file_list+=(clang clang++)
+	fi
+	if [ -n "$gcc_dir" -o -n "$alt_gcc_dir" -o -n "$clang_dir" -o \
+	  -n "$alt_clang_dir" ]; then
+		file_list+=(cc c++)
+	fi
 	if [ -n "$gccgo_dir" ]; then
 		file_list+=(gccgo go)
 	fi
