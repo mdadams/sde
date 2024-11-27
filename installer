@@ -415,8 +415,17 @@ alt_clang_install="${SDE_ALT_CLANG_INSTALL:-0}"
 
 generic_sdebase_dir="$packages_dir/sdebase"
 sdebase_dir="$packages_dir/sdebase-default"
-cmake_dir="$packages_dir/cmake-$cmake_version"
-ninja_dir="$packages_dir/ninja-$ninja_version"
+
+if [ -n "$cmake_version" ]; then
+	cmake_dir="$packages_dir/cmake-$cmake_version"
+else
+	cmake_dir=
+fi
+if [ -n "$ninja_dir" ]; then
+	ninja_dir="$packages_dir/ninja-$ninja_version"
+else
+	ninja_dir=
+fi
 
 if [ -n "$gcc_qversion" ]; then
 	gcc_method=$(qversion_get method "$gcc_qversion") || \
@@ -438,15 +447,44 @@ else
 	clang_dir=
 fi
 
-boost_dir="$packages_dir/boost-$boost_version"
-texlive_dir="$packages_dir/texlive-$texlive_version"
-texlive_iso_dir="$packages_dir/texlive_iso-$texlive_version"
-jasper_dir="$packages_dir/jasper-$jasper_version"
-gdb_dir="$packages_dir/gdb-$gdb_version"
-spl_dir="$packages_dir/SPL-$spl_version"
-ndiff_dir="$packages_dir/ndiff-$ndiff_version"
-aristotle_dir="$packages_dir/aristotle-$aristotle_version"
-ycm_dir="$packages_dir/ycm-$ycm_version"
+if [ -n "$boost_version" ]; then
+	boost_dir="$packages_dir/boost-$boost_version"
+fi
+if [ -n "$texlive_version" ]; then
+	texlive_dir="$packages_dir/texlive-$texlive_version"
+	texlive_iso_dir="$packages_dir/texlive_iso-$texlive_version"
+else
+	texlive_dir=
+	texlive_iso_dir=
+fi
+if [ -n "$jasper_version" ]; then
+	jasper_dir="$packages_dir/jasper-$jasper_version"
+else
+	jasper_dir=
+fi
+if [ -n "$gdb_version" ]; then
+	gdb_dir="$packages_dir/gdb-$gdb_version"
+fi
+if [ -n "$spl_version" ]; then
+	spl_dir="$packages_dir/SPL-$spl_version"
+else
+	spl_dir=
+fi
+if [ -n "$ndiff_version" ]; then
+	ndiff_dir="$packages_dir/ndiff-$ndiff_version"
+else
+	ndiff_dir=
+fi
+if [ -n "$aristotle_version" ]; then
+	aristotle_dir="$packages_dir/aristotle-$aristotle_version"
+else
+	aristotle_dir=
+fi
+if [ -n "$ycm_version" ]; then
+	ycm_dir="$packages_dir/ycm-$ycm_version"
+else
+	ycm_dir=
+fi
 
 if [ -n "$vim_qversion" ]; then
 	vim_method=$(qversion_get method "$vim_qversion") || \
@@ -458,19 +496,71 @@ else
 	vim_dir=
 fi
 
-gsl_dir="$packages_dir/gsl-$gsl_version"
-catch_dir="$packages_dir/catch-$catch_version"
-alt_catch_dir="$packages_dir/catch-$alt_catch_version"
-lcov_dir="$packages_dir/lcov-$lcov_version"
-vimlsp_dir="$packages_dir/vimlsp-$vimlsp_version"
-cgal_dir="$packages_dir/CGAL-$cgal_version"
-hub_dir="$packages_dir/hub-$hub_version"
-gh_dir="$packages_dir/gh-$gh_version"
-ghi_dir="$packages_dir/ghi-$ghi_version"
-musl_dir="$packages_dir/musl-$musl_version"
-fmtlib_dir="$packages_dir/fmtlib-$fmtlib_version"
-range_dir="$packages_dir/range-$range_version"
-cmcstl2_dir="$packages_dir/cmcstl2-$cmcstl2_version"
+if [ -n "$gsl_version" ]; then
+	gsl_dir="$packages_dir/gsl-$gsl_version"
+else
+	gsl_dir=
+fi
+if [ -n "$catch_version" ]; then
+	catch_dir="$packages_dir/catch-$catch_version"
+else
+	catch_dir=
+fi
+if [ -n "$alt_catch_version" ]; then
+	alt_catch_dir="$packages_dir/catch-$alt_catch_version"
+else
+	alt_catch_dir=
+fi
+if [ -n "$lcov_version" ]; then
+	lcov_dir="$packages_dir/lcov-$lcov_version"
+else
+	lcov_dir=
+fi
+if [ -n "$vimlsp_version" ]; then
+	vimlsp_dir="$packages_dir/vimlsp-$vimlsp_version"
+else
+	vimlsp_dir=
+fi
+if [ -n "$cgal_version" ]; then
+	cgal_dir="$packages_dir/CGAL-$cgal_version"
+else
+	cgal_dir=
+fi
+if [ -n "$hub_version" ]; then
+	hub_dir="$packages_dir/hub-$hub_version"
+else
+	hub_dir=
+fi
+if [ -n "$gh_version" ]; then
+	gh_dir="$packages_dir/gh-$gh_version"
+else
+	gh_dir=
+fi
+if [ -n "$ghi_version" ]; then
+	ghi_dir="$packages_dir/ghi-$ghi_version"
+else
+	ghi_dir=
+fi
+if [ -n "$musl_version" ]; then
+	musl_dir="$packages_dir/musl-$musl_version"
+else
+	musl_dir=
+fi
+if [ -n "$fmtlib_version" ]; then
+	fmtlib_dir="$packages_dir/fmtlib-$fmtlib_version"
+else
+	fmtlib_dir=
+fi
+if [ -n "$range_version" ]; then
+	range_dir="$packages_dir/range-$range_version"
+else
+	range_dir=
+fi
+if [ -n "$cmcstl2_version" ]; then
+	cmcstl2_dir="$packages_dir/cmcstl2-$cmcstl2_version"
+else
+	cmcstl2_dir=
+fi
 
 if [ -n "$gccgo_qversion" ]; then
 	gccgo_method=$(qversion_get method "$gccgo_qversion") || \
