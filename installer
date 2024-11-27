@@ -398,8 +398,6 @@ sde_toolchain_dir="$sde_top_dir/toolchains"
 packages_dir="$sde_top_dir/packages"
 ycm_extras_dir="$packages_dir/ycm_extras"
 
-enable_texlive_install="${SDE_TEXLIVE_INSTALL:-1}"
-
 # Set the user file-creation mask to allow read and execute permissions
 # for the group and others.
 # This will help to increase the likelihood that the installed software
@@ -413,6 +411,7 @@ umask 022
 
 alt_gcc_install="${SDE_ALT_GCC_INSTALL:-0}"
 alt_clang_install="${SDE_ALT_CLANG_INSTALL:-0}"
+enable_texlive_install="${SDE_TEXLIVE_INSTALL:-1}"
 
 generic_sdebase_dir="$packages_dir/sdebase"
 sdebase_dir="$packages_dir/sdebase-default"
@@ -1157,7 +1156,7 @@ fi
 # Install TeX Live
 ################################################################################
 
-if [ "$enable_texlive_install" -ne 0 ]; then
+if [ "$enable_texlive_install" -ne 0 -a -n "$texlive_version" ]; then
 	texlive_install_from_iso=1
 	if [ "$texlive_install_from_iso" -ne 0 ]; then
 		if [ ! -d "$texlive_iso_dir" ]; then
