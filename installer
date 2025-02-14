@@ -58,7 +58,7 @@ gcc_qversion=web:14.2.0
 alt_gcc_qversion=git:41179a3276807c6bb6d30f9bafb6b9da31320e48
 
 # GCC Go
-gccgo_qversion="$gcc_qversion"
+#gccgo_qversion="$gcc_qversion"
 #gccgo_qversion=web:11.2.0
 
 # LLVM: http://releases.llvm.org/download.html
@@ -149,7 +149,8 @@ hub_version=2.14.2
 # GitHub CLI Releases: https://github.com/cli/cli/releases
 # https://github.com/cli/cli/blob/trunk/docs/source.md
 # 2.58.0 version requires go 1.22.5
-gh_version=2.45.0 # 2.45.0+ (to at least 2.58.0) have build failures
+gh_version=2.67.0
+#gh_version=2.45.0 # 2.45.0+ (to at least 2.58.0) have build failures
 #gh_version=2.14.3 # works with go 1.16.15
 
 # GHI: https://github.com/stephencelis/ghi
@@ -636,15 +637,6 @@ fi
 if [ "${SDE_NINJA_INSTALL:-1}" -eq 0 ]; then
 	ninja_dir=
 fi
-
-#if [ -z "$gccgo_dir" ]; then
-#	if [ -n "$gh_dir" ]; then
-#		panic "cannot install gh without gccgo"
-#	fi
-#	if [ -n "$hub_dir" ]; then
-#		panic "cannot install hub without gccgo"
-#	fi
-#fi
 
 if [ -n "$clang_qversion" ]; then
 	native_clang_version="$(get_clang_version)" || \
