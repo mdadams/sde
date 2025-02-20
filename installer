@@ -89,7 +89,7 @@ spl_version=b222bdc856ac38d04ae8857218e5a0cbdaaf2121
 ndiff_version=2.00
 
 # TeX Live: https://www.tug.org/texlive/acquire.html
-texlive_version=2024
+texlive_version=2023
 
 # Boost: https://www.boost.org/users/download
 # Note: Do not upgrade Boost until CMake catches up; otherwise build problems
