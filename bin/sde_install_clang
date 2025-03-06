@@ -681,6 +681,22 @@ while [ $# -gt 0 ]; do
 		projects=()
 		runtimes=()
 		;;
+	--default-projects)
+		shift 1
+		projects=("${default_projects[@]}")
+		;;
+	--clear-projects)
+		shift 1
+		projects=()
+		;;
+	--default-runtimes)
+		shift 1
+		runtimes=("${default_runtimes[@]}")
+		;;
+	--clear-runtimes)
+		shift 1
+		runtimes=()
+		;;
 	--default-targets)
 		shift 1
 		targets=("${default_targets[@]}")
@@ -713,7 +729,6 @@ while [ $# -gt 0 ]; do
 		array_delete_list runtimes "$1"
 		shift 1
 		;;
-
 	--target)
 		shift 1
 		[ $# -gt 0 ] || usage "missing argument"
