@@ -153,6 +153,10 @@ gh_version=2.67.0
 #gh_version=2.45.0 # 2.45.0+ (to at least 2.58.0) have build failures
 #gh_version=2.14.3 # works with go 1.16.15
 
+# a2ps: https://www.gnu.org/software/a2ps
+# a2ps download: https://ftp.gnu.org/gnu/a2ps
+a2ps_version=4.15.6
+
 # GHI: https://github.com/stephencelis/ghi
 # GHI Releases: https://github.com/stephencelis/ghi/releases
 #ghi_version=1.2.0
@@ -214,6 +218,7 @@ apply_override vimlsp_ac_version SDE_INSTALL_VIMLSP_AC_VERSION
 apply_override vimlsp_aclsp_version SDE_INSTALL_VIMLSP_ACLSP_VERSION
 apply_override hub_version SDE_INSTALL_HUB_VERSION
 apply_override gh_version SDE_INSTALL_GH_VERSION
+apply_override a2ps_version SDE_INSTALL_A2PS_VERSION
 apply_override ghi_version SDE_INSTALL_GHI_VERSION
 apply_override fmtlib_version SDE_INSTALL_FMTLIB_VERSION
 apply_override range_version SDE_INSTALL_RANGE_VERSION
@@ -335,6 +340,7 @@ sde_install_vimlsp="$bin_dir/sde_install_vimlsp"
 sde_install_cgal="$bin_dir/sde_install_cgal"
 sde_install_hub="$bin_dir/sde_install_hub"
 sde_install_gh="$bin_dir/sde_install_gh"
+sde_install_a2ps="$bin_dir/sde_install_a2ps"
 sde_install_ghi="$bin_dir/sde_install_ghi"
 sde_install_musl="$bin_dir/sde_install_musl"
 sde_install_fmtlib="$bin_dir/sde_install_fmtlib"
@@ -537,6 +543,11 @@ if [ -n "$gh_version" ]; then
 else
 	gh_dir=
 fi
+if [ -n "$a2ps_version" ]; then
+	a2ps_dir="$packages_dir/a2ps-$a2ps_version"
+else
+	a2ps_dir=
+fi
 if [ -n "$ghi_version" ]; then
 	ghi_dir="$packages_dir/ghi-$ghi_version"
 else
@@ -621,6 +632,9 @@ if [ "${SDE_MUSL_INSTALL:-1}" -eq 0 ]; then
 fi
 if [ "${SDE_SPL_INSTALL:-1}" -eq 0 ]; then
 	spl_dir=
+fi
+if [ "${SDE_A2PS_INSTALL:-0}" -eq 0 ]; then
+	a2ps_dir=
 fi
 if [ "${SDE_GHI_INSTALL:-0}" -eq 0 ]; then
 	ghi_dir=
@@ -1428,6 +1442,21 @@ if [ -n "$gh_version" -a -n "$gh_dir" ]; then
 	fi
 	"$sde_cmd" pkg -d "$sde_top_dir" gh "$gh_version" || \
 	  panic "cannot configure gh"
+fi
+
+################################################################################
+# Install a2ps
+################################################################################
+
+if [ -n "$a2ps_version" -a -n "$a2ps_dir" ]; then
+	if [ ! -d "$a2ps_dir" ]; then
+		"$sde_shell" -s -x \
+		  "$sde_install_a2ps" \
+		  -v "$a2ps_version" -d "$a2ps_dir" || \
+		  panic "cannot install a2ps"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" a2ps "$a2ps_version" || \
+	  panic "cannot configure a2ps"
 fi
 
 ################################################################################

@@ -1,0 +1,164 @@
+#! /usr/bin/env bash
+
+# __START_OF_LICENSE__
+# 
+# Copyright (c) 2025 Michael D. Adams
+# All rights reserved.
+# 
+# This file is part of the SDE software.
+# 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3,
+# or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this program; see the file LICENSE.  If not,
+# see <http://www.gnu.org/licenses/>.
+# 
+# __END_OF_LICENSE__
+
+isabspath()
+{
+	case "$1" in
+	/*)
+		echo "1";;
+	*)
+		echo "0";;
+	esac
+}
+
+perform_cleanup()
+{
+	if [ -n "$tmp_dir" -a -d "$tmp_dir" ]; then
+		rm -rf "$tmp_dir" || \
+		  echo "warning: cannot remove temporary directory $tmp_dir"
+	fi
+}
+
+usage()
+{
+	echo "bad usage: $@"
+	cat <<- EOF
+	usage: $0 -v \$version -d \$install_dir
+
+	Options
+	=======
+
+	-v \$version
+	    Set the version of the software for installation to \$version.
+	-d \$install_dir
+	    Set the installation directory to \$install_dir.
+
+	Examples
+	========
+
+	$0 -v 4.15.6 -d /opt/a2ps
+	EOF
+	exit 2
+}
+
+panic()
+{
+	echo "ERROR"
+	exit 1
+}
+
+cur_dir=$(pwd) || panic "cannot get current directory"
+
+version=
+install_dir=
+
+tmp_dir_template="${SDE_TMPDIR:-/tmp}/sde_install_a2ps-XXXXXXXX"
+tmp_dir=
+cleanup=1
+
+while getopts :d:v:C option; do
+	case "$option" in
+	C)
+		cleanup=0;;
+	d)
+		install_dir="$OPTARG";;
+	v)
+		version="$OPTARG";;
+	\?)
+		usage
+		break;;
+	esac
+done
+shift $((OPTIND - 1))
+
+if [ -z "$install_dir" ]; then
+	usage "no installation directory specified"
+fi
+if [ -z "$version" ]; then
+	usage "no version specified"
+fi
+
+abs_install_dir="$install_dir"
+result="$(isabspath "$abs_install_dir")" || panic "absolute path test failed"
+if [ "$result" -eq 0 ]; then
+	abs_install_dir="$cur_dir/$abs_install_dir"
+fi
+
+# Set the user file-creation mask to allow read and execute permissions
+# for the group and others.
+# This will help to increase the likelihood that the installed software
+# will be accessible by all users.
+umask 022
+
+tmp_dir=$(mktemp -d "$tmp_dir_template") || \
+  panic "cannot create temporary directory"
+if [ "$cleanup" -ne 0 ]; then
+	trap perform_cleanup EXIT
+fi
+
+top_dir="$tmp_dir/a2ps-$version"
+archive_dir="$top_dir/archive"
+source_dir="$top_dir/src"
+
+for dir in "$top_dir" "$archive_dir" "$source_dir"; do
+	if [ ! -d "$dir" ]; then
+		mkdir -p "$dir" || panic "cannot make directory $dir"
+	fi
+done
+
+urls=()
+urls+=("https://ftp.gnu.org/gnu/a2ps/a2ps-$version.tar.gz")
+
+for url in "${urls[@]}"; do
+	echo "downloading from $url"
+	(cd "$archive_dir" && wget "$url")
+	status=$?
+	if [ "$status" -eq 0 ]; then
+		break
+	fi
+	echo "download failed from $url"
+done
+if [ "$status" -ne 0 ]; then
+	panic "cannot download archive"
+fi
+
+archive_file="$archive_dir/$(basename "$url")"
+tar -x -z -f "$archive_file" -C "$source_dir" --strip-components=1 || \
+  panic "cannot extract archive"
+
+options=()
+options+=(--prefix="$abs_install_dir")
+
+(cd "$source_dir" && ./configure "${options[@]}") || \
+  panic "configure failed"
+
+make_opts=("-j2")
+(cd "$source_dir" && make "${make_opts[@]}") || \
+  panic "make failed"
+
+(cd "$source_dir" && make install) || \
+  panic "make install failed"
+
+exit 0
