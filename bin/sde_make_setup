@@ -256,6 +256,14 @@ bash_setup()
 		echo 'export Boost_ROOT='\""$boost_root"\"';' || \
 		  return 1
 	fi
+
+	emit_python_path=1
+	if [ "$emit_python_path" -ne 0 ]; then
+		pythonpath_prefix=("${python_lib_dirs[@]}")
+		local pythonpath=("${pythonpath_prefix[@]}" "$PYTHONPATH" "${pythonpath_suffix[@]}")
+		echo 'export PYTHONPATH='\"$(join_by : ${pythonpath[@]})\"';' || \
+		  return 1
+	fi
 }
 
 ################################################################################
@@ -625,6 +633,8 @@ for dir in "${inc_path[@]}"; do
 
 done
 
+python_lib_dirs=()
+
 for dir in "${lib_path[@]}"; do
 
 	#gcc_cxx_options_suffix+=(-L "$dir")
@@ -640,6 +650,12 @@ for dir in "${lib_path[@]}"; do
 	clang_cxx_options_suffix+=(-Wl,-rpath,"$dir")
 	clang_c_options_suffix+=(-Wl,-rpath,"$dir")
 	ld_path_prefix+=("$dir")
+
+	for subdir in "$dir"/python*/site-packages; do
+		if [ -d "$subdir" ]; then
+			python_lib_dirs+=("$subdir")
+		fi
+	done
 
 done
 

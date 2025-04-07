@@ -102,7 +102,11 @@ cgal_version=6.0
 
 # Aristotle: https://github.com/mdadams/aristotle
 # Aristotle Releases: https://github.com/mdadams/aristotle/tags
-aristotle_version=v3.2.0
+#aristotle_version=v3.2.0
+aristotle_version=snapshot-2025-04-07-1510
+
+pyaristotle_version=v0.1.4
+pyaristotle_git_repo="$SDE_PYARISTOTLE_GIT_REPO"
 
 # YCM: https://github.com/Valloric/YouCompleteMe
 # YCM Commits: https://github.com/ycm-core/YouCompleteMe/commits/master
@@ -206,6 +210,7 @@ apply_override texlive_version SDE_INSTALL_TEXLIVE_VERSION
 apply_override boost_version SDE_INSTALL_BOOST_VERSION
 apply_override cgal_version SDE_INSTALL_CGAL_VERSION
 apply_override aristotle_version SDE_INSTALL_ARISTOTLE_VERSION
+apply_override pyaristotle_version SDE_INSTALL_PYARISTOTLE_VERSION
 apply_override ycm_version SDE_INSTALL_YCM_VERSION
 apply_override vim_qversion SDE_INSTALL_VIM_QVERSION
 apply_override gsl_version SDE_INSTALL_GSL_VERSION
@@ -331,6 +336,7 @@ sde_install_gdb="$bin_dir/sde_install_gdb"
 sde_install_spl="$bin_dir/sde_install_spl"
 sde_install_ndiff="$bin_dir/sde_install_ndiff"
 sde_install_aristotle="$bin_dir/sde_install_aristotle"
+sde_install_pyaristotle="$bin_dir/sde_install_pyaristotle"
 sde_install_ycm="$bin_dir/sde_install_ycm"
 sde_install_vim="$bin_dir/sde_install_vim"
 sde_install_gsl="$bin_dir/sde_install_gsl"
@@ -486,6 +492,11 @@ if [ -n "$aristotle_version" ]; then
 	aristotle_dir="$packages_dir/aristotle-$aristotle_version"
 else
 	aristotle_dir=
+fi
+if [ -n "$pyaristotle_version" -a -n "$pyaristotle_git_repo" ]; then
+	pyaristotle_dir="$packages_dir/pyaristotle-$pyaristotle_version"
+else
+	pyaristotle_dir=
 fi
 if [ -n "$ycm_version" ]; then
 	ycm_dir="$packages_dir/ycm-$ycm_version"
@@ -1311,6 +1322,17 @@ fi
 ################################################################################
 # Install Aristotle
 ################################################################################
+
+if [ -n "$pyaristotle_version" -a -n "$pyaristotle_dir" ]; then
+	if [ ! -d "$pyaristotle_dir" ]; then
+		"$sde_shell" -s -x \
+		  "$sde_install_pyaristotle" \
+		  -v "$pyaristotle_version" -d "$pyaristotle_dir" || \
+		  panic "cannot install pyaristotle"
+	fi
+	"$sde_cmd" pkg -d "$sde_top_dir" pyaristotle "$pyaristotle_version" || \
+	  panic "cannot configure pyaristotle"
+fi
 
 if [ -n "$aristotle_version" -a -n "$aristotle_dir" ]; then
 	if [ ! -d "$aristotle_dir" ]; then
