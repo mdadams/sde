@@ -42,7 +42,7 @@ function join_by
 
 # CMake: https://cmake.org/download
 # CMake: https://gitlab.kitware.com/cmake/cmake
-cmake_version=3.30.5
+cmake_version=4.0.1
 
 # Ninja: https://github.com/ninja-build/ninja
 # Ninja Releases: https://github.com/ninja-build/ninja/releases
@@ -55,7 +55,7 @@ ninja_version=v1.12.1
 # web:$VERSION
 # git:$COMMIT
 gcc_qversion=web:14.2.0
-alt_gcc_qversion=git:41179a3276807c6bb6d30f9bafb6b9da31320e48
+alt_gcc_qversion=git:00966a7fdb1478b3af5254ff3a80a3ef336c5a94
 
 # GCC Go
 #gccgo_qversion="$gcc_qversion"
@@ -66,8 +66,8 @@ alt_gcc_qversion=git:41179a3276807c6bb6d30f9bafb6b9da31320e48
 # web:$VERSION
 # git:llvmorg-$VERSION
 # git:$COMMIT
-clang_qversion=web:19.1.4
-alt_clang_qversion=git:2d90af59084d842a343f9acf6ae7c1e61991873c
+clang_qversion=web:20.1.2
+alt_clang_qversion=git:8ede3dd8a19e5bc3db5ba7f7d6b9273f88d2bbee
 
 # Musl: https://www.musl-libc.org/download.html
 # Musl Releases: https://musl.libc.org/releases.html
@@ -75,10 +75,10 @@ musl_version=1.2.5
 
 # JasPer: https://github.com/jasper-software/jasper
 # JasPer Releases: https://github.com/jasper-software/jasper/releases
-jasper_version=version-4.2.4
+jasper_version=version-4.2.5
 
 # GDB: https://www.gnu.org/software/gdb/download/
-gdb_version=15.2
+gdb_version=16.2
 
 # SPL: http://www.ece.uvic.ca/~frodo/SPL/#download
 # SPL: https://github.com/mdadams/SPL.git
@@ -94,18 +94,18 @@ texlive_version=2025
 # Boost: https://www.boost.org/users/download
 # Note: Do not upgrade Boost until CMake catches up; otherwise build problems
 # will likely result.
-boost_version=1.86.0
+boost_version=1.88.0
 
 # CGAL: https://github.com/CGAL/cgal
 # CGAL Releases: https://github.com/CGAL/cgal/releases
-cgal_version=6.0
+cgal_version=6.0.1
 
 # Aristotle: https://github.com/mdadams/aristotle
 # Aristotle Releases: https://github.com/mdadams/aristotle/tags
 #aristotle_version=v3.2.0
 aristotle_version=snapshot-2025-04-07-1510
 
-pyaristotle_version=v0.1.4
+pyaristotle_version=v0.1.5
 pyaristotle_git_repo="$SDE_PYARISTOTLE_GIT_REPO"
 
 # YCM: https://github.com/Valloric/YouCompleteMe
@@ -114,20 +114,21 @@ ycm_version=0b158e059e15fbe92b44222df2439144272a8782
 
 # Vim: https://www.vim.org/download.php
 # Vim Release Tags: https://github.com/vim/vim/tags
-vim_qversion=git:v9.1.0771
+vim_qversion=git:v9.1.1299
 
 # GSL: https://github.com/Microsoft/GSL/releases
-gsl_version=v4.0.0
+gsl_version=v4.2.0
 
 # Catch2: https://github.com/catchorg/Catch2
 # Catch2 Releases: https://github.com/catchorg/Catch2/releases
 catch_version=v2.13.10
-alt_catch_version=v3.7.1
+alt_catch_version=v3.8.1
 
 # Lcov: https://github.com/linux-test-project/lcov
 # Lcov Releases: https://github.com/linux-test-project/lcov/releases
 #lcov_version=v2.1 # Note: This has problems with missing dependencies.
-lcov_version=v2.2
+#lcov_version=v2.2
+lcov_version=v2.3.1
 
 # Vim LSP: https://github.com/prabirshrestha/vim-lsp.git
 # Vim LSP Commits: https://github.com/prabirshrestha/vim-lsp/commits/master
@@ -153,7 +154,8 @@ hub_version=2.14.2
 # GitHub CLI Releases: https://github.com/cli/cli/releases
 # https://github.com/cli/cli/blob/trunk/docs/source.md
 # 2.58.0 version requires go 1.22.5
-gh_version=2.67.0
+gh_version=2.69.0
+#gh_version=2.67.0
 #gh_version=2.45.0 # 2.45.0+ (to at least 2.58.0) have build failures
 #gh_version=2.14.3 # works with go 1.16.15
 
@@ -306,6 +308,8 @@ usage()
 	    Set the top-level directory to top_dir.
 	-e default_environment
 	    Set the default environment to default_environment.
+	-s site_setup_file
+	    Set the site setup file for sde_make_setup to site_setup_file.
 	-f
 	    Allow the use of an existing directory.
 	examples:
@@ -362,15 +366,18 @@ sde_toolchain_template="$bin_dir/compiler_toolchain.cmake"
 
 default_environment=
 force=0
-sde_top_dir=""
+sde_top_dir=
 clean=0
+site_setup_file=
 
-while getopts d:fe:c opt; do
+while getopts d:fe:cs: opt; do
 	case "$opt" in
 	d)
 		sde_top_dir="$OPTARG";;
 	e)
 		default_environment="$OPTARG";;
+	s)
+		site_setup_file="$OPTARG";;
 	c)
 		clean=1;;
 	f)
@@ -762,6 +769,12 @@ if [ ! -d "$sdebase_dir" ]; then
 		install -m a+"$mode" "$cmd_dir/$file" "$sdebase_dir/$file" || \
 		  panic "cannot install file $file"
 	done
+
+	if [ -n "$site_setup_file" ]; then
+		install -m a+r \
+		  "$site_setup_file" "$sdebase_dir/etc/environments/setup.bash" || \
+		  panic "cannot copy setup file"
+	fi
 fi
 
 ################################################################################

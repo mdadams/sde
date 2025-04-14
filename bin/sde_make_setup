@@ -264,6 +264,12 @@ bash_setup()
 		echo 'export PYTHONPATH='\"$(join_by : ${pythonpath[@]})\"';' || \
 		  return 1
 	fi
+
+	setup_file="$env_dir/setup.bash"
+	if [ -f "$setup_file" ]; then
+		#eecho "sourcing setup file"
+		source "$setup_file" || return 1
+	fi
 }
 
 ################################################################################
