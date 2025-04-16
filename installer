@@ -1484,6 +1484,9 @@ fi
 
 if [ -n "$a2ps_version" -a -n "$a2ps_dir" ]; then
 	if [ ! -d "$a2ps_dir" ]; then
+		# Note: GCC 15 uses C23 by default.  This appears to cause problems
+		# when compiling a2ps.
+		env CFLAGS="-std=gnu17" \
 		"$sde_shell" -s -x \
 		  "$sde_install_a2ps" \
 		  -v "$a2ps_version" -d "$a2ps_dir" || \
