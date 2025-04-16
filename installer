@@ -54,8 +54,8 @@ ninja_version=v1.12.1
 # https://gcc.gnu.org/pub/gcc/snapshots
 # web:$VERSION
 # git:$COMMIT
-gcc_qversion=web:14.2.0
-alt_gcc_qversion=git:00966a7fdb1478b3af5254ff3a80a3ef336c5a94
+gcc_qversion=git:00966a7fdb1478b3af5254ff3a80a3ef336c5a94
+alt_gcc_qversion=web:14.2.0
 
 # GCC Go
 #gccgo_qversion="$gcc_qversion"
@@ -102,9 +102,9 @@ cgal_version=6.0.1
 # Aristotle: https://github.com/mdadams/aristotle
 # Aristotle Releases: https://github.com/mdadams/aristotle/tags
 #aristotle_version=v3.2.0
-aristotle_version=snapshot-2025-04-07-1510
+aristotle_version=snapshot-2025-04-19-1940
 
-pyaristotle_version=v0.1.5
+pyaristotle_version=v0.1.8
 pyaristotle_git_repo="$SDE_PYARISTOTLE_GIT_REPO"
 
 # YCM: https://github.com/Valloric/YouCompleteMe
