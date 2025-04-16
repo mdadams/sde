@@ -635,20 +635,71 @@ if [ -n "$SDE_ALT_CLANG_INSTALL_OPTIONS" ]; then
 	alt_clang_install_options+=($SDE_ALT_CLANG_INSTALL_OPTIONS)
 fi
 
+if [ "${SDE_CMAKE_INSTALL:-1}" -eq 0 ]; then
+	cmake_dir=
+fi
+if [ "${SDE_NINJA_INSTALL:-1}" -eq 0 ]; then
+	ninja_dir=
+fi
+# gcc?
+if [ "${SDE_GCCGO_INSTALL:-1}" -eq 0 ]; then
+	gccgo_dir=
+fi
+# clang?
+if [ "${SDE_MUSL_INSTALL:-1}" -eq 0 ]; then
+	musl_dir=
+fi
+if [ "${SDE_JASPER_INSTALL:-1}" -eq 0 ]; then
+	jasper_dir=
+fi
+if [ "${SDE_GDB_INSTALL:-1}" -eq 0 ]; then
+	gdb_dir=
+fi
+if [ "${SDE_SPL_INSTALL:-1}" -eq 0 ]; then
+	spl_dir=
+fi
+if [ "${SDE_NDIFF_INSTALL:-1}" -eq 0 ]; then
+	ndiff_dir=
+fi
+# texlive?
+if [ "${SDE_BOOST_INSTALL:-1}" -eq 0 ]; then
+	boost_dir=
+fi
+if [ "${SDE_CGAL_INSTALL:-1}" -eq 0 ]; then
+	cgal_dir=
+fi
+if [ "${SDE_ARISTOTLE_INSTALL:-1}" -eq 0 ]; then
+	aristotle_dir=
+fi
+if [ "${SDE_PYARISTOTLE_INSTALL:-1}" -eq 0 ]; then
+	pyaristotle_dir=
+fi
+if [ "${SDE_YCM_INSTALL:-1}" -eq 0 ]; then
+	ycm_dir=
+fi
 if [ "${SDE_VIM_INSTALL:-1}" -eq 0 ]; then
 	vim_dir=
 fi
-if [ "${SDE_CGAL_INSTALL:-0}" -eq 0 ]; then
-	cgal_dir=
+if [ "${SDE_GSL_INSTALL:-1}" -eq 0 ]; then
+	gsl_dir=
+fi
+if [ "${SDE_CATCH_INSTALL:-1}" -eq 0 ]; then
+	catch_dir=
+fi
+if [ "${SDE_ALT_CATCH_INSTALL:-1}" -eq 0 ]; then
+	alt_catch_dir=
+fi
+if [ "${SDE_LCOV_INSTALL:-1}" -eq 0 ]; then
+	lcov_dir=
+fi
+if [ "${SDE_VIMLSP_INSTALL:-1}" -eq 0 ]; then
+	vimlsp_dir=
 fi
 if [ "${SDE_HUB_INSTALL:-0}" -eq 0 ]; then
 	hub_dir=
 fi
-if [ "${SDE_MUSL_INSTALL:-1}" -eq 0 ]; then
-	musl_dir=
-fi
-if [ "${SDE_SPL_INSTALL:-1}" -eq 0 ]; then
-	spl_dir=
+if [ "${SDE_GH_INSTALL:-1}" -eq 0 ]; then
+	gh_dir=
 fi
 if [ "${SDE_A2PS_INSTALL:-0}" -eq 0 ]; then
 	a2ps_dir=
@@ -656,18 +707,9 @@ fi
 if [ "${SDE_GHI_INSTALL:-0}" -eq 0 ]; then
 	ghi_dir=
 fi
-if [ "${SDE_GH_INSTALL:-1}" -eq 0 ]; then
-	gh_dir=
-fi
-if [ "${SDE_GCCGO_INSTALL:-1}" -eq 0 ]; then
-	gccgo_dir=
-fi
-if [ "${SDE_YCM_INSTALL:-1}" -eq 0 ]; then
-	ycm_dir=
-fi
-if [ "${SDE_NINJA_INSTALL:-1}" -eq 0 ]; then
-	ninja_dir=
-fi
+# fmtlib
+# range
+# cmcstl2
 
 if [ -n "$clang_qversion" ]; then
 	native_clang_version="$(get_clang_version)" || \
@@ -1286,7 +1328,7 @@ if [ -n "$gsl_version" -a -n "$gsl_dir" ]; then
 fi
 
 ################################################################################
-# Install Catch2
+# Install Catch2 (Primary Version)
 ################################################################################
 
 if [ -n "$catch_version" -a -n "$catch_dir" ]; then
@@ -1298,6 +1340,10 @@ if [ -n "$catch_version" -a -n "$catch_dir" ]; then
 	"$sde_cmd" pkg -d "$sde_top_dir" catch "$catch_version" || \
 	  panic "cannot configure Catch"
 fi
+
+################################################################################
+# Install Catch2 (Alternate Version)
+################################################################################
 
 if [ -n "$alt_catch_version" -a -n "$alt_catch_dir" ]; then
 	if [ ! -d "$alt_catch_dir" ]; then
@@ -1332,7 +1378,7 @@ if [ -n "$ndiff_version" -a -n "$ndiff_dir" ]; then
 fi
 
 ################################################################################
-# Install Aristotle
+# Install Pyaristotle
 ################################################################################
 
 if [ -n "$pyaristotle_version" -a -n "$pyaristotle_dir" ]; then
@@ -1345,6 +1391,10 @@ if [ -n "$pyaristotle_version" -a -n "$pyaristotle_dir" ]; then
 	"$sde_cmd" pkg -d "$sde_top_dir" pyaristotle "$pyaristotle_version" || \
 	  panic "cannot configure pyaristotle"
 fi
+
+################################################################################
+# Install Aristotle
+################################################################################
 
 if [ -n "$aristotle_version" -a -n "$aristotle_dir" ]; then
 	if [ ! -d "$aristotle_dir" ]; then
