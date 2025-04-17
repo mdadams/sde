@@ -434,18 +434,6 @@ sdebase_dir="$packages_dir/sdebase-default"
 
 ################################################################################
 
-if [ -n "$cmake_version" -a "${SDE_CMAKE_INSTALL:-1}" -ne 0 ]; then
-	cmake_dir="$packages_dir/cmake-$cmake_version"
-else
-	cmake_dir=
-fi
-
-if [ -n "$ninja_dir" -a "${SDE_NINJA_INSTALL:-1}" -ne 0 ]; then
-	ninja_dir="$packages_dir/ninja-$ninja_version"
-else
-	ninja_dir=
-fi
-
 if [ -n "$gcc_qversion" -a "${SDE_GCC_INSTALL:-1}" -ne 0 ]; then
 	gcc_method=$(qversion_get method "$gcc_qversion") || \
 	  panic "cannot get method"
@@ -465,6 +453,16 @@ if [ -n "$alt_gcc_qversion" -a "$alt_gcc_install" -ne 0 ]; then
 	alt_gcc_dir="$packages_dir/gcc-$alt_gcc_version"
 else
 	alt_gcc_dir=
+fi
+
+if [ -n "$gccgo_qversion" -a "${SDE_GCCGO_INSTALL:-1}" -ne 0 ]; then
+	gccgo_method=$(qversion_get method "$gccgo_qversion") || \
+	  panic "cannot get method"
+	gccgo_version=$(qversion_get version "$gccgo_qversion") || \
+	  panic "cannot get version"
+	gccgo_dir="$packages_dir/gccgo-$gccgo_version"
+else
+	gccgo_dir=
 fi
 
 if [ -n "$clang_qversion" ]; then
@@ -504,9 +502,22 @@ else
 	alt_clang_dir=
 fi
 
+if [ -n "$cmake_version" -a "${SDE_CMAKE_INSTALL:-1}" -ne 0 ]; then
+	cmake_dir="$packages_dir/cmake-$cmake_version"
+else
+	cmake_dir=
+fi
+
+if [ -n "$ninja_dir" -a "${SDE_NINJA_INSTALL:-1}" -ne 0 ]; then
+	ninja_dir="$packages_dir/ninja-$ninja_version"
+else
+	ninja_dir=
+fi
+
 if [ -n "$boost_version" -a "${SDE_BOOST_INSTALL:-1}" -ne 0 ]; then
 	boost_dir="$packages_dir/boost-$boost_version"
 fi
+
 enable_texlive_install="${SDE_TEXLIVE_INSTALL:-1}"
 if [ -n "$texlive_version" -a "$enable_texlive_install" -ne 0 ]; then
 	texlive_dir="$packages_dir/texlive-$texlive_version"
@@ -515,42 +526,50 @@ else
 	texlive_dir=
 	texlive_iso_dir=
 fi
+
 if [ -n "$jasper_version" -a "${SDE_JASPER_INSTALL:-1}" -ne 0 ]; then
 	jasper_dir="$packages_dir/jasper-$jasper_version"
 else
 	jasper_dir=
 fi
+
 if [ -n "$gdb_version" -a "${SDE_GDB_INSTALL:-1}" -ne 0 ]; then
 	gdb_dir="$packages_dir/gdb-$gdb_version"
 else
 	gdb_dir=
 fi
+
 if [ -n "$spl_version" -a "${SDE_SPL_INSTALL:-1}" -ne 0 ]; then
 	spl_dir="$packages_dir/SPL-$spl_version"
 else
 	spl_dir=
 fi
+
 if [ -n "$ndiff_version" -a "${SDE_NDIFF_INSTALL:-1}" -ne 0 ]; then
 	ndiff_dir="$packages_dir/ndiff-$ndiff_version"
 else
 	ndiff_dir=
 fi
+
 if [ -n "$aristotle_version" -a "${SDE_ARISTOTLE_INSTALL:-1}" -ne 0 ]; then
 	aristotle_dir="$packages_dir/aristotle-$aristotle_version"
 else
 	aristotle_dir=
 fi
+
 if [ -n "$pyaristotle_version" -a -n "$pyaristotle_git_repo" -a \
   "${SDE_PYARISTOTLE_INSTALL:-1}" -ne 0 ]; then
 	pyaristotle_dir="$packages_dir/pyaristotle-$pyaristotle_version"
 else
 	pyaristotle_dir=
 fi
+
 if [ -n "$ycm_version" -a "${SDE_YCM_INSTALL:-1}" -ne 0 ]; then
 	ycm_dir="$packages_dir/ycm-$ycm_version"
 else
 	ycm_dir=
 fi
+
 if [ -n "$vim_qversion" -a "${SDE_VIM_INSTALL:-1}" -ne 0 ]; then
 	vim_method=$(qversion_get method "$vim_qversion") || \
 	  panic "cannot get method"
@@ -560,84 +579,89 @@ if [ -n "$vim_qversion" -a "${SDE_VIM_INSTALL:-1}" -ne 0 ]; then
 else
 	vim_dir=
 fi
+
 if [ -n "$gsl_version" -a "${SDE_GSL_INSTALL:-1}" -ne 0 ]; then
 	gsl_dir="$packages_dir/gsl-$gsl_version"
 else
 	gsl_dir=
 fi
+
 if [ -n "$catch_version" -a "${SDE_CATCH_INSTALL:-1}" -ne 0 ]; then
 	catch_dir="$packages_dir/catch-$catch_version"
 else
 	catch_dir=
 fi
+
 if [ -n "$alt_catch_version" -a "${SDE_ALT_CATCH_INSTALL:-1}" -ne 0 ]; then
 	alt_catch_dir="$packages_dir/catch-$alt_catch_version"
 else
 	alt_catch_dir=
 fi
+
 if [ -n "$lcov_version" -a "${SDE_LCOV_INSTALL:-1}" -ne 0 ]; then
 	lcov_dir="$packages_dir/lcov-$lcov_version"
 else
 	lcov_dir=
 fi
+
 if [ -n "$vimlsp_version" -a "${SDE_VIMLSP_INSTALL:-1}" -ne 0 ]; then
 	vimlsp_dir="$packages_dir/vimlsp-$vimlsp_version"
 else
 	vimlsp_dir=
 fi
+
 if [ -n "$cgal_version" -a "${SDE_CGAL_INSTALL:-1}" -ne 0 ]; then
 	cgal_dir="$packages_dir/CGAL-$cgal_version"
 else
 	cgal_dir=
 fi
+
 if [ -n "$hub_version" -a "${SDE_HUB_INSTALL:-0}" -ne 0 ]; then
 	hub_dir="$packages_dir/hub-$hub_version"
 else
 	hub_dir=
 fi
+
 if [ -n "$gh_version" -a "${SDE_GH_INSTALL:-1}" -ne 0 ]; then
 	gh_dir="$packages_dir/gh-$gh_version"
 else
 	gh_dir=
 fi
+
 if [ -n "$a2ps_version" -a "${SDE_A2PS_INSTALL:-0}" -ne 0 ]; then
 	a2ps_dir="$packages_dir/a2ps-$a2ps_version"
 else
 	a2ps_dir=
 fi
+
 if [ -n "$ghi_version" -a "${SDE_GHI_INSTALL:-0}" -ne 0 ]; then
 	ghi_dir="$packages_dir/ghi-$ghi_version"
 else
 	ghi_dir=
 fi
+
 if [ -n "$musl_version" -a "${SDE_MUSL_INSTALL:-1}" -ne 0 ]; then
 	musl_dir="$packages_dir/musl-$musl_version"
 else
 	musl_dir=
 fi
+
 if [ -n "$fmtlib_version" -a "${SDE_FMTLIB_INSTALL:-1}" -ne 0 ]; then
 	fmtlib_dir="$packages_dir/fmtlib-$fmtlib_version"
 else
 	fmtlib_dir=
 fi
+
 if [ -n "$range_version" -a "${SDE_RANGE_INSTALL:-1}" -ne 0 ]; then
 	range_dir="$packages_dir/range-$range_version"
 else
 	range_dir=
 fi
+
 if [ -n "$cmcstl2_version" -a "${SDE_CMCSTL2_INSTALL:-1}" -ne 0 ]; then
 	cmcstl2_dir="$packages_dir/cmcstl2-$cmcstl2_version"
 else
 	cmcstl2_dir=
-fi
-if [ -n "$gccgo_qversion" -a "${SDE_GCCGO_INSTALL:-1}" -ne 0 ]; then
-	gccgo_method=$(qversion_get method "$gccgo_qversion") || \
-	  panic "cannot get method"
-	gccgo_version=$(qversion_get version "$gccgo_qversion") || \
-	  panic "cannot get version"
-	gccgo_dir="$packages_dir/gccgo-$gccgo_version"
-else
-	gccgo_dir=
 fi
 
 ################################################################################
