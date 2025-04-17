@@ -82,7 +82,7 @@ gdb_version=16.2
 
 # SPL: http://www.ece.uvic.ca/~frodo/SPL/#download
 # SPL: https://github.com/mdadams/SPL.git
-spl_version=0d3edce54eea877c01b04a7c9e2f35a0d767531f
+spl_version=e9b691b2bae8926158fca545fbb33f15985a65d5
 
 # Ndiff: ???
 ndiff_version=2.00
