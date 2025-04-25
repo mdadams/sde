@@ -54,8 +54,8 @@ ninja_version=v1.12.1
 # https://gcc.gnu.org/pub/gcc/snapshots
 # web:$VERSION
 # git:$COMMIT
-#gcc_qversion=web:15.1.0
-gcc_qversion=git:00966a7fdb1478b3af5254ff3a80a3ef336c5a94
+gcc_qversion=web:15.1.0
+#gcc_qversion=git:00966a7fdb1478b3af5254ff3a80a3ef336c5a94
 alt_gcc_qversion=web:14.2.0
 
 # GCC Go
@@ -106,7 +106,7 @@ cgal_version=6.0.1
 aristotle_version=snapshot-2025-04-19-1940
 
 # Pyaristotle
-pyaristotle_version=v0.2.2
+pyaristotle_version=v0.3.1
 pyaristotle_git_repo="$SDE_PYARISTOTLE_GIT_REPO"
 
 # YCM: https://github.com/Valloric/YouCompleteMe
