@@ -103,7 +103,7 @@ cgal_version=6.0.1
 # Aristotle: https://github.com/mdadams/aristotle
 # Aristotle Releases: https://github.com/mdadams/aristotle/tags
 #aristotle_version=v3.2.0
-aristotle_version=snapshot-2025-04-19-1940
+aristotle_version=snapshot-2025-05-05-0750
 
 # Pyaristotle
 pyaristotle_version=v0.3.3
