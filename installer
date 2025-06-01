@@ -103,10 +103,10 @@ cgal_version=6.0.1
 # Aristotle: https://github.com/mdadams/aristotle
 # Aristotle Releases: https://github.com/mdadams/aristotle/tags
 #aristotle_version=v3.2.0
-aristotle_version=snapshot-2025-05-05-0750
+aristotle_version=snapshot-2025-06-01-0710
 
 # Pyaristotle
-pyaristotle_version=v0.7.1
+pyaristotle_version=v0.8.0
 pyaristotle_git_repo="$SDE_PYARISTOTLE_GIT_REPO"
 
 # YCM: https://github.com/Valloric/YouCompleteMe
