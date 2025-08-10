@@ -184,6 +184,8 @@ print_array()
 # Functions
 ################################################################################
 
+# Note: This was only needed with the older naming conventions for the
+# release artifacts.
 version_to_version_id()
 {
 	local version="$1"
@@ -906,7 +908,8 @@ else
 	git_dir="$top_dir/git"
 fi
 
-version_id="$(version_to_version_id "$version")" || panic
+#version_id="$(version_to_version_id "$version")" || panic
+version_id="$version"
 
 github_archive_url="$github_archive_base_url/llvmorg-$version/llvm-project-$version_id.src.tar.xz"
 
